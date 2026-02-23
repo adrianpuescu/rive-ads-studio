@@ -1,0 +1,130 @@
+Using the project rules in .cursorrules as your guide, implement the following.
+
+## Task
+Build the core Rive rendering hook that takes an AdSpec and applies all its slots
+to a live Rive instance on a canvas.
+
+## Files to create
+1. src/types/ad-spec.schema.ts
+2. src/lib/templateRegistry.ts
+3. src/lib/riveApplier.ts
+4. src/hooks/useAdSpecRenderer.ts
+5. src/components/AdCanvas.tsx
+
+---
+
+## 1. src/types/ad-spec.schema.ts
+Paste in the AdSpec schema exactly as defined in .cursorrules.
+No changes to field names or types.
+
+---
+
+## 2. src/lib/templateRegistry.ts
+A simple registry that maps template IDs to their .riv file paths.
+
+export const TEMPLATE_REGISTRY: Record<string, string> = {
+  'test-template': '/templates/test-template.riv',
+  // future templates added here
+};
+
+export function getTemplatePath(templateId: string): string {
+  const path = TEMPLATE_REGISTRY[templateId];
+  if (!path) throw new Error(`Unknown template ID: "${templateId}"`);
+  return path;
+}
+
+---
+
+## 3. src/lib/riveApplier.ts
+A pure utility — no React, no hooks. Takes a live Rive instance and an AdSpec,
+and applies all slots to it. Called after the Rive onLoad fires.
+
+import { Rive, decodeImage, decodeFont } from '@rive-app/canvas';
+import type { AdSpec } from '../types/ad-spec.schema';
+
+export async function applyAdSpec(rive: Rive, spec: AdSpec): Promise<void>
+
+Implement in this order:
+1. TEXT — iterate spec.text, call setTextRunValue for each defined slot.
+   Use the slot key uppercased as the run name: e.g. headline → "TEXT_HEADLINE".
+   Also apply spec.text.custom if present.
+
+2. STATE MACHINE INPUTS — get inputs via rive.stateMachineInputs(spec.template.stateMachine).
+   Apply spec.stateInputs.speed, intensity as number inputs by name.
+   Apply spec.stateInputs.mood as a boolean input: find input named `mood_${spec.stateInputs.mood}` and set to true.
+   Apply spec.stateInputs.custom entries by name.
+   Gracefully skip any input that doesn't exist in the SM (no throw — just console.warn).
+
+3. COLORS — not handled in this file. Add a comment:
+   // COLOR SLOTS: applied via low-level API in a separate colorApplier.ts (future task)
+
+4. ASSETS — not handled in this hook. Add a comment:
+   // ASSET SLOTS: applied via assetLoader callback at Rive instantiation time (future task)
+
+---
+
+## 4. src/hooks/useAdSpecRenderer.ts
+A React hook. Signature:
+
+import type { AdSpec } from '../types/ad-spec.schema';
+import type { RefObject } from 'react';
+
+interface UseAdSpecRendererResult {
+  isLoading: boolean;
+  error: Error | null;
+  riveInstance: Rive | null;
+}
+
+export function useAdSpecRenderer(
+  spec: AdSpec | null,
+  canvasRef: RefObject<HTMLCanvasElement>
+): UseAdSpecRendererResult
+
+Implementation notes:
+- Use @rive-app/canvas (not the advanced package — colors come later).
+- Use useRive from @rive-app/react-canvas is NOT appropriate here because we need
+  manual control over when applyAdSpec fires. Instantiate Rive directly.
+- On mount (or when spec changes): instantiate Rive with src from getTemplatePath,
+  artboard and stateMachine from spec.template, autoplay: true.
+- In onLoad callback: call resizeDrawingSurfaceToCanvas(), then call applyAdSpec(riveInstance, spec).
+  applyAdSpec is async — handle its promise with .catch(setError).
+- On unmount or spec change: call riveInstance.cleanup() to prevent WASM memory leaks.
+- Manage isLoading (true until onLoad fires) and error state.
+- If spec is null, return { isLoading: false, error: null, riveInstance: null } immediately.
+
+---
+
+## 5. src/components/AdCanvas.tsx
+A thin wrapper component. Renders a <canvas> and wires it to the hook.
+
+Props:
+interface AdCanvasProps {
+  spec: AdSpec;
+  width: number;
+  height: number;
+  className?: string;
+}
+
+- Create a canvasRef with useRef<HTMLCanvasElement>(null).
+- Call useAdSpecRenderer(spec, canvasRef).
+- Render a relative-positioned div wrapper containing:
+  - The <canvas ref={canvasRef} width={width} height={height} />
+  - If isLoading: a centered loading indicator (simple text "Generating..." is fine for now)
+  - If error: a centered error message showing error.message
+
+---
+
+## Acceptance criteria
+- Zero TypeScript errors in strict mode.
+- Rive instance is always cleaned up on unmount.
+- applyAdSpec never throws — only console.warns on missing SM inputs.
+- No hardcoded template paths outside templateRegistry.ts.
+- Each file is under 200 lines.
+
+## Test
+After implementing, also create src/components/AdCanvasDemo.tsx:
+A hardcoded demo component that constructs a minimal valid AdSpec pointing to
+template id "test-template", artboard "default" (we'll rename once we have a
+real .riv), stateMachine "State Machine 1", with a headline "Hello Rive" and
+primary color "#e84b2a". Render <AdCanvas spec={demoSpec} width={728} height={90} />.
+Wire AdCanvasDemo into App.tsx so it renders on the dev server.
