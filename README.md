@@ -13,6 +13,7 @@ HTML/JS embeddable ad units, MP4/GIF video, and static image fallbacks.
 - Claude API (Anthropic) — AI spec generation
 
 ## Project structure
+```
 src/
   types/         # AdSpec schema — the core data contract
   hooks/         # useAdSpecRenderer — Rive lifecycle management
@@ -20,6 +21,7 @@ src/
   components/    # AdCanvas, AdCanvasDemo — React UI
 public/
   templates/     # .riv template files (binary — do not edit as text)
+```
 
 ## Getting started
 npm install
