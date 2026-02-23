@@ -30,7 +30,7 @@ npm run dev
 ## Architecture
 User prompt → Claude API → AdSpec JSON → Rive runtime → live ad preview → export
 
-See /docs for full design specification and technical decisions.
+See /public/docs for full design specification and technical decisions.
 
 ## Status
 Technical spike complete. Core AdSpec → Rive rendering pipeline validated.

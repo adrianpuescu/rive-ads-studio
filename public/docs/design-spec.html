@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<!-- saved from url=(0061)file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiveAds Studio — Design Specification</title>
+<link href="./design-spec_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0c0a;
+    --paper: #f5f0e8;
+    --accent: #e84b2a;
+    --accent2: #2a6be8;
+    --muted: #8a8070;
+    --rule: #d4cec0;
+    --card: #fdfaf4;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --serif: 'Fraunces', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+  .doc-meta {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  /* NAV */
+  .toc {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.75rem 3rem;
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    background: var(--paper);
+    position: sticky;
+    top: 85px;
+    z-index: 99;
+  }
+  .toc-link {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 2px;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .toc-link:hover, .toc-link.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 4rem 3rem 6rem; }
+
+  /* HERO SECTION */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 4rem;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 4rem;
+  }
+  .hero-left h1 {
+    font-family: var(--serif);
+    font-size: 4.5rem;
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .hero-left h1 em { color: var(--accent); font-style: italic; }
+  .hero-left p {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 38ch;
+    line-height: 1.7;
+  }
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stat-label { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-value { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
+  .tag {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tag.accent { background: var(--accent); }
+  .tag.blue { background: var(--accent2); }
+
+  /* SECTIONS */
+  section {
+    margin-bottom: 5rem;
+    scroll-margin-top: 150px;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-number {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding-top: 0.15rem;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: 2.2rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* OVERVIEW PILLS */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .overview-card {
+    border: 1.5px solid var(--rule);
+    padding: 1.5rem;
+    background: var(--card);
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+  .overview-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .oc-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
+  .oc-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  .oc-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+  /* USER FLOW */
+  .flow-container { display: flex; flex-direction: column; gap: 0; }
+  .flow-step {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .flow-step-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1.5rem;
+  }
+  .step-dot {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .flow-step:hover .step-dot, .flow-step.active .step-dot { background: var(--accent); }
+  .step-line {
+    width: 1px;
+    flex: 1;
+    background: var(--rule);
+    min-height: 2rem;
+  }
+  .flow-step-right {
+    border-bottom: 1px solid var(--rule);
+    padding: 1.5rem 0;
+  }
+  .flow-step:last-child .flow-step-right { border-bottom: none; }
+  .step-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .step-subtitle { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 0.75rem; }
+  .step-detail {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s;
+    opacity: 0;
+  }
+  .flow-step.active .step-detail { max-height: 300px; opacity: 1; }
+  .step-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
+
+  /* FEATURE MATRIX */
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .matrix-table th {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--ink);
+    white-space: nowrap;
+  }
+  .matrix-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .matrix-table tr:hover td { background: var(--card); }
+  .priority {
+    display: inline-block;
+    width: 0.5rem; height: 0.5rem;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  .p-must { background: var(--accent); }
+  .p-should { background: var(--accent2); }
+  .p-could { background: var(--muted); }
+  .feature-name { font-weight: 600; display: flex; align-items: center; }
+  .phase-badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* SCREENS */
+  .screens-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .screen-card {
+    border: 1.5px solid var(--rule);
+    background: var(--card);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .screen-card:hover { border-color: var(--accent2); }
+  .screen-preview {
+    height: 180px;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sp-onboarding { background: linear-gradient(135deg, #0d0c0a 60%, #1a1612); }
+  .sp-editor { background: linear-gradient(135deg, #0a1220 60%, #0d1a30); }
+  .sp-library { background: linear-gradient(135deg, #12100a 60%, #1e1a10); }
+  .sp-export { background: linear-gradient(135deg, #0a120a 60%, #0d1e0d); }
+
+  .mock-ui {
+    width: 85%;
+    height: 75%;
+    position: relative;
+  }
+  /* Onboarding mock */
+  .mock-chat-input {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 28px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .mock-chat-input::after {
+    content: '';
+    width: 6px; height: 12px;
+    background: var(--accent);
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .mock-chat-label {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: rgba(255,255,255,0.4);
+  }
+  .mock-chat-bubbles {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    bottom: 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-bottom: 6px;
+  }
+  .bubble {
+    height: 12px;
+    border-radius: 8px;
+    opacity: 0.6;
+  }
+  .bubble-user { background: var(--accent); width: 60%; align-self: flex-end; }
+  .bubble-ai { background: rgba(255,255,255,0.25); width: 80%; }
+  .bubble-ai.short { width: 50%; }
+
+  /* Editor mock */
+  .mock-editor-layout {
+    display: grid;
+    grid-template-columns: 0.7fr 1fr 0.6fr;
+    gap: 3px;
+    height: 100%;
+  }
+  .mock-panel {
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+  }
+  .mock-canvas {
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mock-canvas-inner {
+    width: 55%;
+    height: 65%;
+    background: rgba(42,107,232,0.3);
+    border: 1px solid rgba(42,107,232,0.6);
+    border-radius: 1px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mock-rive-anim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(232,75,42,0.4) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+  /* Library mock */
+  .mock-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+    padding: 8px;
+    width: 100%;
+    height: 100%;
+  }
+  .mock-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    aspect-ratio: 1.5;
+  }
+  .mock-thumb:nth-child(2) { background: rgba(232,75,42,0.3); }
+  .mock-thumb:nth-child(5) { background: rgba(42,107,232,0.3); }
+
+  /* Export mock */
+  .mock-export-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    width: 100%;
+  }
+  .mock-export-item {
+    height: 22px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+  }
+  .mock-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .mock-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.2); flex: 1; }
+  .mock-bar.done { background: rgba(42,232,100,0.5); }
+
+  .screen-info { padding: 1.25rem 1.5rem; }
+  .screen-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .screen-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.6; }
+
+  /* TECH STACK */
+  .tech-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .tech-item {
+    border: 1px solid var(--rule);
+    padding: 1.25rem;
+    background: var(--card);
+    transition: all 0.2s;
+  }
+  .tech-item:hover { border-color: var(--ink); }
+  .tech-cat { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+  .tech-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .tech-why { font-size: 0.8rem; color: var(--muted); }
+
+  /* OPEN QUESTIONS */
+  .questions-list { display: flex; flex-direction: column; gap: 0; }
+  .question-item {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+  }
+  .q-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    padding-top: 0.15rem;
+  }
+  .q-text { font-size: 0.92rem; line-height: 1.6; }
+  .q-context { font-size: 0.82rem; color: var(--muted); margin-top: 0.35rem; }
+
+  /* MILESTONES */
+  .milestone-track {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1.5px solid var(--ink);
+  }
+  .milestone {
+    padding: 1.75rem;
+    border-right: 1px solid var(--rule);
+    transition: background 0.2s;
+    cursor: default;
+  }
+  .milestone:last-child { border-right: none; }
+  .milestone:hover { background: var(--card); }
+  .m-phase { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+  .m-name { font-family: var(--serif); font-size: 1.4rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .m-items { display: flex; flex-direction: column; gap: 0.4rem; }
+  .m-item { font-size: 0.83rem; color: var(--muted); display: flex; gap: 0.5rem; align-items: baseline; }
+  .m-item::before { content: '—'; color: var(--rule); flex-shrink: 0; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  /* FOOTER */
+  footer {
+    border-top: 2px solid var(--ink);
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-brand { font-family: var(--serif); font-size: 1.1rem; font-style: italic; color: var(--muted); }
+  .footer-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 800px) {
+    header { padding: 1.25rem; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+    .toc { padding: 0.5rem 1.25rem; top: 120px; }
+    main { padding: 2rem 1.25rem; }
+    .hero { grid-template-columns: 1fr; }
+    .hero-left h1 { font-size: 3rem; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .screens-grid { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: 1fr 1fr; }
+    .milestone-track { grid-template-columns: 1fr; }
+    .milestone { border-right: none; border-bottom: 1px solid var(--rule); }
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  section { animation: fadeIn 0.5s ease both; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Rive<span>Ads</span> Studio</div>
+  <div class="doc-meta">
+    Design Specification v0.1<br>
+    Status: Draft · Feb 2026<br>
+    Classification: Internal
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#overview" class="toc-link active">Overview</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#users" class="toc-link">Users</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#userflow" class="toc-link">User Flow</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#features" class="toc-link">Features</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#screens" class="toc-link">Screens</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#tech" class="toc-link">Tech Stack</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#milestones" class="toc-link">Milestones</a>
+  <a href="file:///Users/adrianpuescu/Downloads/rive-ad-studio-spec.html#questions" class="toc-link">Open Questions</a>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Artistic ads,<br><em>AI-made.</em></h1>
+      <p>An AI-powered creative studio for brands who want online advertising to feel like art — built on Rive's expressive animation engine, guided by natural language.</p>
+    </div>
+    <div class="hero-right">
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Product Type</div>
+          <div class="stat-value">Web Application</div>
+        </div>
+        <span class="tag">SaaS</span>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Primary Output</div>
+          <div class="stat-value">HTML/JS Ad Units + Video + Static</div>
+        </div>
+        <span class="tag accent">3 Formats</span>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Core Engine</div>
+          <div class="stat-value">Rive Animation Runtime</div>
+        </div>
+        <span class="tag blue">API</span>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">AI Creation Mode</div>
+          <div class="stat-value">Chat Prompt + Guided Wizard</div>
+        </div>
+        <span class="tag">Both</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>Product Overview</h2>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-card">
+        <div class="oc-icon">🎨</div>
+        <div class="oc-title">Art-first philosophy</div>
+        <div class="oc-desc">Unlike performance-focused ad tools, RiveAds prioritizes aesthetic quality and creative expression. Brands get ads that feel designed, not generated.</div>
+      </div>
+      <div class="overview-card">
+        <div class="oc-icon">🤖</div>
+        <div class="oc-title">AI as creative partner</div>
+        <div class="oc-desc">AI handles the heavy lifting — layout, animation logic, copy — while always leaving the door open for manual control at every level.</div>
+      </div>
+      <div class="overview-card">
+        <div class="oc-icon">⚡</div>
+        <div class="oc-title">Rive-native output</div>
+        <div class="oc-desc">Built around Rive's runtime for buttery-smooth, interactive, hardware-accelerated animations. Outputs embed cleanly in any web environment.</div>
+      </div>
+      <div class="overview-card">
+        <div class="oc-icon">📦</div>
+        <div class="oc-title">Multi-format export</div>
+        <div class="oc-desc">One creation → three deployable formats: HTML/JS ad unit, MP4/GIF video, and a static image fallback for legacy placements.</div>
+      </div>
+      <div class="overview-card">
+        <div class="oc-icon">🔧</div>
+        <div class="oc-title">Progressive control</div>
+        <div class="oc-desc">Users can start with a one-line prompt, refine via AI chat, and drop into manual fine-tuning — as deep or shallow as they want.</div>
+      </div>
+      <div class="overview-card">
+        <div class="oc-icon">🚀</div>
+        <div class="oc-title">Future-ready scope</div>
+        <div class="oc-desc">Architecture designed to extend to video ads, social posts, OOH, and other brand materials beyond display advertising.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USERS -->
+  <section id="users">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>Target Users</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div style="border:1.5px solid var(--rule);padding:2rem;background:var(--card);">
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem;">Primary User</div>
+        <div style="font-family:var(--serif);font-size:1.5rem;font-weight:600;margin-bottom:1rem;">Brand Creative Teams</div>
+        <div style="font-size:0.88rem;color:var(--muted);line-height:1.7;">In-house designers, creative directors, and brand managers at companies who control their own visual identity. They have taste and a brand system — they need speed and interactivity without outsourcing to an agency.</div>
+        <div style="margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:0.4rem;">
+          <span class="tag">Has brand guidelines</span>
+          <span class="tag">Wants creative control</span>
+          <span class="tag">Time-constrained</span>
+        </div>
+      </div>
+      <div style="border:1.5px solid var(--rule);padding:2rem;background:var(--card);">
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--accent2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem;">Secondary User</div>
+        <div style="font-family:var(--serif);font-size:1.5rem;font-weight:600;margin-bottom:1rem;">Independent Advertisers</div>
+        <div style="font-size:0.88rem;color:var(--muted);line-height:1.7;">Founders, marketing managers, and indie brands who lack a creative team but want ads that feel premium. They rely more heavily on the AI and guided wizard flows, and value smart defaults.</div>
+        <div style="margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:0.4rem;">
+          <span class="tag blue">Less design experience</span>
+          <span class="tag blue">Needs strong defaults</span>
+          <span class="tag blue">Budget-conscious</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1.5rem;border:1px solid var(--rule);padding:1.25rem 1.5rem;background:var(--card);font-size:0.88rem;color:var(--muted);line-height:1.7;">
+      <strong style="color:var(--ink);">Non-user (explicit):</strong> Performance marketers optimizing purely for CTR, ROAS, and conversion. This product is intentionally not for them — the positioning is artistic quality over conversion mechanics.
+    </div>
+  </section>
+
+  <!-- USER FLOW -->
+  <section id="userflow">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2>Core User Flow</h2>
+    </div>
+    <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;">Click each step to expand details.</p>
+    <div class="flow-container">
+
+      <div class="flow-step" onclick="toggleStep(this)">
+        <div class="flow-step-left">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flow-step-right">
+          <div class="step-title">Brand Setup (one-time)</div>
+          <div class="step-subtitle">Onboarding · ~2 min</div>
+          <div class="step-detail">User uploads brand assets: logo, color palette, fonts, optional style references (moodboard images). The AI ingests these to establish a brand token system used across all future creations. This step is skippable for users who want to start immediately.</div>
+          <div class="step-tags"><span class="tag">Brand tokens</span><span class="tag">Moodboard upload</span><span class="tag">Skippable</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step" onclick="toggleStep(this)">
+        <div class="flow-step-left">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flow-step-right">
+          <div class="step-title">Choose Creation Mode</div>
+          <div class="step-subtitle">Mode Selection · ~10 sec</div>
+          <div class="step-detail">User picks between two paths: (A) Chat Prompt — type a freeform brief like "a banner for our summer fragrance launch, dreamy and slow-motion"; or (B) Guided Wizard — step-by-step questions on format, mood, copy, and animation style. Both modes converge to the same editor.</div>
+          <div class="step-tags"><span class="tag accent">Chat mode</span><span class="tag accent">Wizard mode</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step" onclick="toggleStep(this)">
+        <div class="flow-step-left">
+          <div class="step-dot">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flow-step-right">
+          <div class="step-title">AI Generation</div>
+          <div class="step-subtitle">Automated · ~10–30 sec</div>
+          <div class="step-detail">AI generates 2–3 creative variations using the Rive runtime: layout, animation sequences, copy placement, color application from brand tokens. Each variation is shown as a live preview with its Rive animation playing. Users pick a starting point or remix a variation.</div>
+          <div class="step-tags"><span class="tag">2–3 variants</span><span class="tag">Live preview</span><span class="tag">Rive-powered</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step" onclick="toggleStep(this)">
+        <div class="flow-step-left">
+          <div class="step-dot">4</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flow-step-right">
+          <div class="step-title">Refinement (AI or Manual)</div>
+          <div class="step-subtitle">Editor · Variable time</div>
+          <div class="step-detail">The main editor workspace. Users can refine via (a) AI chat panel — "make the animation slower and more ethereal", "swap the background to a deep navy" — or (b) direct manual controls: layer panel, property inspector, timeline scrubber for animation keyframes. Both modes are available simultaneously.</div>
+          <div class="step-tags"><span class="tag blue">AI chat panel</span><span class="tag blue">Manual controls</span><span class="tag blue">Timeline</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step" onclick="toggleStep(this)">
+        <div class="flow-step-left">
+          <div class="step-dot">5</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flow-step-right">
+          <div class="step-title">Export &amp; Deploy</div>
+          <div class="step-subtitle">Output · ~1 min</div>
+          <div class="step-detail">User selects one or more export formats: HTML/JS embeddable ad unit (with standard IAB sizes), MP4/GIF video render, or static PNG/JPG fallback. Each format is generated automatically. User gets a copy-paste embed code, direct download, or shareable preview link.</div>
+          <div class="step-tags"><span class="tag">HTML/JS</span><span class="tag">MP4/GIF</span><span class="tag">Static fallback</span><span class="tag">Embed code</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>Feature Matrix</h2>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="priority p-must"></span>Must have (v1)</div>
+      <div class="legend-item"><span class="priority p-should"></span>Should have (v1)</div>
+      <div class="legend-item"><span class="priority p-could"></span>Could have (v2+)</div>
+    </div>
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Description</th>
+          <th>Priority</th>
+          <th>Phase</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-must"></span>Chat-to-ad generation</div></td>
+          <td style="color:var(--muted)">Single prompt → full Rive ad with layout, animation, copy</td>
+          <td><span class="tag accent">Must</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-must"></span>Guided wizard flow</div></td>
+          <td style="color:var(--muted)">Step-by-step prompting for format, mood, copy, and style</td>
+          <td><span class="tag accent">Must</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-must"></span>Live Rive preview</div></td>
+          <td style="color:var(--muted)">Real-time animation preview using Rive Web runtime in-editor</td>
+          <td><span class="tag accent">Must</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-must"></span>HTML/JS ad export</div></td>
+          <td style="color:var(--muted)">IAB standard sizes: leaderboard, banner, rectangle, interstitial</td>
+          <td><span class="tag accent">Must</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-must"></span>Static image fallback</div></td>
+          <td style="color:var(--muted)">Auto-generated PNG/JPG for non-animated placements</td>
+          <td><span class="tag accent">Must</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-must"></span>AI refinement chat</div></td>
+          <td style="color:var(--muted)">Natural language edits to existing ad ("make it darker, slower…")</td>
+          <td><span class="tag accent">Must</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-should"></span>Brand token system</div></td>
+          <td style="color:var(--muted)">Upload logo, fonts, colors once — AI applies consistently</td>
+          <td><span class="tag blue">Should</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-should"></span>Manual property inspector</div></td>
+          <td style="color:var(--muted)">Edit text, colors, sizing, opacity directly without AI</td>
+          <td><span class="tag blue">Should</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-should"></span>Video export (MP4/GIF)</div></td>
+          <td style="color:var(--muted)">Server-side render of Rive animation to video format</td>
+          <td><span class="tag blue">Should</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-should"></span>Multi-variant generation</div></td>
+          <td style="color:var(--muted)">2–3 creative options per prompt to choose from</td>
+          <td><span class="tag blue">Should</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-should"></span>Animation timeline</div></td>
+          <td style="color:var(--muted)">Visual keyframe scrubber for fine animation control</td>
+          <td><span class="tag blue">Should</span></td>
+          <td><span class="phase-badge">v1</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-could"></span>Creative library / history</div></td>
+          <td style="color:var(--muted)">Saved projects, templates, and past generations</td>
+          <td><span class="tag">Could</span></td>
+          <td><span class="phase-badge">v2</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-could"></span>Team collaboration</div></td>
+          <td style="color:var(--muted)">Shareable edit links, comments, approval workflow</td>
+          <td><span class="tag">Could</span></td>
+          <td><span class="phase-badge">v2</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-could"></span>Social formats</div></td>
+          <td style="color:var(--muted)">Stories, carousels, in-feed — extend beyond display ads</td>
+          <td><span class="tag">Could</span></td>
+          <td><span class="phase-badge">v2+</span></td>
+        </tr>
+        <tr>
+          <td><div class="feature-name"><span class="priority p-could"></span>Ad network integrations</div></td>
+          <td style="color:var(--muted)">Direct publish to Google, Meta, programmatic DSPs</td>
+          <td><span class="tag">Could</span></td>
+          <td><span class="phase-badge">v3</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCREENS -->
+  <section id="screens">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>Key Screens</h2>
+    </div>
+    <div class="screens-grid">
+      <div class="screen-card">
+        <div class="screen-preview sp-onboarding">
+          <div class="mock-ui">
+            <div class="mock-chat-bubbles">
+              <div class="bubble bubble-user"></div>
+              <div class="bubble bubble-ai"></div>
+              <div class="bubble bubble-ai short"></div>
+            </div>
+            <div class="mock-chat-input">
+              <span class="mock-chat-label">Describe your ad...</span>
+            </div>
+          </div>
+        </div>
+        <div class="screen-info">
+          <div class="screen-name">Creation Entry — Chat Mode</div>
+          <div class="screen-desc">Clean, distraction-free prompt interface. A large input field with example prompts. Users describe the ad in their own words; the AI asks clarifying questions if needed before generating.</div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview sp-editor">
+          <div class="mock-ui">
+            <div class="mock-editor-layout">
+              <div class="mock-panel"></div>
+              <div class="mock-canvas">
+                <div class="mock-canvas-inner">
+                  <div class="mock-rive-anim"></div>
+                </div>
+              </div>
+              <div class="mock-panel"></div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-info">
+          <div class="screen-name">Main Editor</div>
+          <div class="screen-desc">Three-panel layout: AI chat + layers on the left, live Rive canvas in the center, property inspector on the right. Timeline scrubber runs below the canvas. Fully keyboard-accessible.</div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview sp-library">
+          <div class="mock-grid">
+            <div class="mock-thumb"></div>
+            <div class="mock-thumb"></div>
+            <div class="mock-thumb"></div>
+            <div class="mock-thumb"></div>
+            <div class="mock-thumb"></div>
+            <div class="mock-thumb"></div>
+          </div>
+        </div>
+        <div class="screen-info">
+          <div class="screen-name">Creative Library</div>
+          <div class="screen-desc">Gallery of saved projects and auto-generated templates. Filterable by format, size, and animation style. Hovering a card plays the Rive animation inline.</div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview sp-export">
+          <div style="display:flex;align-items:center;justify-content:center;width:85%;height:75%;">
+            <div class="mock-export-list" style="width:100%;">
+              <div class="mock-export-item">
+                <div class="mock-dot" style="background:rgba(42,232,100,0.8)"></div>
+                <div style="font-family:var(--mono);font-size:0.55rem;color:rgba(255,255,255,0.5);width:60px;">HTML/JS</div>
+                <div class="mock-bar done"></div>
+              </div>
+              <div class="mock-export-item">
+                <div class="mock-dot" style="background:rgba(42,107,232,0.8)"></div>
+                <div style="font-family:var(--mono);font-size:0.55rem;color:rgba(255,255,255,0.5);width:60px;">MP4</div>
+                <div class="mock-bar done"></div>
+              </div>
+              <div class="mock-export-item">
+                <div class="mock-dot" style="background:rgba(232,75,42,0.8)"></div>
+                <div style="font-family:var(--mono);font-size:0.55rem;color:rgba(255,255,255,0.5);width:60px;">Static PNG</div>
+                <div class="mock-bar done" style="background:rgba(232,75,42,0.5)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-info">
+          <div class="screen-name">Export Panel</div>
+          <div class="screen-desc">Format selector with format-specific options (IAB size picker for HTML, resolution/fps for video). Real-time generation progress. One-click copy of embed snippet or download all as ZIP.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="tech">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2>Technical Architecture</h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="tech-cat">Frontend</div>
+        <div class="tech-name">React + TypeScript</div>
+        <div class="tech-why">Component-based editor UI; strong ecosystem for complex state management</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">Animation Runtime</div>
+        <div class="tech-name">Rive Web Runtime</div>
+        <div class="tech-why">Official @rive-app/canvas package for live preview and HTML/JS output embedding</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">AI / LLM</div>
+        <div class="tech-name">Claude API (Anthropic)</div>
+        <div class="tech-why">Creative direction, prompt interpretation, property generation, refinement chat</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">Rive Generation</div>
+        <div class="tech-name">Rive API / Editor SDK</div>
+        <div class="tech-why">Programmatic creation and manipulation of .riv files from AI-generated specs</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">Video Render</div>
+        <div class="tech-name">Puppeteer + FFmpeg</div>
+        <div class="tech-why">Server-side headless render of Rive canvas to MP4/GIF via frame capture</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">Backend</div>
+        <div class="tech-name">Node.js + tRPC</div>
+        <div class="tech-why">Type-safe API layer; handles generation jobs, export queue, asset storage</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">Storage</div>
+        <div class="tech-name">S3 + PostgreSQL</div>
+        <div class="tech-why">.riv files and exports in S3; project metadata, brand tokens in Postgres</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-cat">Auth</div>
+        <div class="tech-name">Clerk or Auth.js</div>
+        <div class="tech-why">Fast integration, supports social login and org/team accounts for future collab</div>
+      </div>
+    </div>
+    <div style="margin-top:1.5rem;border:1px solid var(--rule);padding:1.25rem 1.5rem;background:var(--card);">
+      <div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">Key Technical Risk</div>
+      <div style="font-size:0.88rem;line-height:1.7;color:var(--muted);">Programmatic Rive file generation is the core technical challenge — the Rive Editor SDK's API surface for headless creation is limited. Early prototyping should validate whether .riv files can be generated from AI-described specs, or whether the approach should use a library of template .riv files that the AI parameterizes.</div>
+    </div>
+  </section>
+
+  <!-- MILESTONES -->
+  <section id="milestones">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2>Milestones</h2>
+    </div>
+    <div class="milestone-track">
+      <div class="milestone">
+        <div class="m-phase">Phase 1 · MVP</div>
+        <div class="m-name">Proof of<br>Concept</div>
+        <div class="m-items">
+          <div class="m-item">Validate Rive programmatic generation</div>
+          <div class="m-item">Chat prompt → single ad variant</div>
+          <div class="m-item">Live Rive canvas preview</div>
+          <div class="m-item">HTML/JS + static export</div>
+          <div class="m-item">Manual text/color edits</div>
+        </div>
+      </div>
+      <div class="milestone">
+        <div class="m-phase">Phase 2 · Beta</div>
+        <div class="m-name">Full<br>Editor</div>
+        <div class="m-items">
+          <div class="m-item">Guided wizard creation mode</div>
+          <div class="m-item">Brand token onboarding</div>
+          <div class="m-item">AI refinement chat</div>
+          <div class="m-item">Multi-variant generation</div>
+          <div class="m-item">Video export (MP4/GIF)</div>
+          <div class="m-item">Animation timeline</div>
+        </div>
+      </div>
+      <div class="milestone">
+        <div class="m-phase">Phase 3 · v1 Launch</div>
+        <div class="m-name">Polish &amp;<br>Scale</div>
+        <div class="m-items">
+          <div class="m-item">Creative library + history</div>
+          <div class="m-item">IAB size suite</div>
+          <div class="m-item">Shareable preview links</div>
+          <div class="m-item">Billing + usage metering</div>
+          <div class="m-item">Performance + reliability</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPEN QUESTIONS -->
+  <section id="questions">
+    <div class="section-header">
+      <span class="section-number">08</span>
+      <h2>Open Questions</h2>
+    </div>
+    <div class="questions-list">
+      <div class="question-item">
+        <div class="q-num">Q1</div>
+        <div>
+          <div class="q-text">How will the AI generate .riv files — from templates or from scratch?</div>
+          <div class="q-context">The most important architectural decision. Template-based (parameterize pre-built .riv files) is faster to build; scratch generation is more creative but technically harder. Consider a hybrid: AI selects and adapts from a curated template library.</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">Q2</div>
+        <div>
+          <div class="q-text">What is the pricing model?</div>
+          <div class="q-context">Per-generation credits, monthly subscription by seat, or flat-rate unlimited? Video rendering is expensive server-side — needs to be factored into unit economics.</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">Q3</div>
+        <div>
+          <div class="q-text">What IAB ad sizes will be supported at launch?</div>
+          <div class="q-context">Recommend starting with the top 5: Leaderboard (728×90), Medium Rectangle (300×250), Large Rectangle (336×280), Half Page (300×600), Billboard (970×250).</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">Q4</div>
+        <div>
+          <div class="q-text">Who owns the Rive file IP — the user or the platform?</div>
+          <div class="q-context">Important for ToS and for any potential marketplace of templates in the future. If users can export .riv source files, they can import them into Rive's own editor — is that desirable?</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">Q5</div>
+        <div>
+          <div class="q-text">Will there be a template marketplace or style library?</div>
+          <div class="q-context">A library of curated animation styles (e.g., "liquid", "geometric", "typographic") would accelerate quality and reduce generation complexity. Could also be a monetization lever.</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">Q6</div>
+        <div>
+          <div class="q-text">How is the "artistic" positioning enforced or measured?</div>
+          <div class="q-context">Consider an internal quality bar — e.g., AI-generated outputs are reviewed against aesthetic benchmarks before being surfaced to users. This protects the brand positioning.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-brand">RiveAds Studio — Design Spec v0.1</div>
+  <div class="footer-note">Draft · Feb 2026 · For review only</div>
+</footer>
+
+<script>
+  function toggleStep(el) {
+    const isActive = el.classList.contains('active');
+    document.querySelectorAll('.flow-step').forEach(s => s.classList.remove('active'));
+    if (!isActive) el.classList.add('active');
+  }
+
+  // TOC active state on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const tocLinks = document.querySelectorAll('.toc-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.toc-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-140px 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Smooth scroll
+  tocLinks.forEach(l => {
+    l.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(l.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+
+</body></html>
