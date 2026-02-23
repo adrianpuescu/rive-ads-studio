@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# RiveAds Studio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AI-powered creative studio for generating artistic online ads using Rive animations.
 
-Currently, two official plugins are available:
+## What this is
+A web application that takes a natural language prompt from a brand or advertiser
+and generates a polished, animated ad using Rive's animation runtime. Outputs
+HTML/JS embeddable ad units, MP4/GIF video, and static image fallbacks.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech stack
+- React + TypeScript + Vite
+- Rive Web Runtime (@rive-app/canvas)
+- Claude API (Anthropic) — AI spec generation
 
-## React Compiler
+## Project structure
+src/
+  types/         # AdSpec schema — the core data contract
+  hooks/         # useAdSpecRenderer — Rive lifecycle management
+  lib/           # riveApplier, templateRegistry — pure utilities
+  components/    # AdCanvas, AdCanvasDemo — React UI
+public/
+  templates/     # .riv template files (binary — do not edit as text)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
+npm install
+npm run dev
 
-## Expanding the ESLint configuration
+## Architecture
+User prompt → Claude API → AdSpec JSON → Rive runtime → live ad preview → export
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+See /docs for full design specification and technical decisions.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Status
+Technical spike complete. Core AdSpec → Rive rendering pipeline validated.
+AI spec generator (Brief #3) in progress.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Rive templates
+Templates must be authored in the Rive editor with named slots:
+- Text runs: TEXT_HEADLINE, TEXT_SUBHEADLINE, TEXT_BODY, TEXT_CTA, TEXT_TAGLINE
+- State machine inputs: speed (number), intensity (number), mood_* (boolean)
+- Asset slots: IMAGE_LOGO, IMAGE_PRODUCT, IMAGE_BG
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Notes
+- *.riv files are binary — .gitattributes is configured accordingly
+- Rive Cadet plan ($9/mo) required for template exports
