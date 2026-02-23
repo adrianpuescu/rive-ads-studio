@@ -14,7 +14,7 @@ import type { AdSpec } from '../types/ad-spec.schema';
 const demoSpec: AdSpec = {
   template: {
     id: "test-template",
-    artboard: "Wavy text",
+    artboard: "Artboard",
     stateMachine: "State Machine 1",
   },
   text: {
@@ -24,9 +24,9 @@ const demoSpec: AdSpec = {
     brand: "RiveAds",
   },
   stateInputs: {
-    speed: 1.0,
-    intensity: 50,
-    mood: "energetic",
+    speed: 0.5,
+    intensity: 0.3,
+    mood: "dreamy", // was 'energetic'
   },
   colors: {
     primary: "#e84b2a",
