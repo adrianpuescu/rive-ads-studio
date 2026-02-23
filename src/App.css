@@ -2,20 +2,45 @@
   margin: 0 auto;
   max-width: 960px;
   padding: 2rem;
-  text-align: center;
 }
 
-.canvas-container {
-  margin: 2rem auto 0;
-  width: 600px;
-  max-width: 100%;
-  height: 400px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
+.demo-container {
+  text-align: left;
 }
 
-.rive-canvas-wrapper {
-  width: 100%;
-  height: 100%;
+.demo-container h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.demo-container p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.demo-note {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-left: 3px solid #e84b2a;
+  margin: 1.5rem 0;
+}
+
+.demo-note code {
+  background: #e9ecef;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.demo-requirements {
+  margin: 0.5rem 0 1.5rem 1.5rem;
+  color: #666;
+  font-size: 0.95em;
+  line-height: 1.8;
+}
+
+.demo-canvas-wrapper {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
 }
