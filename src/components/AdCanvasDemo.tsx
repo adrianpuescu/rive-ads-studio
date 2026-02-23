@@ -14,7 +14,7 @@ import type { AdSpec } from '../types/ad-spec.schema';
 const demoSpec: AdSpec = {
   template: {
     id: "test-template",
-    artboard: "Artboard",
+    artboard: "Wavy text",
     stateMachine: "State Machine 1",
   },
   text: {
