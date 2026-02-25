@@ -37,55 +37,30 @@ export function PromptInput({ onGenerate }: PromptInputProps) {
   const isDisabled = isGenerating || !prompt.trim();
 
   return (
-    <div style={{ marginBottom: '2rem' }}>
+    <div className="prompt-input-container">
+      <label className="prompt-input-label" htmlFor="prompt-textarea">
+        Describe your ad
+      </label>
+      
       <textarea
+        id="prompt-textarea"
+        className="prompt-input-textarea"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Describe your ad... e.g. a dreamy banner for a luxury perfume launch"
-        rows={4}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          fontSize: '1rem',
-          fontFamily: 'inherit',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          resize: 'vertical'
-        }}
+        placeholder="e.g. a dreamy banner for a luxury perfume launch"
         disabled={isGenerating}
       />
       
       <button
+        className={`prompt-input-button ${isGenerating ? 'prompt-input-button-loading' : ''}`}
         onClick={handleGenerate}
         disabled={isDisabled}
-        style={{
-          marginTop: '0.5rem',
-          padding: '0.75rem 1.5rem',
-          fontSize: '1rem',
-          fontWeight: 600,
-          backgroundColor: isDisabled ? '#ccc' : '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: isDisabled ? 'not-allowed' : 'pointer'
-        }}
       >
-        {isGenerating ? 'Generating...' : 'Generate Ad'}
+        {isGenerating ? 'Generating' : 'Generate Ad'}
       </button>
 
       {error && (
-        <div
-          style={{
-            marginTop: '0.5rem',
-            padding: '0.75rem',
-            backgroundColor: '#fee',
-            color: '#c33',
-            borderRadius: '4px',
-            fontSize: '0.9rem'
-          }}
-        >
-          {error}
-        </div>
+        <p className="prompt-input-error">{error}</p>
       )}
     </div>
   );

@@ -36,6 +36,7 @@ export function AdCanvas({ spec, width, height, className = '' }: AdCanvasProps)
         width={width}
         height={height}
         className="ad-canvas"
+        style={{ display: 'block' }}
       />
 
       {isLoading && (
