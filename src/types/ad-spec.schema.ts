@@ -5,7 +5,41 @@
  * Defines template reference, text slots, state machine inputs, colors, and assets.
  */
 
+/** Text slot with value and optional styling metadata */
+export interface TextSlot {
+  value: string;
+  maxLength?: number;
+  style?: {
+    fontFamily?: string;
+    fontSize?: number;
+    fontWeight?: number;
+    color?: string;
+  };
+}
+
+/** Ad size configuration */
+export type AdSize = 
+  | { preset: 'leaderboard' | 'rectangle' | 'skyscraper' | 'square' }
+  | { width: number; height: number };
+
+/** Generation metadata */
+export interface GenerationMetadata {
+  prompt: string;
+  model: string;
+  rationale: string;
+  variantIndex: number;
+}
+
 export interface AdSpec {
+  /** Schema version */
+  version?: string;
+  
+  /** Unique identifier for this ad spec */
+  id?: string;
+  
+  /** Creation timestamp (ISO string) */
+  createdAt?: string;
+
   /** Template configuration */
   template: {
     /** Unique template identifier (maps to .riv file via registry) */
@@ -16,28 +50,37 @@ export interface AdSpec {
     stateMachine: string;
   };
 
+  /** Ad format specifications */
+  format?: {
+    size: AdSize;
+    durationMs?: number;
+    loop: boolean;
+  };
+
   /** Text slot assignments */
   text: {
     /** Main headline text */
-    headline?: string;
+    headline?: TextSlot;
     /** Subheadline or description text */
-    subheadline?: string;
+    subheadline?: TextSlot;
+    /** Body text */
+    body?: TextSlot;
     /** Call-to-action text */
-    cta?: string;
-    /** Brand or advertiser name */
-    brand?: string;
+    cta?: TextSlot;
+    /** Tagline text */
+    tagline?: TextSlot;
     /** Additional custom text slots by slot name */
-    custom?: Record<string, string>;
+    custom?: Record<string, TextSlot>;
   };
 
   /** State machine input values */
   stateInputs: {
     /** Animation speed multiplier (0.1 - 3.0) */
     speed?: number;
-    /** Animation intensity level (0 - 100) */
+    /** Animation intensity level (0 - 1.0) */
     intensity?: number;
     /** Mood/tone selector (maps to boolean inputs in state machine) */
-    mood?: 'energetic' | 'calm' | 'playful' | 'professional';
+    mood?: string;
     /** Additional custom state machine inputs by input name */
     custom?: Record<string, number | boolean>;
   };
@@ -45,26 +88,21 @@ export interface AdSpec {
   /** Color slot assignments (hex format) */
   colors: {
     /** Primary brand color */
-    primary?: string;
+    primary: string;
     /** Secondary accent color */
-    secondary?: string;
+    secondary: string;
     /** Background color */
-    background?: string;
-    /** Text color override */
-    textColor?: string;
+    background: string;
+    /** Accent color */
+    accent?: string;
     /** Additional custom color slots by slot name */
     custom?: Record<string, string>;
   };
 
   /** Asset slot assignments (URLs or local paths) */
-  assets?: {
-    /** Logo image slot */
-    logo?: string;
-    /** Product image slot */
-    product?: string;
-    /** Background image slot */
-    backgroundImage?: string;
-    /** Additional custom asset slots by slot name */
-    custom?: Record<string, string>;
-  };
+  assets?: Record<string, string>;
+
+  /** Generation metadata (populated by AI generator) */
+  generation?: GenerationMetadata;
 }
+

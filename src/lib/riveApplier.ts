@@ -38,7 +38,7 @@ function applyTextSlots(rive: Rive, spec: AdSpec): void {
   const { text } = spec;
 
   // Standard text slots
-  const standardSlots = ['headline', 'subheadline', 'body', 'cta', 'tagline'] as const;
+  const standardSlots = ['headline', 'subheadline', 'body', 'cta'] as const;
 
   for (const slot of standardSlots) {
     const value = text[slot];
