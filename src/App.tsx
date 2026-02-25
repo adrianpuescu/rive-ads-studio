@@ -3,6 +3,7 @@ import './App.css'
 import { PromptInput } from './components/PromptInput'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
+import { SpecInspector } from './components/SpecInspector'
 import type { AdSpec } from './types/ad-spec.schema'
 
 function App() {
@@ -22,6 +23,13 @@ function App() {
         <div className="app-divider"></div>
         
         <PromptInput onGenerate={setCurrentSpec} />
+
+        {currentSpec && (
+          <SpecInspector 
+            spec={currentSpec} 
+            onChange={setCurrentSpec} 
+          />
+        )}
       </div>
 
       <div className="app-right-panel">
