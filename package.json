@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@rive-app/canvas": "^2.35.0",
+    "@rive-app/canvas-advanced": "^2.35.0",
     "@rive-app/react-canvas": "^4.27.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

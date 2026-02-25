@@ -12,7 +12,7 @@ import type { AdSpec } from '../types/ad-spec.schema';
  * Applies an AdSpec to a running Rive instance
  * 
  * Call this after the Rive onLoad callback fires.
- * Applies text slots, state machine inputs, and prepares for color/asset slots.
+ * Applies text slots, state machine inputs, and color slots.
  * 
  * @param rive - Live Rive instance
  * @param spec - AdSpec configuration to apply
@@ -24,7 +24,14 @@ export async function applyAdSpec(rive: Rive, spec: AdSpec): Promise<void> {
   // 2. STATE MACHINE INPUTS
   applyStateInputs(rive, spec);
 
-  // COLOR SLOTS: applied via low-level API in a separate colorApplier.ts (future task)
+  // 3. COLOR SLOTS
+  try {
+    applyColors(rive, spec.colors);
+  } catch (err) {
+    console.warn(
+      `Failed to apply colors: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
 
   // ASSET SLOTS: applied via assetLoader callback at Rive instantiation time (future task)
 }
@@ -38,7 +45,7 @@ function applyTextSlots(rive: Rive, spec: AdSpec): void {
   const { text } = spec;
 
   // Standard text slots
-  const standardSlots = ['headline', 'subheadline', 'body', 'cta'] as const;
+  const standardSlots = ['headline', 'subheadline', 'cta'] as const;
 
   for (const slot of standardSlots) {
     const value = text[slot];
@@ -160,5 +167,49 @@ function applyStateInputs(rive: Rive, spec: AdSpec): void {
         console.warn(`Custom input "${name}" not found in state machine`);
       }
     }
+  }
+}
+
+/**
+ * Applies color values using Rive ViewModel data binding
+ * Sets bgColor property on AdViewModel which is bound to COLOR_BG fill
+ */
+export function applyColors(rive: Rive, colors: AdSpec['colors']): void {
+  try {
+    if (!colors?.background) return;
+    
+    // Get ViewModel by name - using any as Rive's internal API is not fully typed
+    const vm = (rive as any).viewModelByName('AdViewModel');
+    if (!vm) {
+      console.warn('AdViewModel not found in Rive file');
+      return;
+    }
+    
+    // Get default instance
+    const instance = vm.defaultInstance();
+    if (!instance) {
+      console.warn('No default ViewModel instance');
+      return;
+    }
+    
+    // Bind instance to Rive
+    (rive as any).bindViewModelInstance(instance);
+    
+    // Set bgColor property
+    const bgColorProp = instance.color('bgColor');
+    if (!bgColorProp) {
+      console.warn('bgColor property not found in AdViewModel');
+      return;
+    }
+    
+    // Convert hex to RGB (0-255)
+    const hex = colors.background.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    bgColorProp.rgb(r, g, b);
+  } catch (e) {
+    console.warn('Failed to apply colors via ViewModel:', e);
   }
 }
