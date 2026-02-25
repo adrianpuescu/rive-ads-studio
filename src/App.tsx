@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import { PromptInput } from './components/PromptInput'
 import { AdCanvas } from './components/AdCanvas'
+import { ExportButton } from './components/ExportButton'
 import type { AdSpec } from './types/ad-spec.schema'
 
 function App() {
@@ -26,6 +27,12 @@ function App() {
       <div className="app-right-panel">
         {currentSpec ? (
           <div className="app-canvas-wrapper">
+            <div className="app-canvas-toolbar">
+              <ExportButton 
+                spec={currentSpec} 
+                rivFileName="test-template.riv" 
+              />
+            </div>
             <AdCanvas 
               spec={currentSpec} 
               width={728} 
