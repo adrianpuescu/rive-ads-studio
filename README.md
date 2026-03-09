@@ -1,7 +1,7 @@
 # RiveAds Studio
-⚠️ Work in progress — experimental MVP
-
 AI-powered creative studio for generating artistic online ads using Rive animations.
+
+⚠️ Work in progress — experimental MVP
 
 ## What this is
 A web application that takes a natural language prompt from a brand or advertiser
@@ -35,6 +35,7 @@ See /public/docs for full design specification and technical decisions.
 
 ## Status
 Technical spike complete. Core AdSpec → Rive rendering pipeline validated.
+
 AI spec generator (Brief #3) in progress.
 
 ## Rive templates
