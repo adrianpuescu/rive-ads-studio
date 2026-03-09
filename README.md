@@ -1,4 +1,5 @@
 # RiveAds Studio
+⚠️ Work in progress — experimental MVP
 
 AI-powered creative studio for generating artistic online ads using Rive animations.
 
