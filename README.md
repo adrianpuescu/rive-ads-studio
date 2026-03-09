@@ -25,8 +25,10 @@ public/
 ```
 
 ## Getting started
+```
 npm install
 npm run dev
+```
 
 ## Architecture
 User prompt → Claude API → AdSpec JSON → Rive runtime → live ad preview → export
