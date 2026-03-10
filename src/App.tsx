@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import './App.css'
-import { PromptInput } from './components/PromptInput'
+import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
 import { SpecInspector } from './components/SpecInspector'
 import type { AdSpec } from './types/ad-spec.schema'
+
+const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''
 
 function App() {
   const [currentSpec, setCurrentSpec] = useState<AdSpec | null>(null)
@@ -22,7 +24,12 @@ function App() {
         <p className="app-tagline">Artistic ads, AI-made.</p>
         <div className="app-divider"></div>
         
-        <PromptInput onGenerate={setCurrentSpec} />
+        <ChatPanel
+          currentSpec={currentSpec}
+          onSpecUpdate={setCurrentSpec}
+          onInitialGenerate={setCurrentSpec}
+          apiKey={apiKey}
+        />
 
         {currentSpec && (
           <SpecInspector 
