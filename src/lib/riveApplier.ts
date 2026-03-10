@@ -170,45 +170,59 @@ function applyStateInputs(rive: Rive, spec: AdSpec): void {
   }
 }
 
+/** Parses hex to R,G,B in 0-255 for Rive .rgb() API */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace('#', '');
+  return {
+    r: parseInt(h.slice(0, 2), 16),
+    g: parseInt(h.slice(2, 4), 16),
+    b: parseInt(h.slice(4, 6), 16),
+  };
+}
+
 /**
- * Applies color values using Rive ViewModel data binding
- * Sets bgColor property on AdViewModel which is bound to COLOR_BG fill
+ * Applies color values using Rive ViewModel data binding.
+ * Uses .rgb(r, g, b) with 0-255 (same API as in export HTML).
+ * Sets bgColor, headlineColor, subheadlineColor, ctaColor, textColor on AdViewModel.
+ * primary/secondary are not sent to the ViewModel (reserved for future decorative shapes).
  */
 export function applyColors(rive: Rive, colors: AdSpec['colors']): void {
   try {
     if (!colors?.background) return;
-    
-    // Get ViewModel by name - using any as Rive's internal API is not fully typed
-    const vm = (rive as any).viewModelByName('AdViewModel');
-    if (!vm) {
-      console.warn('AdViewModel not found in Rive file');
+
+    const riveAny = rive as {
+      viewModelByName?(name: string): { defaultInstance(): { color(name: string): { rgb(r: number, g: number, b: number): void } } } | undefined;
+      bindViewModelInstance(instance: unknown): void;
+    };
+    const vm = riveAny.viewModelByName?.('AdViewModel');
+    const vmi = vm?.defaultInstance();
+    if (!vmi) {
+      console.warn('AdViewModel not found or no default instance');
       return;
     }
-    
-    // Get default instance
-    const instance = vm.defaultInstance();
-    if (!instance) {
-      console.warn('No default ViewModel instance');
-      return;
+
+    riveAny.bindViewModelInstance(vmi);
+
+    const setColor = (name: string, hex: string) => {
+      const prop = vmi.color(name);
+      if (prop) {
+        const { r, g, b } = hexToRgb(hex);
+        prop.rgb(r, g, b);
+      }
+    };
+
+    setColor('bgColor', colors.background);
+
+    if (colors.headlineColor) {
+      setColor('headlineColor', colors.headlineColor);
+      setColor('textColor', colors.headlineColor);
     }
-    
-    // Bind instance to Rive
-    (rive as any).bindViewModelInstance(instance);
-    
-    // Set bgColor property
-    const bgColorProp = instance.color('bgColor');
-    if (!bgColorProp) {
-      console.warn('bgColor property not found in AdViewModel');
-      return;
+    if (colors.subheadlineColor) {
+      setColor('subheadlineColor', colors.subheadlineColor);
     }
-    
-    // Convert hex to RGB (0-255)
-    const hex = colors.background.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    
-    bgColorProp.rgb(r, g, b);
+    if (colors.ctaColor) {
+      setColor('ctaColor', colors.ctaColor);
+    }
   } catch (e) {
     console.warn('Failed to apply colors via ViewModel:', e);
   }

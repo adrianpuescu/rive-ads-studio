@@ -7,6 +7,11 @@ import type { BrandTokens } from '../types/brand-tokens';
 import { getBrandTokensPromptBlock } from '../types/brand-tokens';
 import type { ChatMessage } from '../types/chat';
 
+export interface ActiveBrandForPrompt {
+  name: string;
+  tokens: BrandTokens;
+}
+
 const ADSPEC_SCHEMA = `
 AdSpec interface:
 {
@@ -23,7 +28,7 @@ AdSpec interface:
     tagline?: { value: string };
     custom?: Record<string, { value: string }>;
   };
-  colors: { primary: string; secondary: string; background: string; accent?: string };
+  colors: { primary: string; secondary: string; background: string; accent?: string; headlineColor: string; subheadlineColor: string; ctaColor: string };
   assets?: Record<string, string>;
   stateInputs: { speed?: number; intensity?: number; mood?: string; custom?: Record<string, number | boolean> };
   generation?: { prompt: string; model: string; rationale: string; variantIndex: number };
@@ -92,13 +97,13 @@ export async function refineAdSpec(
   messages: ChatMessage[],
   userMessage: string,
   apiKey: string,
-  brandTokens?: BrandTokens | null
+  activeBrand?: ActiveBrandForPrompt | null
 ): Promise<RefineResult> {
   const apiMessages = buildMessages(currentSpec, messages, userMessage);
 
   const systemPrompt =
-    brandTokens != null
-      ? getBrandTokensPromptBlock(brandTokens) + '\n\n' + SYSTEM_PROMPT
+    activeBrand != null
+      ? getBrandTokensPromptBlock(activeBrand.name, activeBrand.tokens) + '\n\n' + SYSTEM_PROMPT
       : SYSTEM_PROMPT;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {

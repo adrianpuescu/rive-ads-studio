@@ -1,5 +1,6 @@
 /**
  * Brand Tokens: visual brand values used by AI in ad generation.
+ * Brand name lives on the Brand entity; tokens are colors + font + voice.
  */
 
 export interface BrandTokens {
@@ -7,13 +8,12 @@ export interface BrandTokens {
   secondaryColor: string;
   backgroundColor: string;
   fontFamily: string;
-  brandName: string;
   brandVoice: string;
 }
 
-export function getBrandTokensPromptBlock(tokens: BrandTokens): string {
+export function getBrandTokensPromptBlock(brandName: string, tokens: BrandTokens): string {
   return `Brand tokens for this session:
-Brand name: ${tokens.brandName}
+Brand name: ${brandName}
 Brand voice: ${tokens.brandVoice}
 Primary color: ${tokens.primaryColor}
 Secondary color: ${tokens.secondaryColor}

@@ -26,7 +26,10 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
     });
   };
 
-  const handleColorChange = (field: 'background' | 'primary' | 'secondary', value: string) => {
+  const handleColorChange = (
+    field: 'background' | 'primary' | 'secondary' | 'headlineColor' | 'subheadlineColor' | 'ctaColor',
+    value: string
+  ) => {
     onChange({
       ...spec,
       colors: {
@@ -119,6 +122,65 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
               onChange={(e) => handleColorChange('secondary', e.target.value)}
             />
             <span className="inspector-color-hex">{spec.colors.secondary}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* TEXT COLORS SECTION */}
+      <div className="inspector-section">
+        <h3 className="inspector-section-label">Text Colors</h3>
+
+        <div className="inspector-field">
+          <label className="inspector-field-label">Headline Color</label>
+          <div className="inspector-color-row">
+            <input
+              type="color"
+              className="inspector-color-input"
+              value={spec.colors.headlineColor ?? '#000000'}
+              onChange={(e) => handleColorChange('headlineColor', e.target.value)}
+            />
+            <input
+              type="text"
+              className="inspector-color-hex-input"
+              value={spec.colors.headlineColor ?? '#000000'}
+              onChange={(e) => handleColorChange('headlineColor', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="inspector-field">
+          <label className="inspector-field-label">Subheadline Color</label>
+          <div className="inspector-color-row">
+            <input
+              type="color"
+              className="inspector-color-input"
+              value={spec.colors.subheadlineColor ?? '#333333'}
+              onChange={(e) => handleColorChange('subheadlineColor', e.target.value)}
+            />
+            <input
+              type="text"
+              className="inspector-color-hex-input"
+              value={spec.colors.subheadlineColor ?? '#333333'}
+              onChange={(e) => handleColorChange('subheadlineColor', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="inspector-field">
+          <label className="inspector-field-label">CTA Color</label>
+          <div className="inspector-color-row">
+            <input
+              type="color"
+              className="inspector-color-input"
+              value={spec.colors.ctaColor ?? '#ffffff'}
+              onChange={(e) => handleColorChange('ctaColor', e.target.value)}
+            />
+            <input
+              type="text"
+              className="inspector-color-hex-input"
+              value={spec.colors.ctaColor ?? '#ffffff'}
+              onChange={(e) => handleColorChange('ctaColor', e.target.value)}
+            />
           </div>
         </div>
       </div>

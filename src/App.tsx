@@ -44,7 +44,18 @@ function App() {
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { items: libraryItems, addItem, updateItemThumbnail, removeItem } = useLibrary()
-  const { tokens: brandTokens, setTokens: setBrandTokens, clearTokens, hasTokens: hasBrandTokens } = useBrandTokens()
+  const {
+    brands,
+    activeBrandId,
+    activeBrand,
+    isEnabled,
+    hasActiveBrand,
+    addBrand,
+    updateBrand,
+    deleteBrand,
+    setActiveBrand,
+    toggleEnabled,
+  } = useBrandTokens()
 
   const clearNewAdConfirmTimeout = useCallback(() => {
     if (newAdConfirmTimeoutRef.current) {
@@ -173,11 +184,12 @@ function App() {
           type="button"
           className="app-toolbar-brand-btn"
           onClick={() => setBrandOpen((prev) => !prev)}
-          aria-label={hasBrandTokens ? 'Brand tokens active — edit' : 'Open Brand Tokens'}
+          aria-label={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active — edit` : 'Open Brand Manager'}
+          title={hasActiveBrand ? `◈ ${activeBrand?.name ?? 'Brand'} active` : 'Brand Manager'}
         >
           <span className="app-toolbar-brand-icon" aria-hidden>◈</span>
           Brand
-          {hasBrandTokens && <span className="app-toolbar-brand-dot" aria-hidden />}
+          {hasActiveBrand && <span className="app-toolbar-brand-dot" aria-hidden />}
         </button>
         <button
           type="button"
@@ -224,9 +236,9 @@ function App() {
               onRestoredChatHistoryApplied={() => setRestoredChatHistory(null)}
               newAdTrigger={newAdTrigger}
               apiKey={apiKey}
-              brandTokens={brandTokens}
-              hasBrandTokens={hasBrandTokens}
-              brandName={brandTokens?.brandName ?? ''}
+              activeBrand={hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : null}
+              hasActiveBrand={hasActiveBrand}
+              activeBrandName={activeBrand?.name ?? ''}
               onOpenBrandTokens={() => setBrandOpen(true)}
             />
           </div>
@@ -282,9 +294,14 @@ function App() {
         <BrandTokensPanel
           isOpen={brandOpen}
           onClose={() => setBrandOpen(false)}
-          tokens={brandTokens}
-          onSave={setBrandTokens}
-          onClear={clearTokens}
+          brands={brands}
+          activeBrandId={activeBrandId}
+          isEnabled={isEnabled}
+          onToggleEnabled={toggleEnabled}
+          onAddBrand={addBrand}
+          onUpdateBrand={updateBrand}
+          onDeleteBrand={deleteBrand}
+          onSetActiveBrand={setActiveBrand}
         />
         {currentSpec && (
           <div

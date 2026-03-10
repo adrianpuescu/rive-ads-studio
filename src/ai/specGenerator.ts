@@ -8,10 +8,16 @@ import type { AdSpec } from '../types/ad-spec.schema';
 import type { BrandTokens } from '../types/brand-tokens';
 import { getBrandTokensPromptBlock } from '../types/brand-tokens';
 
+export interface ActiveBrandForPrompt {
+  name: string;
+  tokens: BrandTokens;
+}
+
 export interface GeneratorOptions {
   prompt: string;
   templateId?: string;  // defaults to 'test-template'
-  brandTokens?: BrandTokens | null;
+  /** When set, brand block is prepended to system prompt. */
+  activeBrand?: ActiveBrandForPrompt | null;
 }
 
 export interface GeneratorResult {
@@ -34,6 +40,11 @@ Rules:
 - Headline: max 4 words. CTA: max 3 words.
 - Do NOT generate tagline. This template does not have a tagline slot.
 - Colors must form a cohesive, intentional palette. Never use random or clashing colors.
+- Generate headlineColor, subheadlineColor, and ctaColor as hex strings. Ensure sufficient contrast with backgroundColor at all times.
+- headlineColor: the most prominent text (white, black, or a strong accent that contrasts with background).
+- subheadlineColor: a subtler shade than the headline (e.g. softer gray or muted variant).
+- ctaColor: must stand out from the rest of the text (high contrast, often accent or complementary).
+- NEVER use the same hex for any text color and the background; text and background must always differ.
 - stateInputs.speed: dreamy/slow = 0.3–0.5, neutral = 0.8–1.0, energetic = 1.2–2.0
 - stateInputs.intensity: subtle = 0.1–0.3, balanced = 0.4–0.6, bold = 0.7–1.0
 - stateInputs.mood must be exactly "dreamy" (the only available mood in this template).
@@ -57,7 +68,7 @@ AdSpec schema for reference:
     tagline?: { value: string },
     custom?: Record<string, { value: string }>
   },
-  colors: { primary: string, secondary: string, background: string, accent?: string },
+  colors: { primary: string, secondary: string, background: string, accent?: string, headlineColor: string, subheadlineColor: string, ctaColor: string },
   assets: {},
   stateInputs: { speed?: number, intensity?: number, mood?: string },
   generation: { prompt: string, model: string, rationale: string, variantIndex: number }
@@ -77,8 +88,8 @@ export async function generateAdSpec(
   }
 
   const systemPrompt =
-    options.brandTokens != null
-      ? getBrandTokensPromptBlock(options.brandTokens) + '\n\n' + SYSTEM_PROMPT
+    options.activeBrand != null
+      ? getBrandTokensPromptBlock(options.activeBrand.name, options.activeBrand.tokens) + '\n\n' + SYSTEM_PROMPT
       : SYSTEM_PROMPT;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {

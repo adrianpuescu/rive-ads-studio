@@ -87,14 +87,20 @@ export interface AdSpec {
 
   /** Color slot assignments (hex format) */
   colors: {
-    /** Primary brand color */
+    /** Primary brand color (reserved for decorative shapes; not sent to Rive ViewModel yet) */
     primary: string;
-    /** Secondary accent color */
+    /** Secondary accent color (reserved for decorative shapes; not sent to Rive ViewModel yet) */
     secondary: string;
     /** Background color */
     background: string;
     /** Accent color */
     accent?: string;
+    /** Headline text color (hex); must contrast with background. Optional for backwards compatibility. */
+    headlineColor?: string;
+    /** Subheadline text color (hex); subtler than headline. Optional for backwards compatibility. */
+    subheadlineColor?: string;
+    /** CTA button/text color (hex); stands out from rest of text. Optional for backwards compatibility. */
+    ctaColor?: string;
     /** Additional custom color slots by slot name */
     custom?: Record<string, string>;
   };

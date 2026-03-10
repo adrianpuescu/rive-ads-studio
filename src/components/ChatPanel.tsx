@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { AdSpec } from '../types/ad-spec.schema';
-import type { BrandTokens } from '../types/brand-tokens';
+import type { ActiveBrandForPrompt } from '../ai/specGenerator';
 import type { ChatMessage } from '../types/chat';
 import { generateAdSpec } from '../ai/specGenerator';
 import { refineAdSpec } from '../ai/chatRefinement';
@@ -31,13 +31,13 @@ export interface ChatPanelProps {
   /** Ref for the initial prompt textarea so parent can focus it (e.g. after New Ad). */
   promptInputRef?: React.RefObject<HTMLTextAreaElement | null>;
   apiKey: string;
-  /** Brand tokens to inject into AI prompts when set. */
-  brandTokens?: BrandTokens | null;
-  /** Whether brand tokens are active (for showing chip). */
-  hasBrandTokens?: boolean;
-  /** Brand name for chip label. */
-  brandName?: string;
-  /** Callback when user clicks the brand tokens chip to open panel. */
+  /** Active brand for AI prompt injection (name + tokens). */
+  activeBrand?: ActiveBrandForPrompt | null;
+  /** Whether an active brand is enabled (for showing chip). */
+  hasActiveBrand?: boolean;
+  /** Active brand name for chip label. */
+  activeBrandName?: string;
+  /** Callback when user clicks the brand chip to open panel. */
   onOpenBrandTokens?: () => void;
 }
 
@@ -55,9 +55,9 @@ export function ChatPanel({
   newAdTrigger = 0,
   promptInputRef,
   apiKey,
-  brandTokens = null,
-  hasBrandTokens = false,
-  brandName = '',
+  activeBrand = null,
+  hasActiveBrand = false,
+  activeBrandName = '',
   onOpenBrandTokens,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -101,7 +101,7 @@ export function ChatPanel({
     setError(null);
 
     try {
-      const result = await generateAdSpec({ prompt, brandTokens });
+      const result = await generateAdSpec({ prompt, activeBrand });
       const userMsg: ChatMessage = {
         id: nextId(),
         role: 'user',
@@ -142,7 +142,7 @@ export function ChatPanel({
         messages,
         text,
         apiKey,
-        brandTokens
+        activeBrand
       );
       const userMsg: ChatMessage = {
         id: nextId(),
@@ -180,14 +180,14 @@ export function ChatPanel({
     ? inputValue.trim().length > 0 && !isLoading
     : inputValue.trim().length > 0 && !isLoading && currentSpec !== null;
 
-  const brandChip = hasBrandTokens && (
+  const brandChip = hasActiveBrand && (
     <button
       type="button"
       className="chat-brand-tokens-chip"
       onClick={onOpenBrandTokens}
-      aria-label={brandName ? `${brandName} brand tokens active — click to edit` : 'Brand tokens active — click to edit'}
+      aria-label={`${activeBrandName} active — click to edit`}
     >
-      ◈ {brandName ? `${brandName} tokens active` : 'Brand tokens active'}
+      ◈ {activeBrandName}
     </button>
   );
 

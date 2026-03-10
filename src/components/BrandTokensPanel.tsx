@@ -1,10 +1,12 @@
 /**
- * Brand Tokens panel: drawer from the right to edit brand colors, font, and voice.
- * Overlays Inspector; same slide animation as LibraryPanel (translateX).
+ * Brand Manager panel: drawer from the right.
+ * State 1: list of brands + global enable toggle.
+ * State 2: form to create or edit a brand.
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import type { BrandTokens } from '../types/brand-tokens';
+import type { Brand } from '../hooks/useBrandTokens';
+import type { BrandTokens as BrandTokensType } from '../types/brand-tokens';
 
 const FONT_OPTIONS = [
   'Inter',
@@ -17,103 +19,145 @@ const FONT_OPTIONS = [
   'Montserrat',
 ] as const;
 
-export interface BrandTokensPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-  tokens: BrandTokens | null;
-  onSave: (tokens: BrandTokens) => void;
-  onClear: () => void;
-}
-
-const DEFAULT_TOKENS: BrandTokens = {
+const DEFAULT_TOKENS: BrandTokensType = {
   primaryColor: '#E84B2A',
   secondaryColor: '#1a1a1a',
   backgroundColor: '#ffffff',
   fontFamily: 'DM Sans',
-  brandName: '',
   brandVoice: '',
 };
+
+function truncateFont(name: string, maxLen: number): string {
+  if (name.length <= maxLen) return name;
+  return name.slice(0, maxLen).trim() + '…';
+}
+
+export interface BrandTokensPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  brands: Brand[];
+  activeBrandId: string | null;
+  isEnabled: boolean;
+  onToggleEnabled: () => void;
+  onAddBrand: (name: string, tokens: BrandTokensType) => Brand;
+  onUpdateBrand: (id: string, updates: Partial<Brand>) => void;
+  onDeleteBrand: (id: string) => void;
+  onSetActiveBrand: (id: string | null) => void;
+}
+
+type View = 'list' | 'form';
+type FormMode = { kind: 'new' } | { kind: 'edit'; brand: Brand };
 
 export function BrandTokensPanel({
   isOpen,
   onClose,
-  tokens,
-  onSave,
-  onClear,
+  brands,
+  activeBrandId,
+  isEnabled,
+  onToggleEnabled,
+  onAddBrand,
+  onUpdateBrand,
+  onDeleteBrand,
+  onSetActiveBrand,
 }: BrandTokensPanelProps) {
-  const [form, setForm] = useState<BrandTokens>(tokens ?? DEFAULT_TOKENS);
-  const [savedBanner, setSavedBanner] = useState(false);
+  const [view, setView] = useState<View>('list');
+  const [formMode, setFormMode] = useState<FormMode>({ kind: 'new' });
+  const [form, setForm] = useState({ name: '', tokens: DEFAULT_TOKENS });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setForm(tokens ?? DEFAULT_TOKENS);
-  }, [tokens, isOpen]);
+  const goToList = useCallback(() => {
+    setView('list');
+    setConfirmDeleteId(null);
+  }, []);
 
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
+  const openNew = useCallback(() => {
+    setFormMode({ kind: 'new' });
+    setForm({ name: '', tokens: { ...DEFAULT_TOKENS } });
+    setView('form');
+  }, []);
+
+  const openEdit = useCallback((brand: Brand) => {
+    setFormMode({ kind: 'edit', brand });
+    setForm({ name: brand.name, tokens: { ...brand.tokens } });
+    setView('form');
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (view === 'form') goToList();
+        else onClose();
+      }
+    };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen, handleEscape]);
+  }, [isOpen, view, goToList, onClose]);
 
   const handleSave = useCallback(() => {
-    onSave(form);
-    setSavedBanner(true);
-  }, [form, onSave]);
+    const name = form.name.trim() || 'Unnamed';
+    const tokens = form.tokens;
+    if (formMode.kind === 'new') {
+      const added = onAddBrand(name, tokens);
+      onSetActiveBrand(added.id);
+      if (!isEnabled) onToggleEnabled();
+      goToList();
+    } else {
+      onUpdateBrand(formMode.brand.id, { name, tokens });
+      goToList();
+    }
+  }, [form, formMode, isEnabled, onAddBrand, onUpdateBrand, onSetActiveBrand, onToggleEnabled, goToList]);
 
-  useEffect(() => {
-    if (!savedBanner) return;
-    const t = setTimeout(() => setSavedBanner(false), 3000);
-    return () => clearTimeout(t);
-  }, [savedBanner]);
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (confirmDeleteId === id) {
+        onDeleteBrand(id);
+        setConfirmDeleteId(null);
+      } else {
+        setConfirmDeleteId(id);
+      }
+    },
+    [confirmDeleteId, onDeleteBrand]
+  );
 
-  const handleClear = useCallback(() => {
-    onClear();
-    setForm(DEFAULT_TOKENS);
-  }, [onClear]);
+  const activeBrand = activeBrandId ? brands.find((b) => b.id === activeBrandId) ?? null : null;
 
-  const update = useCallback(<K extends keyof BrandTokens>(key: K, value: BrandTokens[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  return (
-    <div
-      className={`brand-tokens-panel ${isOpen ? 'brand-tokens-panel-open' : ''}`}
-      role="dialog"
-      aria-label="Brand Tokens"
-    >
-      <div className="brand-tokens-panel-header">
-        <h2 className="brand-tokens-panel-title">Brand Tokens</h2>
-        <button
-          type="button"
-          className="brand-tokens-panel-close"
-          onClick={onClose}
-          aria-label="Close Brand Tokens"
-        >
-          ×
-        </button>
-      </div>
-      <div className="brand-tokens-panel-content">
-        {savedBanner && (
-          <div className="brand-tokens-panel-banner" role="status">
-            ✓ Brand tokens active — AI will use these in every generation
-          </div>
-        )}
-
-        <section className="brand-tokens-section">
-          <h3 className="brand-tokens-section-title">IDENTITY</h3>
+  if (view === 'form') {
+    return (
+      <div
+        className={`brand-tokens-panel ${isOpen ? 'brand-tokens-panel-open' : ''}`}
+        role="dialog"
+        aria-label={formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`}
+      >
+        <div className="brand-tokens-panel-header">
+          <button
+            type="button"
+            className="brand-tokens-panel-back"
+            onClick={goToList}
+            aria-label="Back to list"
+          >
+            ← Back
+          </button>
+          <h2 className="brand-tokens-panel-title">
+            {formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`}
+          </h2>
+          <button
+            type="button"
+            className="brand-tokens-panel-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <div className="brand-tokens-panel-content">
           <label className="brand-tokens-label">
-            Brand Name
+            Brand Name <span className="brand-tokens-required">*</span>
             <input
               type="text"
               className="brand-tokens-input"
-              value={form.brandName}
-              onChange={(e) => update('brandName', e.target.value)}
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               placeholder="e.g. Nike"
             />
           </label>
@@ -122,106 +166,265 @@ export function BrandTokensPanel({
             <input
               type="text"
               className="brand-tokens-input"
-              value={form.brandVoice}
-              onChange={(e) => update('brandVoice', e.target.value)}
+              value={form.tokens.brandVoice}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, tokens: { ...p.tokens, brandVoice: e.target.value } }))
+              }
               placeholder="e.g. bold and energetic"
             />
           </label>
-        </section>
 
-        <section className="brand-tokens-section">
-          <h3 className="brand-tokens-section-title">COLORS</h3>
-          <label className="brand-tokens-label">
-            Primary Color
-            <div className="brand-tokens-color-row">
-              <input
-                type="color"
-                className="brand-tokens-color-picker"
-                value={form.primaryColor}
-                onChange={(e) => update('primaryColor', e.target.value)}
-                aria-label="Primary color"
-              />
-              <input
-                type="text"
-                className="brand-tokens-hex"
-                value={form.primaryColor}
-                onChange={(e) => update('primaryColor', e.target.value)}
-                placeholder="#000000"
-              />
-            </div>
-          </label>
-          <label className="brand-tokens-label">
-            Secondary Color
-            <div className="brand-tokens-color-row">
-              <input
-                type="color"
-                className="brand-tokens-color-picker"
-                value={form.secondaryColor}
-                onChange={(e) => update('secondaryColor', e.target.value)}
-                aria-label="Secondary color"
-              />
-              <input
-                type="text"
-                className="brand-tokens-hex"
-                value={form.secondaryColor}
-                onChange={(e) => update('secondaryColor', e.target.value)}
-                placeholder="#000000"
-              />
-            </div>
-          </label>
-          <label className="brand-tokens-label">
-            Background Color
-            <div className="brand-tokens-color-row">
-              <input
-                type="color"
-                className="brand-tokens-color-picker"
-                value={form.backgroundColor}
-                onChange={(e) => update('backgroundColor', e.target.value)}
-                aria-label="Background color"
-              />
-              <input
-                type="text"
-                className="brand-tokens-hex"
-                value={form.backgroundColor}
-                onChange={(e) => update('backgroundColor', e.target.value)}
-                placeholder="#ffffff"
-              />
-            </div>
-          </label>
-        </section>
+          <section className="brand-tokens-section">
+            <h3 className="brand-tokens-section-title">COLORS</h3>
+            <label className="brand-tokens-label">
+              Primary Color
+              <div className="brand-tokens-color-row">
+                <input
+                  type="color"
+                  className="brand-tokens-color-picker"
+                  value={form.tokens.primaryColor}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))
+                  }
+                  aria-label="Primary color"
+                />
+                <input
+                  type="text"
+                  className="brand-tokens-hex"
+                  value={form.tokens.primaryColor}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))
+                  }
+                />
+              </div>
+            </label>
+            <label className="brand-tokens-label">
+              Secondary Color
+              <div className="brand-tokens-color-row">
+                <input
+                  type="color"
+                  className="brand-tokens-color-picker"
+                  value={form.tokens.secondaryColor}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      tokens: { ...p.tokens, secondaryColor: e.target.value },
+                    }))
+                  }
+                  aria-label="Secondary color"
+                />
+                <input
+                  type="text"
+                  className="brand-tokens-hex"
+                  value={form.tokens.secondaryColor}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      tokens: { ...p.tokens, secondaryColor: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+            </label>
+            <label className="brand-tokens-label">
+              Background Color
+              <div className="brand-tokens-color-row">
+                <input
+                  type="color"
+                  className="brand-tokens-color-picker"
+                  value={form.tokens.backgroundColor}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      tokens: { ...p.tokens, backgroundColor: e.target.value },
+                    }))
+                  }
+                  aria-label="Background color"
+                />
+                <input
+                  type="text"
+                  className="brand-tokens-hex"
+                  value={form.tokens.backgroundColor}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      tokens: { ...p.tokens, backgroundColor: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+            </label>
+          </section>
 
-        <section className="brand-tokens-section">
-          <h3 className="brand-tokens-section-title">TYPOGRAPHY</h3>
-          <label className="brand-tokens-label">
-            Font Family
-            <select
-              className="brand-tokens-select"
-              value={form.fontFamily}
-              onChange={(e) => update('fontFamily', e.target.value)}
-            >
-              {FONT_OPTIONS.map((font) => (
-                <option key={font} value={font}>
-                  {font}
-                </option>
-              ))}
-            </select>
-          </label>
-        </section>
+          <section className="brand-tokens-section">
+            <h3 className="brand-tokens-section-title">TYPOGRAPHY</h3>
+            <label className="brand-tokens-label">
+              Font Family
+              <select
+                className="brand-tokens-select"
+                value={form.tokens.fontFamily}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, tokens: { ...p.tokens, fontFamily: e.target.value } }))
+                }
+              >
+                {FONT_OPTIONS.map((font) => (
+                  <option key={font} value={font}>
+                    {font}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </section>
 
-        <button
-          type="button"
-          className="brand-tokens-save-btn"
-          onClick={handleSave}
-        >
-          Save Tokens
-        </button>
-        <button
-          type="button"
-          className="brand-tokens-clear-btn"
-          onClick={handleClear}
-        >
-          Clear
-        </button>
+          <button type="button" className="brand-tokens-save-btn" onClick={handleSave}>
+            Save Brand
+          </button>
+          <button type="button" className="brand-tokens-clear-btn" onClick={goToList}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`brand-tokens-panel ${isOpen ? 'brand-tokens-panel-open' : ''}`}
+      role="dialog"
+      aria-label="Brands"
+    >
+      <div className="brand-tokens-panel-header brand-tokens-panel-header-list">
+        <h2 className="brand-tokens-panel-title">Brands</h2>
+        <div className="brand-tokens-panel-header-actions">
+          <button
+            type="button"
+            className="brand-tokens-panel-new-btn"
+            onClick={openNew}
+            aria-label="Create new brand"
+          >
+            + New
+          </button>
+          <button
+            type="button"
+            className="brand-tokens-panel-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <div className="brand-tokens-panel-content">
+        <label className="brand-tokens-toggle-wrap">
+          <input
+            type="checkbox"
+            className="brand-tokens-toggle-input"
+            checked={isEnabled}
+            onChange={onToggleEnabled}
+            aria-label="Use brand tokens"
+          />
+          <span className="brand-tokens-toggle-slider" />
+          <span className="brand-tokens-toggle-label">Use brand tokens</span>
+        </label>
+
+        <div className={`brand-tokens-list-wrap ${!isEnabled ? 'brand-tokens-list-disabled' : ''}`}>
+          {brands.length === 0 ? (
+            <div className="brand-tokens-empty">
+              <p className="brand-tokens-empty-text">No brands yet</p>
+              <button
+                type="button"
+                className="brand-tokens-empty-btn"
+                onClick={openNew}
+              >
+                Create your first brand
+              </button>
+            </div>
+          ) : (
+            <ul className="brand-tokens-list" role="list">
+              {brands.map((brand) => {
+                const isActive = activeBrandId === brand.id;
+                const isConfirmingDelete = confirmDeleteId === brand.id;
+                return (
+                  <li
+                    key={brand.id}
+                    className={`brand-tokens-list-item ${isActive ? 'brand-tokens-list-item-active' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="activeBrand"
+                      className="brand-tokens-radio"
+                      checked={isActive}
+                      onChange={() => onSetActiveBrand(brand.id)}
+                      aria-label={`Select ${brand.name} as active`}
+                    />
+                    <span className="brand-tokens-item-name">{brand.name}</span>
+                    <div className="brand-tokens-item-preview">
+                      <span className="brand-tokens-item-dots" aria-hidden>
+                        <span
+                          className="brand-tokens-dot"
+                          style={{ background: brand.tokens.primaryColor }}
+                        />
+                        <span
+                          className="brand-tokens-dot"
+                          style={{ background: brand.tokens.secondaryColor }}
+                        />
+                        <span
+                          className="brand-tokens-dot"
+                          style={{ background: brand.tokens.backgroundColor }}
+                        />
+                      </span>
+                      <span className="brand-tokens-item-font">
+                        {truncateFont(brand.tokens.fontFamily, 14)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="brand-tokens-item-btn brand-tokens-item-edit"
+                      onClick={() => openEdit(brand)}
+                      aria-label={`Edit ${brand.name}`}
+                    >
+                      ✎
+                    </button>
+                    {isConfirmingDelete ? (
+                      <>
+                        <span className="brand-tokens-confirm-label">Delete?</span>
+                        <button
+                          type="button"
+                          className="brand-tokens-item-btn brand-tokens-item-confirm"
+                          onClick={() => handleDelete(brand.id)}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          className="brand-tokens-item-btn brand-tokens-item-cancel"
+                          onClick={() => setConfirmDeleteId(null)}
+                        >
+                          No
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="brand-tokens-item-btn brand-tokens-item-delete"
+                        onClick={() => handleDelete(brand.id)}
+                        aria-label={`Delete ${brand.name}`}
+                      >
+                        🗑
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {activeBrand && isEnabled && (
+          <div className="brand-tokens-footer-active" role="status">
+            ◈ {activeBrand.name} active
+          </div>
+        )}
       </div>
     </div>
   );

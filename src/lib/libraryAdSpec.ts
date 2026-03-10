@@ -35,6 +35,9 @@ export function libraryItemToAdSpec(item: LibraryItem): AdSpec {
       primary: item.colors.primary,
       secondary: item.colors.secondary,
       background: item.colors.background,
+      headlineColor: '#111827',
+      subheadlineColor: '#4b5563',
+      ctaColor: '#ffffff',
     },
     generation: {
       prompt: item.prompt,

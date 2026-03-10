@@ -1,75 +1,155 @@
 /**
- * Brand Tokens: visual brand values (colors, font) used by AI in every generation.
- * Persisted in localStorage.
+ * Brand Manager: multiple brands with tokens; one active brand used in AI prompts.
+ * Persisted in localStorage as BrandState.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { BrandTokens } from '../types/brand-tokens';
 
-const STORAGE_KEY = 'riveads_brand_tokens';
+const STORAGE_KEY = 'riveads_brand_state';
 
-export type { BrandTokens };
+export interface Brand {
+  id: string;
+  name: string;
+  createdAt: number;
+  tokens: BrandTokens;
+}
 
-function loadFromStorage(): BrandTokens | null {
+export interface BrandState {
+  brands: Brand[];
+  activeBrandId: string | null;
+  isEnabled: boolean;
+}
+
+function loadFromStorage(): BrandState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    if (!raw) return { brands: [], activeBrandId: null, isEnabled: false };
     const parsed = JSON.parse(raw) as unknown;
-    if (parsed == null || typeof parsed !== 'object') return null;
+    if (parsed == null || typeof parsed !== 'object') return { brands: [], activeBrandId: null, isEnabled: false };
     const o = parsed as Record<string, unknown>;
-    if (
-      typeof o.primaryColor !== 'string' ||
-      typeof o.secondaryColor !== 'string' ||
-      typeof o.backgroundColor !== 'string' ||
-      typeof o.fontFamily !== 'string' ||
-      typeof o.brandName !== 'string' ||
-      typeof o.brandVoice !== 'string'
-    ) {
-      return null;
-    }
-    return {
-      primaryColor: o.primaryColor,
-      secondaryColor: o.secondaryColor,
-      backgroundColor: o.backgroundColor,
-      fontFamily: o.fontFamily,
-      brandName: o.brandName,
-      brandVoice: o.brandVoice,
-    };
+    const brands = parseBrands(o.brands);
+    const activeBrandId = typeof o.activeBrandId === 'string' ? o.activeBrandId : null;
+    const isEnabled = typeof o.isEnabled === 'boolean' ? o.isEnabled : false;
+    return { brands, activeBrandId, isEnabled };
   } catch {
-    return null;
+    return { brands: [], activeBrandId: null, isEnabled: false };
   }
 }
 
-function saveToStorage(tokens: BrandTokens | null): void {
+function parseBrands(value: unknown): Brand[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((x): x is Brand => {
+    if (x == null || typeof x !== 'object') return false;
+    const b = x as Record<string, unknown>;
+    if (typeof b.id !== 'string' || typeof b.name !== 'string' || typeof b.createdAt !== 'number') return false;
+    const t = b.tokens;
+    if (t == null || typeof t !== 'object') return false;
+    const tok = t as Record<string, unknown>;
+    return (
+      typeof tok.primaryColor === 'string' &&
+      typeof tok.secondaryColor === 'string' &&
+      typeof tok.backgroundColor === 'string' &&
+      typeof tok.fontFamily === 'string' &&
+      typeof tok.brandVoice === 'string'
+    );
+  }).map((x) => ({
+    id: (x as Brand).id,
+    name: (x as Brand).name,
+    createdAt: (x as Brand).createdAt,
+    tokens: { ...(x as Brand).tokens },
+  }));
+}
+
+function saveToStorage(state: BrandState): void {
   try {
-    if (tokens === null) {
-      localStorage.removeItem(STORAGE_KEY);
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // ignore
   }
 }
 
 export function useBrandTokens() {
-  const [tokens, setTokensState] = useState<BrandTokens | null>(loadFromStorage);
+  const [state, setState] = useState<BrandState>(loadFromStorage);
 
   useEffect(() => {
-    setTokensState(loadFromStorage());
+    setState(loadFromStorage());
   }, []);
 
-  const setTokens = useCallback((next: BrandTokens) => {
-    setTokensState(next);
-    saveToStorage(next);
+  const activeBrand = useMemo(
+    () => (state.activeBrandId ? state.brands.find((b) => b.id === state.activeBrandId) ?? null : null),
+    [state.brands, state.activeBrandId]
+  );
+
+  const hasActiveBrand = activeBrand !== null && state.isEnabled;
+
+  const addBrand = useCallback((name: string, tokens: BrandTokens): Brand => {
+    const brand: Brand = {
+      id: crypto.randomUUID(),
+      name: name.trim() || 'Unnamed',
+      createdAt: Date.now(),
+      tokens: { ...tokens },
+    };
+    setState((prev) => {
+      const next: BrandState = {
+        ...prev,
+        brands: [brand, ...prev.brands],
+      };
+      saveToStorage(next);
+      return next;
+    });
+    return brand;
   }, []);
 
-  const clearTokens = useCallback(() => {
-    setTokensState(null);
-    saveToStorage(null);
+  const updateBrand = useCallback((id: string, updates: Partial<Brand>) => {
+    setState((prev) => {
+      const brands = prev.brands.map((b) =>
+        b.id === id ? { ...b, ...updates, tokens: updates.tokens ? { ...updates.tokens } : b.tokens } : b
+      );
+      const next = { ...prev, brands };
+      saveToStorage(next);
+      return next;
+    });
   }, []);
 
-  const hasTokens = tokens !== null;
+  const deleteBrand = useCallback((id: string) => {
+    setState((prev) => {
+      const next: BrandState = {
+        brands: prev.brands.filter((b) => b.id !== id),
+        activeBrandId: prev.activeBrandId === id ? null : prev.activeBrandId,
+        isEnabled: prev.activeBrandId === id ? false : prev.isEnabled,
+      };
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
 
-  return { tokens, setTokens, clearTokens, hasTokens };
+  const setActiveBrand = useCallback((id: string | null) => {
+    setState((prev) => {
+      const next = { ...prev, activeBrandId: id };
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
+
+  const toggleEnabled = useCallback(() => {
+    setState((prev) => {
+      const next = { ...prev, isEnabled: !prev.isEnabled };
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
+
+  return {
+    brands: state.brands,
+    activeBrandId: state.activeBrandId,
+    activeBrand,
+    isEnabled: state.isEnabled,
+    hasActiveBrand,
+    addBrand,
+    updateBrand,
+    deleteBrand,
+    setActiveBrand,
+    toggleEnabled,
+  };
 }
