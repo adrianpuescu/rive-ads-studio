@@ -84,18 +84,37 @@ function App() {
     }
   }, [])
 
+  const saveStatus =
+    adSpec === null
+      ? null
+      : lastSavedStateRef.current != null &&
+        JSON.stringify(adSpec) === JSON.stringify(lastSavedStateRef.current)
+        ? 'saved'
+        : 'unsaved'
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveStatus === 'unsaved' && adSpec !== null) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [saveStatus, adSpec])
+
   const handleNewAdClick = useCallback(() => {
-    if (adSpec) {
+    if (adSpec && saveStatus === 'unsaved') {
       setShowNewAdConfirm(true)
       clearNewAdConfirmTimeout()
       newAdConfirmTimeoutRef.current = setTimeout(() => {
         setShowNewAdConfirm(false)
         newAdConfirmTimeoutRef.current = null
-      }, 5000)
+      }, 8000)
     } else {
       doNewAd()
     }
-  }, [adSpec])
+  }, [adSpec, saveStatus])
 
   const doNewAd = useCallback(() => {
     setShowNewAdConfirm(false)
@@ -158,7 +177,7 @@ function App() {
   }, [historyToast])
 
   const captureAndUpdateThumbnail = useCallback(
-    (itemId: string) => {
+    (itemId: string, onDone?: () => void) => {
       setTimeout(() => {
         try {
           const canvas = document.querySelector('canvas')
@@ -169,26 +188,34 @@ function App() {
         } catch {
           // omit thumbnail
         }
+        onDone?.()
       }, 800)
     },
     [updateItemThumbnail]
   )
 
-  const handleSaveToLibrary = useCallback(() => {
-    if (!adSpec) return
-    const payload = adSpecToLibraryItemPayload(adSpec)
-    let itemId: string
-    if (activeLibraryItemId) {
-      updateItem(activeLibraryItemId, payload)
-      itemId = activeLibraryItemId
-    } else {
-      itemId = addItem(payload)
-      setActiveLibraryItemId(itemId)
-    }
-    lastSavedStateRef.current = adSpec
-    setSaveVersion((v) => v + 1)
-    captureAndUpdateThumbnail(itemId)
-  }, [adSpec, activeLibraryItemId, addItem, updateItem, captureAndUpdateThumbnail])
+  const handleSaveToLibrary = useCallback(
+    (onAfterSave?: () => void) => {
+      if (!adSpec) return
+      const payload = adSpecToLibraryItemPayload(adSpec)
+      let itemId: string
+      if (activeLibraryItemId) {
+        updateItem(activeLibraryItemId, payload)
+        itemId = activeLibraryItemId
+      } else {
+        itemId = addItem(payload)
+        setActiveLibraryItemId(itemId)
+      }
+      lastSavedStateRef.current = adSpec
+      setSaveVersion((v) => v + 1)
+      captureAndUpdateThumbnail(itemId, onAfterSave)
+    },
+    [adSpec, activeLibraryItemId, addItem, updateItem, captureAndUpdateThumbnail]
+  )
+
+  const handleSaveAndNew = useCallback(() => {
+    handleSaveToLibrary(doNewAd)
+  }, [handleSaveToLibrary, doNewAd])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -267,13 +294,20 @@ function App() {
         </div>
         {showNewAdConfirm ? (
           <div className="app-toolbar-newad-confirm">
-            <span className="app-toolbar-newad-confirm-text">Unsaved changes — New anyway?</span>
+            <span className="app-toolbar-newad-confirm-text">Unsaved changes</span>
             <button
               type="button"
-              className="app-toolbar-newad-btn app-toolbar-newad-btn-yes"
+              className="app-toolbar-newad-btn app-toolbar-newad-btn-save"
+              onClick={handleSaveAndNew}
+            >
+              Save & New
+            </button>
+            <button
+              type="button"
+              className="app-toolbar-newad-btn app-toolbar-newad-btn-discard"
               onClick={doNewAd}
             >
-              Yes
+              Discard
             </button>
             <button
               type="button"

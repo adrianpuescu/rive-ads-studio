@@ -128,22 +128,24 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 0 4px;
+  font-size: 0.8rem;
 }
 
 .app-toolbar-newad-confirm-text {
   font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
 
-.app-toolbar-newad-btn-yes {
+.app-toolbar-newad-btn-save,
+.app-toolbar-newad-btn-discard,
+.app-toolbar-newad-btn-cancel {
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: 0.8rem;
 }
 
 .app-toolbar-newad-btn-cancel {
-  padding: 4px 10px;
-  font-size: 12px;
   color: var(--color-text-secondary);
 }
 
