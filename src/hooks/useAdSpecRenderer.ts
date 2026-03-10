@@ -2,10 +2,11 @@
  * useAdSpecRenderer Hook
  * 
  * React hook that manages Rive instance lifecycle and applies AdSpec configuration.
- * Handles loading, errors, and cleanup automatically.
+ * Recreates the Rive instance only when template (id/artboard/stateMachine) changes;
+ * for spec-only updates (colors, text, stateInputs) applies to the existing instance to avoid flicker.
  */
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Rive } from '@rive-app/canvas';
 import type { AdSpec } from '../types/ad-spec.schema';
 import { getTemplatePath } from '../lib/templateRegistry';
@@ -18,6 +19,21 @@ export interface UseAdSpecRendererResult {
   error: Error | null;
   /** Live Rive instance (null until loaded) */
   riveInstance: Rive | null;
+}
+
+function getTemplateKey(template: AdSpec['template']): string {
+  return `${template.id}|${template.artboard}|${template.stateMachine}`;
+}
+
+function cleanupRive(ref: React.MutableRefObject<Rive | null>): void {
+  if (ref.current) {
+    try {
+      ref.current.cleanup();
+    } catch (err) {
+      console.error('Error cleaning up Rive instance:', err);
+    }
+    ref.current = null;
+  }
 }
 
 /**
@@ -34,22 +50,44 @@ export function useAdSpecRenderer(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [riveInstance, setRiveInstance] = useState<Rive | null>(null);
+  const riveRef = useRef<Rive | null>(null);
+  const templateKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // No spec provided - idle state
+    return () => cleanupRive(riveRef);
+  }, []);
+
+  useEffect(() => {
     if (!spec) {
+      cleanupRive(riveRef);
+      templateKeyRef.current = null;
       setIsLoading(false);
       setError(null);
       setRiveInstance(null);
       return;
     }
 
-    // No canvas element yet
     if (!canvasRef.current) {
       console.warn('Canvas ref not ready');
       return;
     }
 
+    const templateKey = getTemplateKey(spec.template);
+
+    if (riveRef.current && templateKeyRef.current === templateKey) {
+      applyAdSpec(riveRef.current, spec).catch((err) => {
+        console.error('Failed to apply AdSpec:', err);
+        setError(
+          err instanceof Error
+            ? err
+            : new Error('Failed to apply AdSpec configuration')
+        );
+      });
+      return;
+    }
+
+    cleanupRive(riveRef);
+    templateKeyRef.current = templateKey;
     setIsLoading(true);
     setError(null);
 
@@ -58,7 +96,6 @@ export function useAdSpecRenderer(
     try {
       const templatePath = getTemplatePath(spec.template.id);
 
-      // Instantiate Rive with manual control
       rive = new Rive({
         src: templatePath,
         canvas: canvasRef.current,
@@ -69,10 +106,10 @@ export function useAdSpecRenderer(
           if (!rive) return;
 
           try {
-            // Resize canvas to match dimensions
             rive.resizeDrawingSurfaceToCanvas();
+            riveRef.current = rive;
+            setRiveInstance(rive);
 
-            // Apply AdSpec configuration
             applyAdSpec(rive, spec).catch((err) => {
               console.error('Failed to apply AdSpec:', err);
               setError(
@@ -83,7 +120,6 @@ export function useAdSpecRenderer(
             });
 
             setIsLoading(false);
-            setRiveInstance(rive);
           } catch (err) {
             console.error('Error in Rive onLoad:', err);
             setError(
@@ -106,17 +142,9 @@ export function useAdSpecRenderer(
       );
       setIsLoading(false);
     }
-
-    // Cleanup on unmount or spec change
-    return () => {
-      if (rive) {
-        try {
-          rive.cleanup();
-        } catch (err) {
-          console.error('Error cleaning up Rive instance:', err);
-        }
-      }
-    };
+    // Do not return a cleanup here: it would run before the next effect and destroy
+    // the instance, forcing a full reload on every spec change (e.g. color drag). We
+    // only cleanup on unmount (effect above) and at the start of the load path.
   }, [spec, canvasRef.current]);
 
   return {

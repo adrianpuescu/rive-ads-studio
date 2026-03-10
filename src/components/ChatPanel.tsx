@@ -22,6 +22,8 @@ export interface ChatPanelProps {
     prompt: string,
     chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>
   ) => void;
+  /** Set to true immediately before Claude API fetch, false in finally. Used only for overlay; not tied to SpecInspector. */
+  onGeneratingChange?: (value: boolean) => void;
   /** When set, replaces messages with this history and shows "Loaded from Library" separator. Cleared via onRestoredChatHistoryApplied. */
   restoredChatHistory?: Array<{ role: 'user' | 'assistant'; content: string }> | null;
   /** Called after applying restoredChatHistory so parent can clear it. */
@@ -50,6 +52,7 @@ export function ChatPanel({
   onSpecUpdate,
   onInitialGenerate,
   onAdGenerated,
+  onGeneratingChange,
   restoredChatHistory = null,
   onRestoredChatHistoryApplied,
   newAdTrigger = 0,
@@ -97,6 +100,7 @@ export function ChatPanel({
     const prompt = inputValue.trim();
     if (!prompt) return;
 
+    onGeneratingChange?.(true);
     setIsLoading(true);
     setError(null);
 
@@ -126,6 +130,7 @@ export function ChatPanel({
       setError(err instanceof Error ? err.message : 'Failed to generate ad');
     } finally {
       setIsLoading(false);
+      onGeneratingChange?.(false);
     }
   };
 
@@ -133,6 +138,7 @@ export function ChatPanel({
     const text = inputValue.trim();
     if (!text || !currentSpec) return;
 
+    onGeneratingChange?.(true);
     setIsLoading(true);
     setError(null);
 
@@ -164,6 +170,7 @@ export function ChatPanel({
       setError(err instanceof Error ? err.message : 'Refinement failed');
     } finally {
       setIsLoading(false);
+      onGeneratingChange?.(false);
     }
   };
 

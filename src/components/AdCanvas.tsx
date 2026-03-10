@@ -17,6 +17,8 @@ export interface AdCanvasProps {
   width: number;
   /** Canvas height in pixels */
   height: number;
+  /** True only while a Claude API call is in progress (shows "Generating" overlay). Not tied to spec/Inspector changes. */
+  isGenerating?: boolean;
   /** Optional CSS class name */
   className?: string;
 }
@@ -24,7 +26,7 @@ export interface AdCanvasProps {
 /**
  * Renders a Rive ad based on an AdSpec
  */
-export function AdCanvas({ spec, width, height, className = '' }: AdCanvasProps) {
+export function AdCanvas({ spec, width, height, isGenerating = false, className = '' }: AdCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // riveInstance exposed for parent components that need direct Rive access
   const { isLoading, error } = useAdSpecRenderer(spec, canvasRef);
@@ -39,7 +41,7 @@ export function AdCanvas({ spec, width, height, className = '' }: AdCanvasProps)
         style={{ display: 'block' }}
       />
 
-      {isLoading && (
+      {isGenerating && (
         <div className="ad-canvas-overlay ad-canvas-loading">
           <span>Generating...</span>
         </div>

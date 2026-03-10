@@ -56,6 +56,7 @@ function App() {
     Array<{ role: 'user' | 'assistant'; content: string }> | null
   >(null)
   const [historyToast, setHistoryToast] = useState<{ message: string } | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -156,18 +157,38 @@ function App() {
     return () => clearTimeout(id)
   }, [historyToast])
 
+  const captureAndUpdateThumbnail = useCallback(
+    (itemId: string) => {
+      setTimeout(() => {
+        try {
+          const canvas = document.querySelector('canvas')
+          if (canvas) {
+            const thumbnail = (canvas as HTMLCanvasElement).toDataURL('image/jpeg', 0.6)
+            updateItemThumbnail(itemId, thumbnail)
+          }
+        } catch {
+          // omit thumbnail
+        }
+      }, 800)
+    },
+    [updateItemThumbnail]
+  )
+
   const handleSaveToLibrary = useCallback(() => {
     if (!adSpec) return
     const payload = adSpecToLibraryItemPayload(adSpec)
+    let itemId: string
     if (activeLibraryItemId) {
       updateItem(activeLibraryItemId, payload)
+      itemId = activeLibraryItemId
     } else {
-      const id = addItem(payload)
-      setActiveLibraryItemId(id)
+      itemId = addItem(payload)
+      setActiveLibraryItemId(itemId)
     }
     lastSavedStateRef.current = adSpec
     setSaveVersion((v) => v + 1)
-  }, [adSpec, activeLibraryItemId, addItem, updateItem])
+    captureAndUpdateThumbnail(itemId)
+  }, [adSpec, activeLibraryItemId, addItem, updateItem, captureAndUpdateThumbnail])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -211,19 +232,9 @@ function App() {
       setActiveLibraryItemId(id)
       lastSavedStateRef.current = spec
       setSaveVersion((v) => v + 1)
-      setTimeout(() => {
-        try {
-          const canvas = document.querySelector('canvas')
-          if (canvas) {
-            const thumbnail = (canvas as HTMLCanvasElement).toDataURL('image/jpeg', 0.6)
-            updateItemThumbnail(id, thumbnail)
-          }
-        } catch {
-          // omit thumbnail
-        }
-      }, 800)
+      captureAndUpdateThumbnail(id)
     },
-    [addItem, updateItemThumbnail]
+    [addItem, captureAndUpdateThumbnail]
   )
 
   useEffect(() => {
@@ -374,6 +385,7 @@ function App() {
               onSpecUpdate={push}
               onInitialGenerate={push}
               onAdGenerated={handleAdGenerated}
+              onGeneratingChange={setIsGenerating}
               restoredChatHistory={restoredChatHistory}
               onRestoredChatHistoryApplied={() => setRestoredChatHistory(null)}
               newAdTrigger={newAdTrigger}
@@ -402,6 +414,7 @@ function App() {
                 spec={adSpec}
                 width={728}
                 height={90}
+                isGenerating={isGenerating}
               />
               {historyToast && (
                 <div className="app-history-toast" role="status">
