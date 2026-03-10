@@ -49,6 +49,11 @@ function App() {
   return (
     <div className="app">
       <header className="app-toolbar">
+        <div className="app-toolbar-wordmark">
+          <span className="app-toolbar-wordmark-riveads">RiveAds</span>
+          <span className="app-toolbar-wordmark-dot" aria-hidden />
+          <span className="app-toolbar-wordmark-studio">Studio</span>
+        </div>
         <div className="app-toolbar-spacer" />
         <div className="app-toolbar-actions">
           <span className="app-toolbar-badge" aria-label="Ad size">
@@ -71,16 +76,6 @@ function App() {
           <div
             className={`app-left-panel ${chatCollapsed ? 'app-sidebar-content-collapsed' : ''}`}
           >
-            <div className="app-logo">
-              <h1 className="app-logo-text">
-                <span className="app-logo-riveads">RiveAds</span>
-                <span className="app-logo-dot"></span>
-                <span className="app-logo-studio">Studio</span>
-              </h1>
-            </div>
-            <p className="app-tagline">Artistic ads, AI-made.</p>
-            <div className="app-divider"></div>
-            <p className="panel-label">STUDIO</p>
             <ChatPanel
               currentSpec={currentSpec}
               onSpecUpdate={setCurrentSpec}

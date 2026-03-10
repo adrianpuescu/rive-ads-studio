@@ -123,73 +123,77 @@ export function ChatPanel({
 
   if (isInitial) {
     return (
-      <div className="prompt-input-container">
-        <label className="prompt-input-label" htmlFor="chat-initial-textarea">
-          DESCRIBE YOUR AD
-        </label>
-        <textarea
-          id="chat-initial-textarea"
-          className="prompt-input-textarea"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="e.g. a dreamy banner for a luxury perfume launch"
-          disabled={isLoading}
-        />
-        <button
-          type="button"
-          className={`prompt-input-button ${isLoading ? 'prompt-input-button-loading' : ''}`}
-          onClick={handleInitialGenerate}
-          disabled={!inputValue.trim() || isLoading}
-        >
-          {isLoading ? 'Generating' : 'Generate Ad'}
-        </button>
-        {error && <p className="prompt-input-error">{error}</p>}
+      <div className="chat-panel-root">
+        <div className="prompt-input-container">
+          <label className="prompt-input-label" htmlFor="chat-initial-textarea">
+            DESCRIBE YOUR AD
+          </label>
+          <textarea
+            id="chat-initial-textarea"
+            className="prompt-input-textarea"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="e.g. a dreamy banner for a luxury perfume launch"
+            disabled={isLoading}
+          />
+          <button
+            type="button"
+            className={`prompt-input-button ${isLoading ? 'prompt-input-button-loading' : ''}`}
+            onClick={handleInitialGenerate}
+            disabled={!inputValue.trim() || isLoading}
+          >
+            {isLoading ? 'Generating' : 'Generate Ad'}
+          </button>
+          {error && <p className="prompt-input-error">{error}</p>}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="chat-panel">
-      <div
-        ref={messagesContainerRef}
-        className="chat-messages"
-        role="log"
-        aria-live="polite"
-      >
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`chat-message ${msg.role}`}
-            data-role={msg.role}
-          >
-            <div className="chat-message-bubble">{msg.content}</div>
-            {msg.specSnapshot != null && (
-              <span className="chat-updated-tag">↻ Ad updated</span>
-            )}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="chat-input-row">
-        <textarea
-          aria-label="Refine your ad"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Refine your ad..."
-          disabled={isLoading}
-          rows={1}
-        />
-        <button
-          type="button"
-          className="chat-send-button"
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          aria-label="Send"
+    <div className="chat-panel-root">
+      <div className="chat-panel">
+        <div
+          ref={messagesContainerRef}
+          className="chat-messages"
+          role="log"
+          aria-live="polite"
         >
-          →
-        </button>
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`chat-message ${msg.role}`}
+              data-role={msg.role}
+            >
+              <div className="chat-message-bubble">{msg.content}</div>
+              {msg.specSnapshot != null && (
+                <span className="chat-updated-tag">↻ Ad updated</span>
+              )}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        <div className="chat-input-row">
+          <textarea
+            aria-label="Refine your ad"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Refine your ad..."
+            disabled={isLoading}
+            rows={1}
+          />
+          <button
+            type="button"
+            className="chat-send-button"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            aria-label="Send"
+          >
+            →
+          </button>
+        </div>
+        {error && <p className="prompt-input-error">{error}</p>}
       </div>
-      {error && <p className="prompt-input-error">{error}</p>}
     </div>
   );
 }
