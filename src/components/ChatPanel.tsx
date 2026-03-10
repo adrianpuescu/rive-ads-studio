@@ -190,7 +190,7 @@ export function ChatPanel({
   const brandChip = hasActiveBrand && (
     <button
       type="button"
-      className="chat-brand-tokens-chip"
+      className="inline-flex items-center gap-1 py-1 px-2 text-[0.7rem] font-sans text-text-secondary bg-[#f0f0f0] border-0 rounded cursor-pointer mb-2 hover:bg-[#e5e5e5] transition-colors duration-150"
       onClick={onOpenBrandTokens}
       aria-label={`${activeBrandName} active — click to edit`}
     >
@@ -200,16 +200,16 @@ export function ChatPanel({
 
   if (isInitial) {
     return (
-      <div className="chat-panel-root">
+      <div className="w-full h-full min-h-0 flex flex-col p-0 m-0 flex-1">
         {brandChip}
-        <div className="prompt-input-container">
-          <label className="prompt-input-label" htmlFor="chat-initial-textarea">
+        <div className="flex flex-col gap-4 py-6 px-4 w-full box-border">
+          <label className="font-sans font-medium text-[11px] tracking-wider uppercase text-text-primary m-0" htmlFor="chat-initial-textarea">
             DESCRIBE YOUR AD
           </label>
           <textarea
             ref={promptInputRef}
             id="chat-initial-textarea"
-            className="prompt-input-textarea"
+            className="w-full min-h-[120px] py-3 px-3.5 font-sans text-sm leading-normal text-text-primary bg-surface border border-border rounded-md resize-y transition-colors duration-150 placeholder:text-text-secondary disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-text-primary"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="e.g. a dreamy banner for a luxury perfume launch"
@@ -217,50 +217,53 @@ export function ChatPanel({
           />
           <button
             type="button"
-            className={`prompt-input-button ${isLoading ? 'prompt-input-button-loading' : ''}`}
+            className={`w-full h-11 px-6 font-sans font-medium text-sm text-white bg-text-primary border-0 rounded-md cursor-pointer transition-colors duration-150 hover:enabled:bg-[#374151] disabled:opacity-40 disabled:cursor-not-allowed ${isLoading ? 'animate-dots-loading' : ''}`}
             onClick={handleInitialGenerate}
             disabled={!inputValue.trim() || isLoading}
           >
             {isLoading ? 'Generating' : 'Generate Ad'}
           </button>
-          {error && <p className="prompt-input-error">{error}</p>}
+          {error && <p className="font-sans text-[13px] text-error m-0">{error}</p>}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="chat-panel-root">
-      <div className="chat-panel">
+    <div className="w-full h-full min-h-0 flex flex-col p-0 m-0 flex-1">
+      <div className="flex flex-col flex-1 min-h-0 p-0 m-0">
         <div
           ref={messagesContainerRef}
-          className="chat-messages"
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4 px-4 pb-2 scrollbar-thin"
           role="log"
           aria-live="polite"
         >
           {showLoadedFromLibrarySeparator && (
-            <div className="chat-loaded-from-library-separator">
+            <div className="text-[11px] text-text-secondary text-center py-2 m-0 mb-2 border-b border-border">
               — Loaded from project —
             </div>
           )}
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`chat-message ${msg.role}`}
+              className={`flex flex-col max-w-[80%] ${msg.role === 'user' ? 'self-end' : 'self-start'}`}
               data-role={msg.role}
             >
-              <div className="chat-message-bubble">{msg.content}</div>
+              <div className={`py-2.5 px-3.5 text-[13px] leading-normal font-sans break-words rounded-lg ${msg.role === 'user' ? 'bg-[#f3f4f6] text-text-primary' : 'bg-surface border border-border text-text-primary shadow-sm'}`}>
+                {msg.content}
+              </div>
               {msg.specSnapshot != null && (
-                <span className="chat-updated-tag">↻ Ad updated</span>
+                <span className="text-[11px] text-text-secondary mt-1 pl-0.5">↻ Ad updated</span>
               )}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
         {brandChip}
-        <div className="chat-input-row">
+        <div className="flex gap-2 items-end flex-shrink-0 w-full m-0 py-3 px-4 pb-4 border-t border-border bg-[#f5f5f5]">
           <textarea
             aria-label="Refine your ad"
+            className="flex-1 min-h-[40px] py-2.5 px-3.5 font-sans text-[13px] border border-border rounded-md bg-surface text-text-primary resize-none transition-colors duration-150 focus:outline-none focus:border-text-primary"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Refine your ad..."
@@ -269,7 +272,7 @@ export function ChatPanel({
           />
           <button
             type="button"
-            className="chat-send-button"
+            className="h-10 w-10 rounded-md bg-user-bubble text-white border-0 cursor-pointer text-lg leading-none flex items-center justify-center flex-shrink-0 transition-colors duration-150 shadow-sm hover:enabled:bg-user-bubble-hover disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleSubmit}
             disabled={!canSubmit}
             aria-label="Send"
@@ -277,7 +280,7 @@ export function ChatPanel({
             →
           </button>
         </div>
-        {error && <p className="prompt-input-error">{error}</p>}
+        {error && <p className="font-sans text-[13px] text-error m-0">{error}</p>}
       </div>
     </div>
   );

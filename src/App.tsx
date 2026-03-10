@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import './App.css'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
@@ -305,33 +304,33 @@ function App() {
   }, [])
 
   return (
-    <div className="app">
-      <header className="app-toolbar">
-        <Link to="/" className="app-toolbar-wordmark">
-          <span className="app-toolbar-wordmark-riveads">RiveAds</span>
-          <span className="app-toolbar-wordmark-dot" aria-hidden />
-          <span className="app-toolbar-wordmark-studio">Studio</span>
+    <div className="flex flex-col w-full h-screen overflow-hidden app-mobile-stack max-md:h-auto max-md:min-h-screen max-md:overflow-auto">
+      <header className="h-11 flex-shrink-0 flex items-center px-4 gap-2 bg-white border-b border-[#e5e5e5]">
+        <Link to="/" className="flex items-center gap-1.5 no-underline text-inherit">
+          <span className="font-serif text-lg leading-none text-text-primary">RiveAds</span>
+          <span className="w-1 h-1 rounded-full bg-text-primary flex-shrink-0" aria-hidden />
+          <span className="font-sans text-lg leading-none text-text-primary">Studio</span>
         </Link>
         {showNewAdConfirm ? (
-          <div className="app-toolbar-newad-confirm">
-            <span className="app-toolbar-newad-confirm-text">Unsaved changes</span>
+          <div className="flex items-center gap-2 py-0 px-1 text-[0.8rem]">
+            <span className="font-sans text-[0.8rem] text-text-secondary">Unsaved changes</span>
             <button
               type="button"
-              className="app-toolbar-newad-btn app-toolbar-newad-btn-save"
+              className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-primary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
               onClick={handleSaveAndNew}
             >
               Save & New
             </button>
             <button
               type="button"
-              className="app-toolbar-newad-btn app-toolbar-newad-btn-discard"
+              className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-primary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
               onClick={doNewAd}
             >
               Discard
             </button>
             <button
               type="button"
-              className="app-toolbar-newad-btn app-toolbar-newad-btn-cancel"
+              className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-secondary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
               onClick={() => {
                 setShowNewAdConfirm(false)
                 clearNewAdConfirmTimeout()
@@ -343,45 +342,45 @@ function App() {
         ) : (
           <button
             type="button"
-            className="app-toolbar-newad-btn"
+            className="inline-flex items-center gap-1.5 py-1.5 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-[#e5e5e5] rounded cursor-pointer hover:bg-[#f5f5f5] transition-colors duration-150"
             onClick={handleNewAdClick}
             aria-label="New ad"
           >
-            <span className="app-toolbar-newad-icon" aria-hidden>+</span>
+            <span className="text-sm leading-none" aria-hidden>+</span>
             New Ad
           </button>
         )}
         <button
           type="button"
-          className="app-toolbar-undo-btn"
+          className="flex items-center justify-center w-8 h-8 p-0 text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
           onClick={handleUndo}
           disabled={!canUndo}
           aria-label="Undo"
           title="Undo (Cmd+Z)"
         >
-          <span className="app-toolbar-undo-icon" aria-hidden>↩</span>
+          <span className="text-sm leading-none" aria-hidden>↩</span>
         </button>
         <button
           type="button"
-          className="app-toolbar-redo-btn"
+          className="flex items-center justify-center w-8 h-8 p-0 text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
           onClick={handleRedo}
           disabled={!canRedo}
           aria-label="Redo"
           title="Redo (Cmd+Shift+Z)"
         >
-          <span className="app-toolbar-redo-icon" aria-hidden>↪</span>
+          <span className="text-sm leading-none" aria-hidden>↪</span>
         </button>
         {adSpec && (
-          <span className="app-toolbar-save-status" aria-live="polite">
+          <span className="inline-flex items-center gap-1.5 font-mono text-[0.7rem] text-[#999] tabular-nums" aria-live="polite">
             {lastSavedStateRef.current != null &&
             JSON.stringify(adSpec) === JSON.stringify(lastSavedStateRef.current) ? (
               <>
-                <span className="app-toolbar-save-status-dot app-toolbar-save-status-dot-saved" aria-hidden />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" aria-hidden />
                 Saved
               </>
             ) : (
               <>
-                <span className="app-toolbar-save-status-dot app-toolbar-save-status-dot-unsaved" aria-hidden />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]" aria-hidden />
                 Unsaved changes
               </>
             )}
@@ -389,32 +388,32 @@ function App() {
         )}
         <button
           type="button"
-          className="app-toolbar-brand-btn"
+          className="relative flex items-center gap-1.5 h-8 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] transition-colors duration-150"
           onClick={() => setBrandOpen((prev) => !prev)}
           aria-label={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active — edit` : 'Open Brand Manager'}
           title={hasActiveBrand ? `◈ ${activeBrand?.name ?? 'Brand'} active` : 'Brand Manager'}
         >
-          <span className="app-toolbar-brand-icon" aria-hidden>◈</span>
+          <span className="text-sm leading-none" aria-hidden>◈</span>
           Brand
-          {hasActiveBrand && <span className="app-toolbar-brand-dot" aria-hidden />}
+          {hasActiveBrand && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#22c55e]" aria-hidden />}
         </button>
         <button
           type="button"
-          className="app-toolbar-library-btn"
+          className="flex items-center gap-1.5 h-8 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] transition-colors duration-150"
           onClick={() => setLibraryOpen((prev) => !prev)}
           aria-label="Open Projects"
         >
-          <span className="app-toolbar-library-icon" aria-hidden>⊞</span>
+          <span className="text-sm leading-none" aria-hidden>⊞</span>
           Projects
           {libraryItems.length > 0 && (
-            <span className="app-toolbar-library-badge" aria-label={`${libraryItems.length} projects`}>
+            <span className="min-w-[18px] h-[18px] py-0 px-1.5 text-[11px] font-medium leading-[18px] text-center text-white bg-text-primary rounded-[9px] tabular-nums" aria-label={`${libraryItems.length} projects`}>
               {libraryItems.length}
             </span>
           )}
         </button>
-        <div className="app-toolbar-spacer" />
-        <div className="app-toolbar-actions">
-          <span className="app-toolbar-badge" aria-label="Ad size">
+        <div className="flex-1" />
+        <div className="flex items-center gap-4">
+          <span className="font-sans text-[13px] text-text-secondary tabular-nums" aria-label="Ad size">
             728 × 90
           </span>
           {adSpec && (
@@ -426,12 +425,16 @@ function App() {
         </div>
       </header>
 
-      <div className="app-main">
+      <div className="relative flex-1 min-h-0 flex flex-row overflow-hidden app-main-mobile max-md:flex-col">
         <div
-          className={`app-left-wrap ${chatCollapsed ? 'app-sidebar-collapsed' : ''}`}
+          className={`flex-shrink-0 overflow-hidden transition-[width] duration-250 ease-out app-left-wrap-mobile max-md:border-t max-md:border-border ${
+            chatCollapsed
+              ? 'w-0 max-md:!w-0 max-md:!h-0 max-md:!min-h-0'
+              : 'w-[300px] max-md:order-3 max-md:!w-full max-md:h-[300px]'
+          }`}
         >
           <div
-            className={`app-left-panel ${chatCollapsed ? 'app-sidebar-content-collapsed' : ''}`}
+            className={`w-[300px] flex-shrink-0 h-full overflow-hidden p-0 m-0 border-r border-border flex flex-col bg-surface transition-transform duration-250 ease-out scrollbar-thin app-left-panel-mobile ${chatCollapsed ? '-translate-x-[300px]' : 'translate-x-0'} max-md:w-full max-md:border-r-0 max-md:[.app-left-wrap-mobile.w-0_&]:-translate-x-full`}
           >
             <ChatPanel
               promptInputRef={promptInputRef}
@@ -452,10 +455,10 @@ function App() {
           </div>
         </div>
 
-        <div className="app-center-panel">
+        <div className="relative flex-1 min-w-0 h-full flex flex-col items-center justify-center bg-[#FAFAFA] overflow-hidden app-center-panel-mobile px-5 max-md:order-1 max-md:min-h-[40vh] max-md:py-8 max-md:px-6">
           <button
             type="button"
-            className="app-sidebar-toggle app-sidebar-toggle-left"
+            className="absolute left-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-l-0 rounded-r cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200"
             onClick={toggleChat}
             aria-label={chatCollapsed ? 'Expand chat' : 'Collapse chat'}
             aria-expanded={!chatCollapsed}
@@ -463,7 +466,7 @@ function App() {
             {chatCollapsed ? '›' : '‹'}
           </button>
           {adSpec ? (
-            <div className="app-canvas-wrapper">
+            <div className="relative w-fit max-w-full h-full flex flex-col items-center justify-center animate-fade-in [&_canvas]:!rounded-none app-canvas-wrapper-mobile max-md:h-auto">
               <AdCanvas
                 spec={adSpec}
                 width={728}
@@ -471,22 +474,20 @@ function App() {
                 isGenerating={isGenerating}
               />
               {historyToast && (
-                <div className="app-history-toast" role="status">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 py-1.5 px-3 text-[0.75rem] font-sans text-white bg-ink rounded whitespace-nowrap animate-history-toast pointer-events-none" role="status">
                   {historyToast.message}
                 </div>
               )}
             </div>
           ) : (
-            <p className="app-placeholder">Your ad will appear here</p>
+            <p className="text-sm text-text-secondary">Your ad will appear here</p>
           )}
           {adSpec && (
             <button
               type="button"
-              className="app-sidebar-toggle app-sidebar-toggle-right"
+              className="absolute right-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-r-0 rounded-l cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200"
               onClick={toggleInspector}
-              aria-label={
-                inspectorCollapsed ? 'Expand inspector' : 'Collapse inspector'
-              }
+              aria-label={inspectorCollapsed ? 'Expand inspector' : 'Collapse inspector'}
               aria-expanded={!inspectorCollapsed}
             >
               {inspectorCollapsed ? '‹' : '›'}
@@ -532,12 +533,16 @@ function App() {
         />
         {adSpec && (
           <div
-            className={`app-right-wrap ${inspectorCollapsed ? 'app-sidebar-collapsed' : ''}`}
+            className={`flex-shrink-0 overflow-hidden transition-[width] duration-250 ease-out app-right-wrap-mobile max-md:border-l-0 max-md:border-t max-md:border-border ${
+              inspectorCollapsed
+                ? 'w-0 max-md:!w-0 max-md:!h-0 max-md:!min-h-0'
+                : 'w-[280px] max-md:order-2 max-md:!w-full max-md:min-h-[40vh]'
+            }`}
           >
             <div
-              className={`app-right-panel ${inspectorCollapsed ? 'app-sidebar-content-collapsed' : ''}`}
+              className={`w-[280px] flex-shrink-0 h-full overflow-y-auto overflow-x-hidden py-8 px-5 border-l border-border bg-surface transition-transform duration-250 ease-out scrollbar-thin app-right-panel-mobile ${inspectorCollapsed ? 'translate-x-[280px]' : 'translate-x-0'} max-md:w-full max-md:[.app-right-wrap-mobile.w-0_&]:translate-x-full`}
             >
-              <p className="panel-label">INSPECTOR</p>
+              <p className="font-sans text-[10px] font-medium tracking-widest uppercase text-text-secondary mb-5">INSPECTOR</p>
               <SpecInspector
                 spec={adSpec}
                 onChange={handleInspectorChange}

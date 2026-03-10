@@ -39,42 +39,47 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
     });
   };
 
+  const sectionLabel = 'font-sans font-medium text-[11px] tracking-wider uppercase text-text-primary m-0 pb-2 border-b border-border';
+  const fieldLabel = 'text-[11px] text-text-secondary font-sans';
+  const fieldInput = 'w-full h-8 px-2.5 font-sans text-[13px] text-text-primary bg-surface border border-border rounded-sm transition-colors duration-150 focus:outline-none focus:border-text-primary';
+  const colorRow = 'flex items-center gap-2';
+  const colorInput = 'w-8 h-8 p-0.5 border border-border rounded-sm cursor-pointer bg-transparent';
+  const colorHex = 'text-xs font-mono text-text-secondary';
+  const colorHexInput = 'flex-1 min-w-0 h-8 py-1 px-2 text-xs font-mono text-text-primary border border-border rounded-sm bg-surface focus:outline-none focus:border-text-primary';
+
   return (
-    <div className="spec-inspector">
+    <div className="flex flex-col gap-6">
       {/* TEXT SECTION */}
-      <div className="inspector-section">
-        <h3 className="inspector-section-label">Text</h3>
-        
+      <div className="flex flex-col gap-3">
+        <h3 className={sectionLabel}>Text</h3>
         {spec.text.headline?.value !== undefined && (
-          <div className="inspector-field">
-            <label className="inspector-field-label">Headline</label>
+          <div className="flex flex-col gap-1">
+            <label className={fieldLabel}>Headline</label>
             <input
               type="text"
-              className="inspector-field-input"
+              className={fieldInput}
               value={spec.text.headline.value}
               onChange={(e) => handleTextChange('headline', e.target.value)}
             />
           </div>
         )}
-
         {spec.text.subheadline?.value !== undefined && (
-          <div className="inspector-field">
-            <label className="inspector-field-label">Subheadline</label>
+          <div className="flex flex-col gap-1">
+            <label className={fieldLabel}>Subheadline</label>
             <input
               type="text"
-              className="inspector-field-input"
+              className={fieldInput}
               value={spec.text.subheadline.value}
               onChange={(e) => handleTextChange('subheadline', e.target.value)}
             />
           </div>
         )}
-
         {spec.text.cta?.value !== undefined && (
-          <div className="inspector-field">
-            <label className="inspector-field-label">CTA</label>
+          <div className="flex flex-col gap-1">
+            <label className={fieldLabel}>CTA</label>
             <input
               type="text"
-              className="inspector-field-input"
+              className={fieldInput}
               value={spec.text.cta.value}
               onChange={(e) => handleTextChange('cta', e.target.value)}
             />
@@ -83,104 +88,53 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
       </div>
 
       {/* COLORS SECTION */}
-      <div className="inspector-section">
-        <h3 className="inspector-section-label">Colors</h3>
-        
-        <div className="inspector-field">
-          <label className="inspector-field-label">Background</label>
-          <div className="inspector-color-row">
-            <input
-              type="color"
-              className="inspector-color-input"
-              value={spec.colors.background}
-              onChange={(e) => handleColorChange('background', e.target.value)}
-            />
-            <span className="inspector-color-hex">{spec.colors.background}</span>
+      <div className="flex flex-col gap-3">
+        <h3 className={sectionLabel}>Colors</h3>
+        <div className="flex flex-col gap-1">
+          <label className={fieldLabel}>Background</label>
+          <div className={colorRow}>
+            <input type="color" className={colorInput} value={spec.colors.background} onChange={(e) => handleColorChange('background', e.target.value)} />
+            <span className={colorHex}>{spec.colors.background}</span>
           </div>
         </div>
-
-        <div className="inspector-field">
-          <label className="inspector-field-label">Primary</label>
-          <div className="inspector-color-row">
-            <input
-              type="color"
-              className="inspector-color-input"
-              value={spec.colors.primary}
-              onChange={(e) => handleColorChange('primary', e.target.value)}
-            />
-            <span className="inspector-color-hex">{spec.colors.primary}</span>
+        <div className="flex flex-col gap-1">
+          <label className={fieldLabel}>Primary</label>
+          <div className={colorRow}>
+            <input type="color" className={colorInput} value={spec.colors.primary} onChange={(e) => handleColorChange('primary', e.target.value)} />
+            <span className={colorHex}>{spec.colors.primary}</span>
           </div>
         </div>
-
-        <div className="inspector-field">
-          <label className="inspector-field-label">Secondary</label>
-          <div className="inspector-color-row">
-            <input
-              type="color"
-              className="inspector-color-input"
-              value={spec.colors.secondary}
-              onChange={(e) => handleColorChange('secondary', e.target.value)}
-            />
-            <span className="inspector-color-hex">{spec.colors.secondary}</span>
+        <div className="flex flex-col gap-1">
+          <label className={fieldLabel}>Secondary</label>
+          <div className={colorRow}>
+            <input type="color" className={colorInput} value={spec.colors.secondary} onChange={(e) => handleColorChange('secondary', e.target.value)} />
+            <span className={colorHex}>{spec.colors.secondary}</span>
           </div>
         </div>
       </div>
 
       {/* TEXT COLORS SECTION */}
-      <div className="inspector-section">
-        <h3 className="inspector-section-label">Text Colors</h3>
-
-        <div className="inspector-field">
-          <label className="inspector-field-label">Headline Color</label>
-          <div className="inspector-color-row">
-            <input
-              type="color"
-              className="inspector-color-input"
-              value={spec.colors.headlineColor ?? '#000000'}
-              onChange={(e) => handleColorChange('headlineColor', e.target.value)}
-            />
-            <input
-              type="text"
-              className="inspector-color-hex-input"
-              value={spec.colors.headlineColor ?? '#000000'}
-              onChange={(e) => handleColorChange('headlineColor', e.target.value)}
-            />
+      <div className="flex flex-col gap-3">
+        <h3 className={sectionLabel}>Text Colors</h3>
+        <div className="flex flex-col gap-1">
+          <label className={fieldLabel}>Headline Color</label>
+          <div className={colorRow}>
+            <input type="color" className={colorInput} value={spec.colors.headlineColor ?? '#000000'} onChange={(e) => handleColorChange('headlineColor', e.target.value)} />
+            <input type="text" className={colorHexInput} value={spec.colors.headlineColor ?? '#000000'} onChange={(e) => handleColorChange('headlineColor', e.target.value)} />
           </div>
         </div>
-
-        <div className="inspector-field">
-          <label className="inspector-field-label">Subheadline Color</label>
-          <div className="inspector-color-row">
-            <input
-              type="color"
-              className="inspector-color-input"
-              value={spec.colors.subheadlineColor ?? '#333333'}
-              onChange={(e) => handleColorChange('subheadlineColor', e.target.value)}
-            />
-            <input
-              type="text"
-              className="inspector-color-hex-input"
-              value={spec.colors.subheadlineColor ?? '#333333'}
-              onChange={(e) => handleColorChange('subheadlineColor', e.target.value)}
-            />
+        <div className="flex flex-col gap-1">
+          <label className={fieldLabel}>Subheadline Color</label>
+          <div className={colorRow}>
+            <input type="color" className={colorInput} value={spec.colors.subheadlineColor ?? '#333333'} onChange={(e) => handleColorChange('subheadlineColor', e.target.value)} />
+            <input type="text" className={colorHexInput} value={spec.colors.subheadlineColor ?? '#333333'} onChange={(e) => handleColorChange('subheadlineColor', e.target.value)} />
           </div>
         </div>
-
-        <div className="inspector-field">
-          <label className="inspector-field-label">CTA Color</label>
-          <div className="inspector-color-row">
-            <input
-              type="color"
-              className="inspector-color-input"
-              value={spec.colors.ctaColor ?? '#ffffff'}
-              onChange={(e) => handleColorChange('ctaColor', e.target.value)}
-            />
-            <input
-              type="text"
-              className="inspector-color-hex-input"
-              value={spec.colors.ctaColor ?? '#ffffff'}
-              onChange={(e) => handleColorChange('ctaColor', e.target.value)}
-            />
+        <div className="flex flex-col gap-1">
+          <label className={fieldLabel}>CTA Color</label>
+          <div className={colorRow}>
+            <input type="color" className={colorInput} value={spec.colors.ctaColor ?? '#ffffff'} onChange={(e) => handleColorChange('ctaColor', e.target.value)} />
+            <input type="text" className={colorHexInput} value={spec.colors.ctaColor ?? '#ffffff'} onChange={(e) => handleColorChange('ctaColor', e.target.value)} />
           </div>
         </div>
       </div>

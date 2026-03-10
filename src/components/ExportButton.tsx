@@ -43,7 +43,7 @@ export function ExportButton({ spec, rivFileName }: ExportButtonProps) {
 
   return (
     <button
-      className="export-button"
+      className="h-8 px-4 font-sans font-medium text-[13px] text-white bg-text-primary border-0 rounded-sm cursor-pointer hover:bg-[#374151] transition-colors duration-150"
       onClick={handleExport}
       type="button"
     >

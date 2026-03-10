@@ -8,7 +8,6 @@
 import { useRef } from 'react';
 import type { AdSpec } from '../types/ad-spec.schema';
 import { useAdSpecRenderer } from '../hooks/useAdSpecRenderer';
-import './AdCanvas.css';
 
 export interface AdCanvasProps {
   /** AdSpec configuration to render */
@@ -32,24 +31,18 @@ export function AdCanvas({ spec, width, height, isGenerating = false, className 
   const { isLoading, error } = useAdSpecRenderer(spec, canvasRef);
 
   return (
-    <div className={`ad-canvas-container ${className}`} style={{ width, height }}>
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className="ad-canvas"
-        style={{ display: 'block' }}
-      />
+    <div className={`relative overflow-hidden bg-[#f5f5f5] shadow-[0_4px_24px_rgba(0,0,0,0.08)] ${className}`} style={{ width, height }}>
+      <canvas ref={canvasRef} width={width} height={height} className="block w-full h-full" />
 
       {isGenerating && (
-        <div className="ad-canvas-overlay ad-canvas-loading">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-white/90 text-[#666] text-sm">
           <span>Generating...</span>
         </div>
       )}
 
       {error && (
-        <div className="ad-canvas-overlay ad-canvas-error">
-          <span className="error-message">{error.message}</span>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-white/95 text-[#d32f2f] text-[13px] p-4">
+          <span className="max-w-[90%] text-center leading-snug">{error.message}</span>
         </div>
       )}
     </div>

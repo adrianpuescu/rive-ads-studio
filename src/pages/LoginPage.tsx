@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 export function LoginPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '1rem' }}>
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
       <h1>Login</h1>
       <Link to="/editor">Open Studio</Link>
     </div>

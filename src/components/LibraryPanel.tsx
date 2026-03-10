@@ -49,51 +49,40 @@ function LibraryCard({ item, onLoad, onRemove }: LibraryCardProps) {
   }, [confirmDelete, item.id, onRemove]);
 
   return (
-    <div className="library-card">
+    <div className="border border-[#e5e5e5] rounded-sm overflow-hidden bg-white">
       {item.thumbnail ? (
-        <div className="library-card-thumbnail-wrap">
-          <img
-            src={item.thumbnail}
-            alt=""
-            className="library-card-thumbnail"
-          />
+        <div className="p-2 bg-[#fafafa] rounded-t-sm">
+          <img src={item.thumbnail} alt="" className="w-full h-auto object-contain block" />
         </div>
       ) : (
-        <div
-          className="library-card-preview-bar"
-          style={{ background: item.colors.background }}
-        />
+        <div className="h-1.5 rounded-t-[3px] w-full" style={{ background: item.colors.background }} />
       )}
-      <div className="library-card-body">
-        <div className="library-card-headline">{item.headline || '—'}</div>
-        <div className="library-card-subheadline">{item.subheadline || '—'}</div>
-        <div className="library-card-meta">
-          {formatTimestamp(item.createdAt)}
-        </div>
-        <div className="library-card-prompt">
-          {truncatePrompt(item.prompt, 60)}
-        </div>
-        <div className="library-card-actions">
+      <div className="p-3">
+        <div className="font-semibold text-[0.9rem] text-text-primary mb-1">{item.headline || '—'}</div>
+        <div className="text-[0.8rem] text-[#666] mb-1.5">{item.subheadline || '—'}</div>
+        <div className="text-[0.7rem] text-[#999] mb-1.5">{formatTimestamp(item.createdAt)}</div>
+        <div className="text-[0.75rem] text-[#999] italic mb-2.5">{truncatePrompt(item.prompt, 60)}</div>
+        <div className="flex flex-row gap-2 items-center">
           <button
             type="button"
-            className="library-card-btn library-card-btn-load"
+            className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-border bg-white text-text-primary hover:bg-[#f0f0f0] hover:border-[#d5d5d5] transition-colors duration-150"
             onClick={() => onLoad(item)}
           >
             Load
           </button>
           {confirmDelete ? (
             <>
-              <span className="library-card-confirm-label">Sure?</span>
+              <span className="text-xs text-text-secondary mr-1">Sure?</span>
               <button
                 type="button"
-                className="library-card-btn library-card-btn-confirm"
+                className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-error bg-[#fef2f2] text-error hover:bg-[#fee2e2] transition-colors duration-150"
                 onClick={handleDelete}
               >
                 Yes
               </button>
               <button
                 type="button"
-                className="library-card-btn library-card-btn-cancel"
+                className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-border bg-white text-text-primary hover:bg-[#f5f5f5] transition-colors duration-150"
                 onClick={() => setConfirmDelete(false)}
               >
                 No
@@ -102,7 +91,7 @@ function LibraryCard({ item, onLoad, onRemove }: LibraryCardProps) {
           ) : (
             <button
               type="button"
-              className="library-card-btn library-card-btn-delete"
+              className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-border bg-white text-text-secondary hover:bg-[#fef2f2] hover:border-[#fecaca] hover:text-error transition-colors duration-150"
               onClick={handleDelete}
             >
               Delete
@@ -137,47 +126,40 @@ export function LibraryPanel({
 
   return (
     <div
-      className={`library-panel ${isOpen ? 'library-panel-open' : ''}`}
+      className={`absolute left-0 top-0 w-[300px] h-full z-20 bg-white border-r border-[#e5e5e5] flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-[300px]'}`}
       role="dialog"
       aria-label="Projects"
     >
-      <div className="library-panel-header">
-        <h2 className="library-panel-title">Projects</h2>
+      <div className="flex-shrink-0 flex items-center justify-between py-3 px-4 border-b border-[#e5e5e5]">
+        <h2 className="font-sans font-semibold text-sm m-0 text-text-primary">Projects</h2>
         <button
           type="button"
-          className="library-panel-close"
+          className="w-7 h-7 p-0 text-xl leading-none text-text-secondary bg-transparent border-0 rounded-sm cursor-pointer hover:text-text-primary hover:bg-[#f0f0f0] transition-colors duration-150"
           onClick={onClose}
           aria-label="Close projects"
         >
           ×
         </button>
       </div>
-      <div className="library-panel-content">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 scrollbar-thin">
         {items.length === 0 ? (
-          <div className="library-empty">
-            <span className="library-empty-icon" aria-hidden>
-              🎨
-            </span>
-            <p className="library-empty-title">No ads yet</p>
-            <p className="library-empty-sub">Generate your first ad to see it here</p>
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <span className="text-5xl leading-none mb-4" aria-hidden>🎨</span>
+            <p className="font-sans font-semibold text-sm text-text-primary m-0 mb-2">No ads yet</p>
+            <p className="text-[13px] text-text-secondary m-0">Generate your first ad to see it here</p>
           </div>
         ) : (
-          <div className="library-grid">
+          <div className="grid grid-cols-1 gap-3">
             {items.map((item) => (
-              <LibraryCard
-                key={item.id}
-                item={item}
-                onLoad={onLoad}
-                onRemove={onRemove}
-              />
+              <LibraryCard key={item.id} item={item} onLoad={onLoad} onRemove={onRemove} />
             ))}
           </div>
         )}
       </div>
-      <footer className="library-panel-footer">
+      <footer className="flex-shrink-0 py-3 px-4 border-t border-[#e5e5e5]">
         <button
           type="button"
-          className="library-panel-footer-link"
+          className="font-sans text-[13px] text-text-primary bg-transparent border-0 p-0 cursor-pointer leading-inherit hover:underline"
           onClick={() => {
             onClose();
             navigate('/projects');

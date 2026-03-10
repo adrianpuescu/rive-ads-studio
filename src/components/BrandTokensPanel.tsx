@@ -122,296 +122,130 @@ export function BrandTokensPanel({
 
   const activeBrand = activeBrandId ? brands.find((b) => b.id === activeBrandId) ?? null : null;
 
+  const panelBase = `absolute right-0 top-0 w-[300px] h-full z-[25] bg-white border-l border-[#e5e5e5] flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[300px]'}`;
+  const headerClass = 'flex-shrink-0 flex items-center justify-between py-3 px-4 border-b border-[#e5e5e5] gap-2';
+  const titleClass = 'font-sans font-semibold text-sm m-0 text-text-primary flex-1 text-center';
+  const closeBtn = 'w-7 h-7 p-0 text-xl leading-none text-text-secondary bg-transparent border-0 rounded-sm cursor-pointer hover:text-text-primary hover:bg-[#f0f0f0] transition-colors duration-150';
+  const contentClass = 'flex-1 min-h-0 overflow-y-auto p-4 scrollbar-thin';
+  const labelClass = 'block font-sans text-xs font-medium text-text-primary mb-2 [&+&]:mt-3';
+  const inputClass = 'block w-full mt-1 py-2 px-2.5 font-sans text-[13px] border border-border rounded text-text-primary bg-white';
+  const colorRowClass = 'flex items-center gap-2 mt-1';
+  const colorPickerClass = 'w-9 h-8 p-0.5 border border-border rounded cursor-pointer bg-white';
+  const hexInputClass = 'flex-1 min-w-0 block w-full mt-1 py-2 px-2.5 font-sans text-[13px] border border-border rounded text-text-primary bg-white cursor-pointer';
+  const sectionTitle = 'font-sans text-[10px] font-semibold tracking-wider uppercase text-text-secondary m-0 mb-2.5';
+  const sectionClass = 'mb-5';
+
   if (view === 'form') {
     return (
-      <div
-        className={`brand-tokens-panel ${isOpen ? 'brand-tokens-panel-open' : ''}`}
-        role="dialog"
-        aria-label={formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`}
-      >
-        <div className="brand-tokens-panel-header">
-          <button
-            type="button"
-            className="brand-tokens-panel-back"
-            onClick={goToList}
-            aria-label="Back to list"
-          >
+      <div className={panelBase} role="dialog" aria-label={formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`}>
+        <div className={headerClass}>
+          <button type="button" className="py-1 px-2 font-sans text-[13px] text-text-secondary bg-transparent border-0 rounded cursor-pointer mr-auto hover:text-text-primary hover:bg-[#f0f0f0] transition-colors duration-150" onClick={goToList} aria-label="Back to list">
             ← Back
           </button>
-          <h2 className="brand-tokens-panel-title">
-            {formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`}
-          </h2>
-          <button
-            type="button"
-            className="brand-tokens-panel-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
+          <h2 className={titleClass}>{formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`}</h2>
+          <button type="button" className={closeBtn} onClick={onClose} aria-label="Close">×</button>
         </div>
-        <div className="brand-tokens-panel-content">
-          <label className="brand-tokens-label">
-            Brand Name <span className="brand-tokens-required">*</span>
-            <input
-              type="text"
-              className="brand-tokens-input"
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder="e.g. Nike"
-            />
+        <div className={contentClass}>
+          <label className={labelClass}>
+            Brand Name <span className="text-error">*</span>
+            <input type="text" className={inputClass} value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Nike" />
           </label>
-          <label className="brand-tokens-label">
+          <label className={labelClass}>
             Brand Voice
-            <input
-              type="text"
-              className="brand-tokens-input"
-              value={form.tokens.brandVoice}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, tokens: { ...p.tokens, brandVoice: e.target.value } }))
-              }
-              placeholder="e.g. bold and energetic"
-            />
+            <input type="text" className={inputClass} value={form.tokens.brandVoice} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, brandVoice: e.target.value } }))} placeholder="e.g. bold and energetic" />
           </label>
-
-          <section className="brand-tokens-section">
-            <h3 className="brand-tokens-section-title">COLORS</h3>
-            <label className="brand-tokens-label">
+          <section className={sectionClass}>
+            <h3 className={sectionTitle}>COLORS</h3>
+            <label className={labelClass}>
               Primary Color
-              <div className="brand-tokens-color-row">
-                <input
-                  type="color"
-                  className="brand-tokens-color-picker"
-                  value={form.tokens.primaryColor}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))
-                  }
-                  aria-label="Primary color"
-                />
-                <input
-                  type="text"
-                  className="brand-tokens-hex"
-                  value={form.tokens.primaryColor}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))
-                  }
-                />
+              <div className={colorRowClass}>
+                <input type="color" className={colorPickerClass} value={form.tokens.primaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))} aria-label="Primary color" />
+                <input type="text" className={hexInputClass} value={form.tokens.primaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))} />
               </div>
             </label>
-            <label className="brand-tokens-label">
+            <label className={labelClass}>
               Secondary Color
-              <div className="brand-tokens-color-row">
-                <input
-                  type="color"
-                  className="brand-tokens-color-picker"
-                  value={form.tokens.secondaryColor}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      tokens: { ...p.tokens, secondaryColor: e.target.value },
-                    }))
-                  }
-                  aria-label="Secondary color"
-                />
-                <input
-                  type="text"
-                  className="brand-tokens-hex"
-                  value={form.tokens.secondaryColor}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      tokens: { ...p.tokens, secondaryColor: e.target.value },
-                    }))
-                  }
-                />
+              <div className={colorRowClass}>
+                <input type="color" className={colorPickerClass} value={form.tokens.secondaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, secondaryColor: e.target.value } }))} aria-label="Secondary color" />
+                <input type="text" className={hexInputClass} value={form.tokens.secondaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, secondaryColor: e.target.value } }))} />
               </div>
             </label>
-            <label className="brand-tokens-label">
+            <label className={labelClass}>
               Background Color
-              <div className="brand-tokens-color-row">
-                <input
-                  type="color"
-                  className="brand-tokens-color-picker"
-                  value={form.tokens.backgroundColor}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      tokens: { ...p.tokens, backgroundColor: e.target.value },
-                    }))
-                  }
-                  aria-label="Background color"
-                />
-                <input
-                  type="text"
-                  className="brand-tokens-hex"
-                  value={form.tokens.backgroundColor}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      tokens: { ...p.tokens, backgroundColor: e.target.value },
-                    }))
-                  }
-                />
+              <div className={colorRowClass}>
+                <input type="color" className={colorPickerClass} value={form.tokens.backgroundColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, backgroundColor: e.target.value } }))} aria-label="Background color" />
+                <input type="text" className={hexInputClass} value={form.tokens.backgroundColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, backgroundColor: e.target.value } }))} />
               </div>
             </label>
           </section>
-
-          <section className="brand-tokens-section">
-            <h3 className="brand-tokens-section-title">TYPOGRAPHY</h3>
-            <label className="brand-tokens-label">
+          <section className={sectionClass}>
+            <h3 className={sectionTitle}>TYPOGRAPHY</h3>
+            <label className={labelClass}>
               Font Family
-              <select
-                className="brand-tokens-select"
-                value={form.tokens.fontFamily}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, tokens: { ...p.tokens, fontFamily: e.target.value } }))
-                }
-              >
+              <select className={hexInputClass} value={form.tokens.fontFamily} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, fontFamily: e.target.value } }))}>
                 {FONT_OPTIONS.map((font) => (
-                  <option key={font} value={font}>
-                    {font}
-                  </option>
+                  <option key={font} value={font}>{font}</option>
                 ))}
               </select>
             </label>
           </section>
-
-          <button type="button" className="brand-tokens-save-btn" onClick={handleSave}>
-            Save Brand
-          </button>
-          <button type="button" className="brand-tokens-clear-btn" onClick={goToList}>
-            Cancel
-          </button>
+          <button type="button" className="w-full py-2.5 px-4 font-sans font-medium text-[13px] text-white bg-ink border-0 rounded cursor-pointer mt-2 hover:bg-[#2d2c2a] transition-colors duration-150" onClick={handleSave}>Save Brand</button>
+          <button type="button" className="block w-full py-2 py-0 font-sans text-[13px] text-[#999] bg-transparent border-0 cursor-pointer mt-1 text-center no-underline hover:text-text-secondary" onClick={goToList}>Cancel</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`brand-tokens-panel ${isOpen ? 'brand-tokens-panel-open' : ''}`}
-      role="dialog"
-      aria-label="Brands"
-    >
-      <div className="brand-tokens-panel-header brand-tokens-panel-header-list">
-        <h2 className="brand-tokens-panel-title">Brands</h2>
-        <div className="brand-tokens-panel-header-actions">
-          <button
-            type="button"
-            className="brand-tokens-panel-new-btn"
-            onClick={openNew}
-            aria-label="Create new brand"
-          >
-            + New
-          </button>
-          <button
-            type="button"
-            className="brand-tokens-panel-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
+    <div className={`absolute right-0 top-0 w-[300px] h-full z-[25] bg-white border-l border-[#e5e5e5] flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[300px]'}`} role="dialog" aria-label="Brands">
+      <div className="flex-shrink-0 flex items-center justify-between py-3 px-4 border-b border-[#e5e5e5] gap-2 flex-wrap">
+        <h2 className="font-sans font-semibold text-sm m-0 text-text-primary flex-1 text-center">Brands</h2>
+        <div className="flex items-center gap-1">
+          <button type="button" className="py-1 px-2.5 font-sans text-xs font-medium text-text-primary bg-transparent border border-border rounded cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] transition-colors duration-150" onClick={openNew} aria-label="Create new brand">+ New</button>
+          <button type="button" className="w-7 h-7 p-0 text-xl leading-none text-text-secondary bg-transparent border-0 rounded-sm cursor-pointer hover:text-text-primary hover:bg-[#f0f0f0] transition-colors duration-150" onClick={onClose} aria-label="Close">×</button>
         </div>
       </div>
-      <div className="brand-tokens-panel-content">
-        <label className="brand-tokens-toggle-wrap">
-          <input
-            type="checkbox"
-            className="brand-tokens-toggle-input"
-            checked={isEnabled}
-            onChange={onToggleEnabled}
-            aria-label="Use brand tokens"
-          />
-          <span className="brand-tokens-toggle-slider" />
-          <span className="brand-tokens-toggle-label">Use brand tokens</span>
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 scrollbar-thin">
+        <label className="flex items-center gap-2.5 mb-4 cursor-pointer select-none">
+          <input type="checkbox" className="peer absolute opacity-0 w-0 h-0" checked={isEnabled} onChange={onToggleEnabled} aria-label="Use brand tokens" />
+          <span className="relative w-9 h-5 bg-[#ddd] rounded-[10px] transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:shadow-sm after:transition-transform duration-200 peer-checked:bg-ink peer-checked:after:translate-x-4" />
+          <span className="font-sans text-[13px] text-text-primary">Use brand tokens</span>
         </label>
-
-        <div className={`brand-tokens-list-wrap ${!isEnabled ? 'brand-tokens-list-disabled' : ''}`}>
+        <div className={`mb-3 ${!isEnabled ? 'opacity-60 pointer-events-none' : ''}`}>
           {brands.length === 0 ? (
-            <div className="brand-tokens-empty">
-              <p className="brand-tokens-empty-text">No brands yet</p>
-              <button
-                type="button"
-                className="brand-tokens-empty-btn"
-                onClick={openNew}
-              >
-                Create your first brand
-              </button>
+            <div className="text-center py-6">
+              <p className="font-sans text-[13px] text-text-secondary m-0 mb-3">No brands yet</p>
+              <button type="button" className="py-2 px-4 font-sans text-[13px] font-medium text-white bg-ink border-0 rounded cursor-pointer hover:bg-[#2d2c2a] transition-colors duration-150" onClick={openNew}>Create your first brand</button>
             </div>
           ) : (
-            <ul className="brand-tokens-list" role="list">
+            <ul className="list-none m-0 p-0 flex flex-col gap-1" role="list">
               {brands.map((brand) => {
                 const isActive = activeBrandId === brand.id;
                 const isConfirmingDelete = confirmDeleteId === brand.id;
                 return (
                   <li
                     key={brand.id}
-                    className={`brand-tokens-list-item ${isActive ? 'brand-tokens-list-item-active' : ''}`}
+                    className={`flex items-center gap-2 py-2.5 px-3 rounded border-l-[3px] border-transparent bg-white hover:bg-[#fafafa] transition-colors duration-150 ${isActive ? 'border-l-ink bg-[#f9f9f9]' : ''}`}
                   >
-                    <input
-                      type="radio"
-                      name="activeBrand"
-                      className="brand-tokens-radio"
-                      checked={isActive}
-                      onChange={() => onSetActiveBrand(brand.id)}
-                      aria-label={`Select ${brand.name} as active`}
-                    />
-                    <span className="brand-tokens-item-name">{brand.name}</span>
-                    <div className="brand-tokens-item-preview">
-                      <span className="brand-tokens-item-dots" aria-hidden>
-                        <span
-                          className="brand-tokens-dot"
-                          style={{ background: brand.tokens.primaryColor }}
-                        />
-                        <span
-                          className="brand-tokens-dot"
-                          style={{ background: brand.tokens.secondaryColor }}
-                        />
-                        <span
-                          className="brand-tokens-dot"
-                          style={{ background: brand.tokens.backgroundColor }}
-                        />
+                    <input type="radio" name="activeBrand" className="w-4 h-4 m-0 flex-shrink-0 cursor-pointer" checked={isActive} onChange={() => onSetActiveBrand(brand.id)} aria-label={`Select ${brand.name} as active`} />
+                    <span className="flex-1 min-w-0 font-sans font-semibold text-[13px] text-text-primary overflow-hidden text-ellipsis whitespace-nowrap">{brand.name}</span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className="flex gap-0.5" aria-hidden>
+                        <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ background: brand.tokens.primaryColor }} />
+                        <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ background: brand.tokens.secondaryColor }} />
+                        <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ background: brand.tokens.backgroundColor }} />
                       </span>
-                      <span className="brand-tokens-item-font">
-                        {truncateFont(brand.tokens.fontFamily, 14)}
-                      </span>
+                      <span className="text-[11px] text-text-secondary max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap">{truncateFont(brand.tokens.fontFamily, 14)}</span>
                     </div>
-                    <button
-                      type="button"
-                      className="brand-tokens-item-btn brand-tokens-item-edit"
-                      onClick={() => openEdit(brand)}
-                      aria-label={`Edit ${brand.name}`}
-                    >
-                      ✎
-                    </button>
+                    <button type="button" className="flex-shrink-0 w-7 h-7 p-0 text-sm flex items-center justify-center bg-transparent border-0 rounded cursor-pointer text-text-secondary hover:text-text-primary hover:bg-[#f0f0f0] transition-colors duration-150" onClick={() => openEdit(brand)} aria-label={`Edit ${brand.name}`}>✎</button>
                     {isConfirmingDelete ? (
                       <>
-                        <span className="brand-tokens-confirm-label">Delete?</span>
-                        <button
-                          type="button"
-                          className="brand-tokens-item-btn brand-tokens-item-confirm"
-                          onClick={() => handleDelete(brand.id)}
-                        >
-                          Yes
-                        </button>
-                        <button
-                          type="button"
-                          className="brand-tokens-item-btn brand-tokens-item-cancel"
-                          onClick={() => setConfirmDeleteId(null)}
-                        >
-                          No
-                        </button>
+                        <span className="text-[11px] text-text-secondary mr-0.5">Delete?</span>
+                        <button type="button" className="flex-shrink-0 w-7 h-7 p-0 text-[11px] text-error flex items-center justify-center bg-transparent border-0 rounded cursor-pointer hover:bg-[#fef2f2] transition-colors duration-150" onClick={() => handleDelete(brand.id)}>Yes</button>
+                        <button type="button" className="flex-shrink-0 w-7 h-7 p-0 flex items-center justify-center bg-transparent border-0 rounded cursor-pointer hover:bg-[#f5f5f5] transition-colors duration-150" onClick={() => setConfirmDeleteId(null)}>No</button>
                       </>
                     ) : (
-                      <button
-                        type="button"
-                        className="brand-tokens-item-btn brand-tokens-item-delete"
-                        onClick={() => handleDelete(brand.id)}
-                        aria-label={`Delete ${brand.name}`}
-                      >
-                        🗑
-                      </button>
+                      <button type="button" className="flex-shrink-0 w-7 h-7 p-0 flex items-center justify-center bg-transparent border-0 rounded cursor-pointer text-text-secondary hover:text-error hover:bg-[#fef2f2] transition-colors duration-150" onClick={() => handleDelete(brand.id)} aria-label={`Delete ${brand.name}`}>🗑</button>
                     )}
                   </li>
                 );
@@ -419,11 +253,8 @@ export function BrandTokensPanel({
             </ul>
           )}
         </div>
-
         {activeBrand && isEnabled && (
-          <div className="brand-tokens-footer-active" role="status">
-            ◈ {activeBrand.name} active
-          </div>
+          <div className="text-xs text-[#166534] pt-3 border-t border-[#e5e5e5] mt-auto" role="status">◈ {activeBrand.name} active</div>
         )}
       </div>
     </div>
