@@ -182,7 +182,7 @@ function App() {
         try {
           const canvas = document.querySelector('canvas')
           if (canvas) {
-            const thumbnail = (canvas as HTMLCanvasElement).toDataURL('image/jpeg', 0.6)
+            const thumbnail = (canvas as HTMLCanvasElement).toDataURL('image/png')
             updateItemThumbnail(itemId, thumbnail)
           }
         } catch {
