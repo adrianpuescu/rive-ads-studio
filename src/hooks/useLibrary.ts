@@ -1,0 +1,92 @@
+/**
+ * Creative Library: session history of generated ads, persisted in localStorage.
+ */
+
+import { useState, useCallback, useEffect } from 'react';
+
+const STORAGE_KEY = 'riveads_library';
+
+export interface LibraryItem {
+  id: string;
+  createdAt: number;
+  headline: string;
+  subheadline: string;
+  cta: string;
+  colors: {
+    background: string;
+    primary: string;
+    secondary: string;
+  };
+  prompt: string;
+}
+
+function loadFromStorage(): LibraryItem[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (x): x is LibraryItem =>
+          typeof x?.id === 'string' &&
+          typeof x?.createdAt === 'number' &&
+          typeof x?.headline === 'string' &&
+          typeof x?.subheadline === 'string' &&
+          typeof x?.cta === 'string' &&
+          x?.colors != null &&
+          typeof (x.colors as { background?: string })?.background === 'string' &&
+          typeof (x.colors as { primary?: string })?.primary === 'string' &&
+          typeof (x.colors as { secondary?: string })?.secondary === 'string' &&
+          typeof x?.prompt === 'string'
+      )
+      .sort((a, b) => b.createdAt - a.createdAt);
+  } catch {
+    return [];
+  }
+}
+
+function saveToStorage(items: LibraryItem[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // ignore
+  }
+}
+
+export function useLibrary() {
+  const [items, setItems] = useState<LibraryItem[]>(loadFromStorage);
+
+  useEffect(() => {
+    const stored = loadFromStorage();
+    setItems(stored);
+  }, []);
+
+  const addItem = useCallback((item: Omit<LibraryItem, 'id' | 'createdAt'>) => {
+    const full: LibraryItem = {
+      ...item,
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+    };
+    setItems((prev) => {
+      const next = [full, ...prev];
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
+
+  const removeItem = useCallback((id: string) => {
+    setItems((prev) => {
+      const next = prev.filter((x) => x.id !== id);
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
+
+  const clearAll = useCallback(() => {
+    setItems([]);
+    saveToStorage([]);
+  }, []);
+
+  return { items, addItem, removeItem, clearAll };
+}

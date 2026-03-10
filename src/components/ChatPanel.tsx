@@ -15,6 +15,8 @@ export interface ChatPanelProps {
   currentSpec: AdSpec | null;
   onSpecUpdate: (spec: AdSpec) => void;
   onInitialGenerate: (spec: AdSpec) => void;
+  /** Called when a new ad is generated (for Creative Library). Receives spec and the prompt used. */
+  onAdGenerated?: (spec: AdSpec, prompt: string) => void;
   apiKey: string;
 }
 
@@ -26,6 +28,7 @@ export function ChatPanel({
   currentSpec,
   onSpecUpdate,
   onInitialGenerate,
+  onAdGenerated,
   apiKey,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -64,6 +67,7 @@ export function ChatPanel({
       setMessages([userMsg, assistantMsg]);
       setInputValue('');
       onInitialGenerate(result.spec);
+      onAdGenerated?.(result.spec, prompt);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate ad');
     } finally {

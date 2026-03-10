@@ -4,6 +4,9 @@ import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
 import { SpecInspector } from './components/SpecInspector'
+import { LibraryPanel } from './components/LibraryPanel'
+import { useLibrary } from './hooks/useLibrary'
+import { libraryItemToAdSpec } from './lib/libraryAdSpec'
 import type { AdSpec } from './types/ad-spec.schema'
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''
@@ -28,6 +31,25 @@ function App() {
   )
   const [inspectorCollapsed, setInspectorCollapsed] = useState(() =>
     readStored(INSPECTOR_COLLAPSED_KEY, false)
+  )
+  const [libraryOpen, setLibraryOpen] = useState(false)
+  const { items: libraryItems, addItem, removeItem } = useLibrary()
+
+  const handleAdGenerated = useCallback(
+    (spec: AdSpec, prompt: string) => {
+      addItem({
+        headline: spec.text?.headline?.value ?? '',
+        subheadline: spec.text?.subheadline?.value ?? '',
+        cta: spec.text?.cta?.value ?? '',
+        colors: {
+          background: spec.colors?.background ?? '#ffffff',
+          primary: spec.colors?.primary ?? '#000000',
+          secondary: spec.colors?.secondary ?? '#666666',
+        },
+        prompt,
+      })
+    },
+    [addItem]
   )
 
   useEffect(() => {
@@ -54,6 +76,20 @@ function App() {
           <span className="app-toolbar-wordmark-dot" aria-hidden />
           <span className="app-toolbar-wordmark-studio">Studio</span>
         </div>
+        <button
+          type="button"
+          className="app-toolbar-library-btn"
+          onClick={() => setLibraryOpen(true)}
+          aria-label="Open Creative Library"
+        >
+          <span className="app-toolbar-library-icon" aria-hidden>⊞</span>
+          Library
+          {libraryItems.length > 0 && (
+            <span className="app-toolbar-library-badge" aria-label={`${libraryItems.length} ads in library`}>
+              {libraryItems.length}
+            </span>
+          )}
+        </button>
         <div className="app-toolbar-spacer" />
         <div className="app-toolbar-actions">
           <span className="app-toolbar-badge" aria-label="Ad size">
@@ -79,6 +115,7 @@ function App() {
               currentSpec={currentSpec}
               onSpecUpdate={setCurrentSpec}
               onInitialGenerate={setCurrentSpec}
+              onAdGenerated={handleAdGenerated}
               apiKey={apiKey}
             />
           </div>
@@ -120,6 +157,16 @@ function App() {
           )}
         </div>
 
+        <LibraryPanel
+          isOpen={libraryOpen}
+          onClose={() => setLibraryOpen(false)}
+          items={libraryItems}
+          onLoad={(item) => {
+            setCurrentSpec(libraryItemToAdSpec(item))
+            setLibraryOpen(false)
+          }}
+          onRemove={removeItem}
+        />
         {currentSpec && (
           <div
             className={`app-right-wrap ${inspectorCollapsed ? 'app-sidebar-collapsed' : ''}`}
