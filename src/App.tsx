@@ -23,41 +23,44 @@ function App() {
         </div>
         <p className="app-tagline">Artistic ads, AI-made.</p>
         <div className="app-divider"></div>
-        
+        <p className="panel-label">STUDIO</p>
         <ChatPanel
           currentSpec={currentSpec}
           onSpecUpdate={setCurrentSpec}
           onInitialGenerate={setCurrentSpec}
           apiKey={apiKey}
         />
-
-        {currentSpec && (
-          <SpecInspector 
-            spec={currentSpec} 
-            onChange={setCurrentSpec} 
-          />
-        )}
       </div>
 
-      <div className="app-right-panel">
+      <div className="app-center-panel">
         {currentSpec ? (
           <div className="app-canvas-wrapper">
             <div className="app-canvas-toolbar">
-              <ExportButton 
-                spec={currentSpec} 
-                rivFileName="test-template.riv" 
+              <ExportButton
+                spec={currentSpec}
+                rivFileName="test-template.riv"
               />
             </div>
-            <AdCanvas 
-              spec={currentSpec} 
-              width={728} 
-              height={90} 
+            <AdCanvas
+              spec={currentSpec}
+              width={728}
+              height={90}
             />
           </div>
         ) : (
           <p className="app-placeholder">Your ad will appear here</p>
         )}
       </div>
+
+      {currentSpec && (
+        <div className="app-right-panel">
+          <p className="panel-label">INSPECTOR</p>
+          <SpecInspector
+            spec={currentSpec}
+            onChange={setCurrentSpec}
+          />
+        </div>
+      )}
     </div>
   )
 }
