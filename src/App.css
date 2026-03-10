@@ -27,9 +27,54 @@ body {
 
 .app {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
+  overflow: hidden;
+}
+
+/* Global Toolbar */
+.app-toolbar {
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 16px;
+  gap: 8px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.app-toolbar-spacer {
+  flex: 1;
+}
+
+.app-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-toolbar-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.app-toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+}
+
+/* Main 3-panel area */
+.app-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
   overflow: hidden;
 }
 
@@ -44,17 +89,84 @@ body {
   margin-bottom: 20px;
 }
 
-/* Left Panel — Chat */
-.app-left-panel {
-  width: max(280px, 22vw);
+/* Left sidebar wrap (Chat) — width animates, content translates */
+.app-left-wrap {
+  width: 300px;
   flex-shrink: 0;
-  height: 100vh;
+  overflow: hidden;
+  transition: width 0.25s ease;
+}
+
+.app-left-wrap.app-sidebar-collapsed {
+  width: 0;
+}
+
+/* Left Panel — Chat: fixed width, slides with translateX */
+.app-left-panel {
+  width: 300px;
+  flex-shrink: 0;
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 32px 24px;
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
+  transition: transform 0.25s ease;
+  transform: translateX(0);
+}
+
+.app-left-panel.app-sidebar-content-collapsed {
+  transform: translateX(-300px);
+}
+
+/* Toggle buttons: absolute on center panel edges */
+.app-sidebar-toggle {
+  position: absolute;
+  top: 60px;
+  width: 20px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: #f5f5f5;
+  border: 1px solid #e5e5e5;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  z-index: 1;
+  outline: none;
+}
+
+.app-sidebar-toggle:hover {
+  background: #ebebeb;
+  border-color: #e0e0e0;
+}
+
+.app-sidebar-toggle:focus,
+.app-sidebar-toggle:focus-visible,
+.app-sidebar-toggle:active {
+  outline: none;
+}
+
+.app-sidebar-toggle:focus-visible {
+  background: #ebebeb;
+  border-color: #d5d5d5;
+}
+
+.app-sidebar-toggle-left {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+
+.app-sidebar-toggle-right {
+  right: 0;
+  border-radius: 4px 0 0 4px;
+  border-right: none;
 }
 
 .app-logo {
@@ -101,10 +213,12 @@ body {
   margin: 0 0 32px 0;
 }
 
-/* Center Panel — Canvas */
+/* Center Panel — Canvas (position context for absolute toggles) */
 .app-center-panel {
+  position: relative;
   flex: 1;
-  height: 100vh;
+  min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -121,11 +235,11 @@ body {
 .app-canvas-wrapper {
   width: fit-content;
   max-width: 100%;
-  margin: 0 auto;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  justify-content: center;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -133,20 +247,34 @@ body {
   border-radius: 0 !important;
 }
 
-.app-canvas-toolbar {
-  display: flex;
-  justify-content: flex-end;
+/* Right sidebar wrap (Inspector) — width animates, content translates */
+.app-right-wrap {
+  width: 280px;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.25s ease;
 }
 
-/* Right Panel — Spec Inspector */
+.app-right-wrap.app-sidebar-collapsed {
+  width: 0;
+}
+
+/* Right Panel — Spec Inspector: fixed width, slides with translateX */
 .app-right-panel {
   width: 280px;
   flex-shrink: 0;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 32px 20px;
   border-left: 1px solid var(--color-border);
   background: var(--color-surface);
+  transition: transform 0.25s ease;
+  transform: translateX(0);
+}
+
+.app-right-panel.app-sidebar-content-collapsed {
+  transform: translateX(280px);
 }
 
 .export-button {
@@ -469,38 +597,61 @@ body {
   }
 }
 
-/* Responsive */
+/* Responsive — mobile: stack vertical, canvas first, inspector second, chat last */
 @media (max-width: 768px) {
   .app {
-    flex-direction: column;
     height: auto;
     min-height: 100vh;
     overflow: auto;
   }
 
-  .app-left-panel {
+  .app-main {
+    flex-direction: column;
+  }
+
+  .app-left-wrap {
+    order: 3;
+    width: 100% !important;
+    height: 300px;
+    flex-shrink: 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .app-left-wrap .app-left-panel {
     width: 100%;
-    flex-shrink: unset;
-    height: auto;
-    min-height: 40vh;
+    transform: none;
     border-right: none;
-    border-bottom: 1px solid var(--color-border);
-    padding: 32px 24px;
+  }
+
+  .app-left-wrap.app-sidebar-collapsed .app-left-panel.app-sidebar-content-collapsed {
+    transform: translateX(-100%);
   }
 
   .app-center-panel {
-    height: auto;
+    order: 1;
+    width: 100%;
     min-height: 40vh;
     padding: 32px 24px;
   }
 
-  .app-right-panel {
-    width: 100%;
-    flex-shrink: unset;
-    height: auto;
+  .app-right-wrap {
+    order: 2;
+    width: 100% !important;
     min-height: 40vh;
     border-left: none;
     border-top: 1px solid var(--color-border);
-    padding: 32px 24px;
+  }
+
+  .app-right-wrap .app-right-panel {
+    width: 100%;
+    transform: none;
+  }
+
+  .app-right-wrap.app-sidebar-collapsed .app-right-panel.app-sidebar-content-collapsed {
+    transform: translateX(100%);
+  }
+
+  .app-canvas-wrapper {
+    height: auto;
   }
 }
