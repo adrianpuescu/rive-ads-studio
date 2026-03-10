@@ -1,5 +1,5 @@
 /**
- * Creative Library full page at /library.
+ * Projects page at /projects.
  * Grid of saved ads with filters, sort, and "Open in Editor" (pending-load) flow.
  */
 
@@ -197,7 +197,7 @@ function LibraryCard({ item, onOpenInEditor, onRemove }: LibraryCardProps) {
   );
 }
 
-export function LibraryPage() {
+export function ProjectsPage() {
   const navigate = useNavigate();
   const { items, clearAll, removeItem } = useLibrary();
   const [sort, setSort] = useState<SortOption>('newest');
@@ -236,7 +236,7 @@ export function LibraryPage() {
       } catch {
         // ignore
       }
-      navigate('/');
+      navigate('/editor');
     },
     [navigate]
   );
@@ -258,14 +258,14 @@ export function LibraryPage() {
           <span className="library-page-wordmark-dot" aria-hidden />
           <span className="library-page-wordmark-studio">Studio</span>
         </Link>
-        <Link to="/" className="library-page-back">
-          ← Back to Editor
+        <Link to="/editor" className="library-page-back">
+          Editor
         </Link>
       </header>
 
       <section className="library-page-hero">
         <div className="library-page-hero-left">
-          <h1 className="library-page-title">Creative Library</h1>
+          <h1 className="library-page-title">Projects</h1>
           <p className="library-page-subtitle">
             {items.length === 1 ? '1 ad saved' : `${items.length} ads saved`}
           </p>
@@ -330,7 +330,7 @@ export function LibraryPage() {
           <p className="library-page-empty-sub">
             Go to the editor and generate your first ad
           </p>
-          <Link to="/" className="library-page-btn library-page-btn-editor">
+          <Link to="/editor" className="library-page-btn library-page-btn-editor">
             Open Editor
           </Link>
         </div>

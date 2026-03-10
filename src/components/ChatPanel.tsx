@@ -16,7 +16,7 @@ export interface ChatPanelProps {
   currentSpec: AdSpec | null;
   onSpecUpdate: (spec: AdSpec) => void;
   onInitialGenerate: (spec: AdSpec) => void;
-  /** Called when a new ad is generated (for Creative Library). Receives spec, prompt, and current chat history. */
+  /** Called when a new ad is generated (for Projects). Receives spec, prompt, and current chat history. */
   onAdGenerated?: (
     spec: AdSpec,
     prompt: string,
@@ -24,7 +24,7 @@ export interface ChatPanelProps {
   ) => void;
   /** Set to true immediately before Claude API fetch, false in finally. Used only for overlay; not tied to SpecInspector. */
   onGeneratingChange?: (value: boolean) => void;
-  /** When set, replaces messages with this history and shows "Loaded from Library" separator. Cleared via onRestoredChatHistoryApplied. */
+  /** When set, replaces messages with this history and shows "Loaded from project" separator. Cleared via onRestoredChatHistoryApplied. */
   restoredChatHistory?: Array<{ role: 'user' | 'assistant'; content: string }> | null;
   /** Called after applying restoredChatHistory so parent can clear it. */
   onRestoredChatHistoryApplied?: () => void;
@@ -240,7 +240,7 @@ export function ChatPanel({
         >
           {showLoadedFromLibrarySeparator && (
             <div className="chat-loaded-from-library-separator">
-              — Loaded from Library —
+              — Loaded from project —
             </div>
           )}
           {messages.map((msg) => (

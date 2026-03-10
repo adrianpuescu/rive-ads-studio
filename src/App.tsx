@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import './App.css'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
@@ -289,7 +290,7 @@ function App() {
       setActiveLibraryItemId(item.id)
       lastSavedStateRef.current = spec
       setRestoredChatHistory(item.chatHistory ?? [])
-      setHistoryToast({ message: 'Loaded from Library' })
+      setHistoryToast({ message: 'Loaded from project' })
     } catch {
       // ignore
     }
@@ -306,11 +307,11 @@ function App() {
   return (
     <div className="app">
       <header className="app-toolbar">
-        <div className="app-toolbar-wordmark">
+        <Link to="/" className="app-toolbar-wordmark">
           <span className="app-toolbar-wordmark-riveads">RiveAds</span>
           <span className="app-toolbar-wordmark-dot" aria-hidden />
           <span className="app-toolbar-wordmark-studio">Studio</span>
-        </div>
+        </Link>
         {showNewAdConfirm ? (
           <div className="app-toolbar-newad-confirm">
             <span className="app-toolbar-newad-confirm-text">Unsaved changes</span>
@@ -401,12 +402,12 @@ function App() {
           type="button"
           className="app-toolbar-library-btn"
           onClick={() => setLibraryOpen((prev) => !prev)}
-          aria-label="Open Creative Library"
+          aria-label="Open Projects"
         >
           <span className="app-toolbar-library-icon" aria-hidden>⊞</span>
-          Library
+          Projects
           {libraryItems.length > 0 && (
-            <span className="app-toolbar-library-badge" aria-label={`${libraryItems.length} ads in library`}>
+            <span className="app-toolbar-library-badge" aria-label={`${libraryItems.length} projects`}>
               {libraryItems.length}
             </span>
           )}

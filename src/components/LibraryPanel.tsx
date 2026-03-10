@@ -1,10 +1,10 @@
 /**
- * Creative Library panel: drawer from the left listing saved ads.
+ * Projects panel: drawer from the left listing saved ads.
  * Load restores an ad into the editor; Delete removes with inline confirm.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { LibraryItem } from '../hooks/useLibrary';
 
 export interface LibraryPanelProps {
@@ -121,6 +121,7 @@ export function LibraryPanel({
   onLoad,
   onRemove,
 }: LibraryPanelProps) {
+  const navigate = useNavigate();
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -138,15 +139,15 @@ export function LibraryPanel({
     <div
       className={`library-panel ${isOpen ? 'library-panel-open' : ''}`}
       role="dialog"
-      aria-label="Creative Library"
+      aria-label="Projects"
     >
       <div className="library-panel-header">
-        <h2 className="library-panel-title">Creative Library</h2>
+        <h2 className="library-panel-title">Projects</h2>
         <button
           type="button"
           className="library-panel-close"
           onClick={onClose}
-          aria-label="Close library"
+          aria-label="Close projects"
         >
           ×
         </button>
@@ -174,9 +175,16 @@ export function LibraryPanel({
         )}
       </div>
       <footer className="library-panel-footer">
-        <Link to="/library" className="library-panel-footer-link" onClick={onClose}>
-          View full library →
-        </Link>
+        <button
+          type="button"
+          className="library-panel-footer-link"
+          onClick={() => {
+            onClose();
+            navigate('/projects');
+          }}
+        >
+          View all projects →
+        </button>
       </footer>
     </div>
   );

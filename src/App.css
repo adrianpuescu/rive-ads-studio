@@ -55,6 +55,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .app-toolbar-wordmark-riveads {
@@ -333,6 +335,14 @@ body {
 
 .library-panel-footer-link:hover {
   text-decoration: underline;
+}
+
+button.library-panel-footer-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: inherit;
 }
 
 .library-panel-content {
