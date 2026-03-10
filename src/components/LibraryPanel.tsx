@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import type { LibraryItem } from '../hooks/useLibrary';
 
 export interface LibraryPanelProps {
@@ -172,6 +173,11 @@ export function LibraryPanel({
           </div>
         )}
       </div>
+      <footer className="library-panel-footer">
+        <Link to="/library" className="library-panel-footer-link" onClick={onClose}>
+          View full library →
+        </Link>
+      </footer>
     </div>
   );
 }

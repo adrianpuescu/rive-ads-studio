@@ -318,6 +318,23 @@ body {
   background: #f0f0f0;
 }
 
+.library-panel-footer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.library-panel-footer-link {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.library-panel-footer-link:hover {
+  text-decoration: underline;
+}
+
 .library-panel-content {
   flex: 1;
   min-height: 0;

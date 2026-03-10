@@ -7,3 +7,8 @@ Use @rive-app/canvas-advanced for low-level color changes.
 Never install new dependencies without flagging it first.
 Prefer small, focused functions. No files over 200 lines.
 All components must be strictly typed — no `any`.
+
+UI styling (Tailwind-like):
+- Do not use heavy borders or box-shadows on hover/focus for buttons, inputs, selects, or other controls.
+- Prefer subtle feedback only: e.g. background-color change on hover, outline: none and at most a very light border-color change on focus (no thick rings or strong shadows).
+- Keep the same approach across the app: minimal, clean focus and hover states.

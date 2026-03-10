@@ -19,6 +19,7 @@ const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''
 
 const CHAT_COLLAPSED_KEY = 'riveads_chat_collapsed'
 const INSPECTOR_COLLAPSED_KEY = 'riveads_inspector_collapsed'
+const PENDING_LOAD_KEY = 'riveads_pending_load'
 
 function readStored(key: string, fallback: boolean): boolean {
   try {
@@ -275,6 +276,24 @@ function App() {
   useEffect(() => {
     localStorage.setItem(INSPECTOR_COLLAPSED_KEY, String(inspectorCollapsed))
   }, [inspectorCollapsed])
+
+  useEffect(() => {
+    try {
+      const pendingId = localStorage.getItem(PENDING_LOAD_KEY)
+      if (!pendingId) return
+      localStorage.removeItem(PENDING_LOAD_KEY)
+      const item = libraryItems.find((i) => i.id === pendingId)
+      if (!item) return
+      const spec = libraryItemToAdSpec(item)
+      push(spec)
+      setActiveLibraryItemId(item.id)
+      lastSavedStateRef.current = spec
+      setRestoredChatHistory(item.chatHistory ?? [])
+      setHistoryToast({ message: 'Loaded from Library' })
+    } catch {
+      // ignore
+    }
+  }, [libraryItems, push])
 
   const toggleChat = useCallback(() => {
     setChatCollapsed((c) => !c)
