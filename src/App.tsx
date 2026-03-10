@@ -59,7 +59,6 @@ function App() {
           <span className="app-toolbar-badge" aria-label="Ad size">
             728 × 90
           </span>
-          <span className="app-toolbar-separator" aria-hidden />
           {currentSpec && (
             <ExportButton
               spec={currentSpec}
