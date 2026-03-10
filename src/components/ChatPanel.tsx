@@ -15,8 +15,20 @@ export interface ChatPanelProps {
   currentSpec: AdSpec | null;
   onSpecUpdate: (spec: AdSpec) => void;
   onInitialGenerate: (spec: AdSpec) => void;
-  /** Called when a new ad is generated (for Creative Library). Receives spec and the prompt used. */
-  onAdGenerated?: (spec: AdSpec, prompt: string) => void;
+  /** Called when a new ad is generated (for Creative Library). Receives spec, prompt, and current chat history. */
+  onAdGenerated?: (
+    spec: AdSpec,
+    prompt: string,
+    chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>
+  ) => void;
+  /** When set, replaces messages with this history and shows "Loaded from Library" separator. Cleared via onRestoredChatHistoryApplied. */
+  restoredChatHistory?: Array<{ role: 'user' | 'assistant'; content: string }> | null;
+  /** Called after applying restoredChatHistory so parent can clear it. */
+  onRestoredChatHistoryApplied?: () => void;
+  /** When this value changes, chat messages are cleared (e.g. New Ad). */
+  newAdTrigger?: number;
+  /** Ref for the initial prompt textarea so parent can focus it (e.g. after New Ad). */
+  promptInputRef?: React.RefObject<HTMLTextAreaElement | null>;
   apiKey: string;
 }
 
@@ -29,14 +41,40 @@ export function ChatPanel({
   onSpecUpdate,
   onInitialGenerate,
   onAdGenerated,
+  restoredChatHistory = null,
+  onRestoredChatHistoryApplied,
+  newAdTrigger = 0,
+  promptInputRef,
   apiKey,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLoadedFromLibrarySeparator, setShowLoadedFromLibrarySeparator] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (newAdTrigger > 0) {
+      setMessages([]);
+      setShowLoadedFromLibrarySeparator(false);
+    }
+  }, [newAdTrigger]);
+
+  useEffect(() => {
+    if (restoredChatHistory && restoredChatHistory.length >= 0) {
+      const asMessages: ChatMessage[] = restoredChatHistory.map((m) => ({
+        id: crypto.randomUUID(),
+        role: m.role,
+        content: m.content,
+        timestamp: new Date(),
+      }));
+      setMessages(asMessages);
+      setShowLoadedFromLibrarySeparator(true);
+      onRestoredChatHistoryApplied?.();
+    }
+  }, [restoredChatHistory]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,7 +105,10 @@ export function ChatPanel({
       setMessages([userMsg, assistantMsg]);
       setInputValue('');
       onInitialGenerate(result.spec);
-      onAdGenerated?.(result.spec, prompt);
+      onAdGenerated?.(result.spec, prompt, [
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: result.spec.generation?.rationale ?? 'Ad generated.' },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate ad');
     } finally {
@@ -133,6 +174,7 @@ export function ChatPanel({
             DESCRIBE YOUR AD
           </label>
           <textarea
+            ref={promptInputRef}
             id="chat-initial-textarea"
             className="prompt-input-textarea"
             value={inputValue}
@@ -163,6 +205,11 @@ export function ChatPanel({
           role="log"
           aria-live="polite"
         >
+          {showLoadedFromLibrarySeparator && (
+            <div className="chat-loaded-from-library-separator">
+              — Loaded from Library —
+            </div>
+          )}
           {messages.map((msg) => (
             <div
               key={msg.id}

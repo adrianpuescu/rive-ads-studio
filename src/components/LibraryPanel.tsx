@@ -49,10 +49,20 @@ function LibraryCard({ item, onLoad, onRemove }: LibraryCardProps) {
 
   return (
     <div className="library-card">
-      <div
-        className="library-card-preview-bar"
-        style={{ background: item.colors.background }}
-      />
+      {item.thumbnail ? (
+        <div className="library-card-thumbnail-wrap">
+          <img
+            src={item.thumbnail}
+            alt=""
+            className="library-card-thumbnail"
+          />
+        </div>
+      ) : (
+        <div
+          className="library-card-preview-bar"
+          style={{ background: item.colors.background }}
+        />
+      )}
       <div className="library-card-body">
         <div className="library-card-headline">{item.headline || '—'}</div>
         <div className="library-card-subheadline">{item.subheadline || '—'}</div>

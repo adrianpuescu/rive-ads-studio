@@ -98,6 +98,55 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* New Ad toolbar button */
+.app-toolbar-newad-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.app-toolbar-newad-btn:hover {
+  background: #f5f5f5;
+}
+
+.app-toolbar-newad-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.app-toolbar-newad-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-toolbar-newad-confirm-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.app-toolbar-newad-btn-yes {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.app-toolbar-newad-btn-cancel {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
 /* Library toolbar button */
 .app-toolbar-library-btn {
   display: flex;
@@ -155,14 +204,14 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 320px;
+  width: 300px;
   height: 100%;
   z-index: 20;
   background: #fff;
   border-right: 1px solid #e5e5e5;
   display: flex;
   flex-direction: column;
-  transform: translateX(-320px);
+  transform: translateX(-300px);
   transition: transform 0.25s ease;
 }
 
@@ -230,6 +279,19 @@ body {
   height: 6px;
   border-radius: 3px 3px 0 0;
   width: 100%;
+}
+
+.library-card-thumbnail-wrap {
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 3px 3px 0 0;
+}
+
+.library-card-thumbnail {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .library-card-body {
@@ -501,33 +563,43 @@ body {
   transform: translateX(280px);
 }
 
-/* Sidebar scrollbars: light, override system accent */
+/* App scrollbars: soft, consistent style. Add any new scrollable container to these selectors. */
 .app-left-panel,
-.app-right-panel {
+.app-right-panel,
+.chat-messages,
+.library-panel-content {
   scrollbar-width: thin;
   scrollbar-color: #e8e8e8 transparent;
 }
 
 .app-left-panel::-webkit-scrollbar,
-.app-right-panel::-webkit-scrollbar {
+.app-right-panel::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar,
+.library-panel-content::-webkit-scrollbar {
   width: 4px;
   -webkit-appearance: none;
   appearance: none;
 }
 
 .app-left-panel::-webkit-scrollbar-track,
-.app-right-panel::-webkit-scrollbar-track {
+.app-right-panel::-webkit-scrollbar-track,
+.chat-messages::-webkit-scrollbar-track,
+.library-panel-content::-webkit-scrollbar-track {
   background: transparent !important;
 }
 
 .app-left-panel::-webkit-scrollbar-thumb,
-.app-right-panel::-webkit-scrollbar-thumb {
+.app-right-panel::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb,
+.library-panel-content::-webkit-scrollbar-thumb {
   background: #e8e8e8 !important;
   border-radius: 4px;
 }
 
 .app-left-panel::-webkit-scrollbar-thumb:hover,
-.app-right-panel::-webkit-scrollbar-thumb:hover {
+.app-right-panel::-webkit-scrollbar-thumb:hover,
+.chat-messages::-webkit-scrollbar-thumb:hover,
+.library-panel-content::-webkit-scrollbar-thumb:hover {
   background: #d8d8d8 !important;
 }
 
@@ -769,32 +841,6 @@ body {
   padding: 16px 16px 8px;
 }
 
-/* Firefox: thin scrollbar */
-.chat-messages {
-  scrollbar-width: thin;
-  scrollbar-color: #e8e8e8 transparent;
-}
-
-/* Webkit (Chrome/Safari): custom scrollbar — override system accent */
-.chat-messages::-webkit-scrollbar {
-  width: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.chat-messages::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
-.chat-messages::-webkit-scrollbar-thumb {
-  background: #e8e8e8 !important;
-  border-radius: 4px;
-}
-
-.chat-messages::-webkit-scrollbar-thumb:hover {
-  background: #d8d8d8 !important;
-}
-
 .chat-message {
   display: flex;
   flex-direction: column;
@@ -836,6 +882,15 @@ body {
   color: var(--color-text-secondary);
   margin-top: 4px;
   padding-left: 2px;
+}
+
+.chat-loaded-from-library-separator {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 8px 0;
+  margin: 0 0 8px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .chat-input-row {

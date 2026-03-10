@@ -18,6 +18,10 @@ export interface LibraryItem {
     secondary: string;
   };
   prompt: string;
+  /** base64 JPEG, optional (missing for older items) */
+  thumbnail?: string;
+  /** Chat messages at save time (optional for older items) */
+  chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
 function loadFromStorage(): LibraryItem[] {
@@ -62,14 +66,26 @@ export function useLibrary() {
     setItems(stored);
   }, []);
 
-  const addItem = useCallback((item: Omit<LibraryItem, 'id' | 'createdAt'>) => {
+  const addItem = useCallback((item: Omit<LibraryItem, 'id' | 'createdAt'>): string => {
+    const id = crypto.randomUUID();
     const full: LibraryItem = {
       ...item,
-      id: crypto.randomUUID(),
+      id,
       createdAt: Date.now(),
     };
     setItems((prev) => {
       const next = [full, ...prev];
+      saveToStorage(next);
+      return next;
+    });
+    return id;
+  }, []);
+
+  const updateItemThumbnail = useCallback((id: string, thumbnail: string) => {
+    setItems((prev) => {
+      const next = prev.map((item) =>
+        item.id === id ? { ...item, thumbnail } : item
+      );
       saveToStorage(next);
       return next;
     });
@@ -88,5 +104,5 @@ export function useLibrary() {
     saveToStorage([]);
   }, []);
 
-  return { items, addItem, removeItem, clearAll };
+  return { items, addItem, updateItemThumbnail, removeItem, clearAll };
 }
