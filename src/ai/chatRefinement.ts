@@ -3,6 +3,8 @@
  */
 
 import type { AdSpec } from '../types/ad-spec.schema';
+import type { BrandTokens } from '../types/brand-tokens';
+import { getBrandTokensPromptBlock } from '../types/brand-tokens';
 import type { ChatMessage } from '../types/chat';
 
 const ADSPEC_SCHEMA = `
@@ -89,9 +91,15 @@ export async function refineAdSpec(
   currentSpec: AdSpec,
   messages: ChatMessage[],
   userMessage: string,
-  apiKey: string
+  apiKey: string,
+  brandTokens?: BrandTokens | null
 ): Promise<RefineResult> {
   const apiMessages = buildMessages(currentSpec, messages, userMessage);
+
+  const systemPrompt =
+    brandTokens != null
+      ? getBrandTokensPromptBlock(brandTokens) + '\n\n' + SYSTEM_PROMPT
+      : SYSTEM_PROMPT;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -104,7 +112,7 @@ export async function refineAdSpec(
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1500,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: apiMessages,
     }),
   });

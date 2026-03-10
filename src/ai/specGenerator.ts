@@ -5,10 +5,13 @@
  */
 
 import type { AdSpec } from '../types/ad-spec.schema';
+import type { BrandTokens } from '../types/brand-tokens';
+import { getBrandTokensPromptBlock } from '../types/brand-tokens';
 
 export interface GeneratorOptions {
   prompt: string;
   templateId?: string;  // defaults to 'test-template'
+  brandTokens?: BrandTokens | null;
 }
 
 export interface GeneratorResult {
@@ -73,6 +76,11 @@ export async function generateAdSpec(
     throw new Error('VITE_ANTHROPIC_API_KEY is not configured');
   }
 
+  const systemPrompt =
+    options.brandTokens != null
+      ? getBrandTokensPromptBlock(options.brandTokens) + '\n\n' + SYSTEM_PROMPT
+      : SYSTEM_PROMPT;
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -85,7 +93,7 @@ export async function generateAdSpec(
       // model: 'claude-sonnet-4-20250514',
       model: 'claude-haiku-4-5-20251001', // Temp - E mai rapid și mai ieftin, dar la fel de capabil pentru generare JSON. Poți reveni la Sonnet când overload-ul trece.
       max_tokens: 1000,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [
         {
           role: 'user',
@@ -97,7 +105,7 @@ export async function generateAdSpec(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    throw new Error(`API request failed: ${response.status} ${response.statusText}. ${errorText.slice(0, 200)}`);
   }
 
   const data = await response.json();

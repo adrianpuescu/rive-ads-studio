@@ -5,7 +5,9 @@ import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
 import { SpecInspector } from './components/SpecInspector'
 import { LibraryPanel } from './components/LibraryPanel'
+import { BrandTokensPanel } from './components/BrandTokensPanel'
 import { useLibrary } from './hooks/useLibrary'
+import { useBrandTokens } from './hooks/useBrandTokens'
 import { libraryItemToAdSpec } from './lib/libraryAdSpec'
 import type { AdSpec } from './types/ad-spec.schema'
 
@@ -33,6 +35,7 @@ function App() {
     readStored(INSPECTOR_COLLAPSED_KEY, false)
   )
   const [libraryOpen, setLibraryOpen] = useState(false)
+  const [brandOpen, setBrandOpen] = useState(false)
   const [showNewAdConfirm, setShowNewAdConfirm] = useState(false)
   const [newAdTrigger, setNewAdTrigger] = useState(0)
   const [restoredChatHistory, setRestoredChatHistory] = useState<
@@ -41,6 +44,7 @@ function App() {
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { items: libraryItems, addItem, updateItemThumbnail, removeItem } = useLibrary()
+  const { tokens: brandTokens, setTokens: setBrandTokens, clearTokens, hasTokens: hasBrandTokens } = useBrandTokens()
 
   const clearNewAdConfirmTimeout = useCallback(() => {
     if (newAdConfirmTimeoutRef.current) {
@@ -167,6 +171,16 @@ function App() {
         )}
         <button
           type="button"
+          className="app-toolbar-brand-btn"
+          onClick={() => setBrandOpen((prev) => !prev)}
+          aria-label={hasBrandTokens ? 'Brand tokens active — edit' : 'Open Brand Tokens'}
+        >
+          <span className="app-toolbar-brand-icon" aria-hidden>◈</span>
+          Brand
+          {hasBrandTokens && <span className="app-toolbar-brand-dot" aria-hidden />}
+        </button>
+        <button
+          type="button"
           className="app-toolbar-library-btn"
           onClick={() => setLibraryOpen((prev) => !prev)}
           aria-label="Open Creative Library"
@@ -210,6 +224,10 @@ function App() {
               onRestoredChatHistoryApplied={() => setRestoredChatHistory(null)}
               newAdTrigger={newAdTrigger}
               apiKey={apiKey}
+              brandTokens={brandTokens}
+              hasBrandTokens={hasBrandTokens}
+              brandName={brandTokens?.brandName ?? ''}
+              onOpenBrandTokens={() => setBrandOpen(true)}
             />
           </div>
         </div>
@@ -260,6 +278,13 @@ function App() {
             setLibraryOpen(false)
           }}
           onRemove={removeItem}
+        />
+        <BrandTokensPanel
+          isOpen={brandOpen}
+          onClose={() => setBrandOpen(false)}
+          tokens={brandTokens}
+          onSave={setBrandTokens}
+          onClear={clearTokens}
         />
         {currentSpec && (
           <div

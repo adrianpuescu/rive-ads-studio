@@ -408,6 +408,245 @@ body {
   margin: 0;
 }
 
+/* Brand Tokens drawer — from right, overlays Inspector, same animation as Library */
+.brand-tokens-panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 300px;
+  height: 100%;
+  z-index: 25;
+  background: #fff;
+  border-left: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(300px);
+  transition: transform 0.25s ease;
+}
+
+.brand-tokens-panel-open {
+  transform: translateX(0);
+}
+
+.brand-tokens-panel-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.brand-tokens-panel-title {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.brand-tokens-panel-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.brand-tokens-panel-close:hover {
+  color: var(--color-text-primary);
+  background: #f0f0f0;
+}
+
+.brand-tokens-panel-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.brand-tokens-panel-banner {
+  font-size: 12px;
+  color: #166534;
+  background: #dcfce7;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.brand-tokens-section {
+  margin-bottom: 20px;
+}
+
+.brand-tokens-section-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: 0 0 10px;
+}
+
+.brand-tokens-label {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.brand-tokens-label + .brand-tokens-label {
+  margin-top: 12px;
+}
+
+.brand-tokens-input,
+.brand-tokens-hex,
+.brand-tokens-select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  background: #fff;
+}
+
+.brand-tokens-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.brand-tokens-color-picker {
+  width: 36px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.brand-tokens-hex {
+  flex: 1;
+  min-width: 0;
+}
+
+.brand-tokens-select {
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.brand-tokens-save-btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: #fff;
+  background: #0d0c0a;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+
+.brand-tokens-save-btn:hover {
+  background: #2d2c2a;
+}
+
+.brand-tokens-clear-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 4px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.brand-tokens-clear-btn:hover {
+  color: var(--color-text-secondary);
+}
+
+/* Brand toolbar button */
+.app-toolbar-brand-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.app-toolbar-brand-btn:hover {
+  background: #f5f5f5;
+  border-color: #d5d5d5;
+}
+
+.app-toolbar-brand-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.app-toolbar-brand-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+}
+
+/* Chat brand tokens chip */
+.chat-brand-tokens-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--color-text-secondary);
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.15s;
+}
+
+.chat-brand-tokens-chip:hover {
+  background: #e5e5e5;
+}
+
 /* Panel label */
 .panel-label {
   font-family: 'DM Sans', sans-serif;

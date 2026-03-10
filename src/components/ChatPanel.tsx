@@ -7,6 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { AdSpec } from '../types/ad-spec.schema';
+import type { BrandTokens } from '../types/brand-tokens';
 import type { ChatMessage } from '../types/chat';
 import { generateAdSpec } from '../ai/specGenerator';
 import { refineAdSpec } from '../ai/chatRefinement';
@@ -30,6 +31,14 @@ export interface ChatPanelProps {
   /** Ref for the initial prompt textarea so parent can focus it (e.g. after New Ad). */
   promptInputRef?: React.RefObject<HTMLTextAreaElement | null>;
   apiKey: string;
+  /** Brand tokens to inject into AI prompts when set. */
+  brandTokens?: BrandTokens | null;
+  /** Whether brand tokens are active (for showing chip). */
+  hasBrandTokens?: boolean;
+  /** Brand name for chip label. */
+  brandName?: string;
+  /** Callback when user clicks the brand tokens chip to open panel. */
+  onOpenBrandTokens?: () => void;
 }
 
 function nextId(): string {
@@ -46,6 +55,10 @@ export function ChatPanel({
   newAdTrigger = 0,
   promptInputRef,
   apiKey,
+  brandTokens = null,
+  hasBrandTokens = false,
+  brandName = '',
+  onOpenBrandTokens,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -88,7 +101,7 @@ export function ChatPanel({
     setError(null);
 
     try {
-      const result = await generateAdSpec({ prompt });
+      const result = await generateAdSpec({ prompt, brandTokens });
       const userMsg: ChatMessage = {
         id: nextId(),
         role: 'user',
@@ -128,7 +141,8 @@ export function ChatPanel({
         currentSpec,
         messages,
         text,
-        apiKey
+        apiKey,
+        brandTokens
       );
       const userMsg: ChatMessage = {
         id: nextId(),
@@ -166,9 +180,21 @@ export function ChatPanel({
     ? inputValue.trim().length > 0 && !isLoading
     : inputValue.trim().length > 0 && !isLoading && currentSpec !== null;
 
+  const brandChip = hasBrandTokens && (
+    <button
+      type="button"
+      className="chat-brand-tokens-chip"
+      onClick={onOpenBrandTokens}
+      aria-label={brandName ? `${brandName} brand tokens active — click to edit` : 'Brand tokens active — click to edit'}
+    >
+      ◈ {brandName ? `${brandName} tokens active` : 'Brand tokens active'}
+    </button>
+  );
+
   if (isInitial) {
     return (
       <div className="chat-panel-root">
+        {brandChip}
         <div className="prompt-input-container">
           <label className="prompt-input-label" htmlFor="chat-initial-textarea">
             DESCRIBE YOUR AD
@@ -224,6 +250,7 @@ export function ChatPanel({
           ))}
           <div ref={messagesEndRef} />
         </div>
+        {brandChip}
         <div className="chat-input-row">
           <textarea
             aria-label="Refine your ad"
