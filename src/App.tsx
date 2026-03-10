@@ -9,7 +9,7 @@ import { BrandTokensPanel } from './components/BrandTokensPanel'
 import { useLibrary } from './hooks/useLibrary'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
-import { libraryItemToAdSpec } from './lib/libraryAdSpec'
+import { libraryItemToAdSpec, adSpecToLibraryItemPayload } from './lib/libraryAdSpec'
 import type { AdSpec } from './types/ad-spec.schema'
 
 const INSPECTOR_PUSH_DEBOUNCE_MS = 600
@@ -48,6 +48,7 @@ function App() {
     readStored(INSPECTOR_COLLAPSED_KEY, false)
   )
   const [libraryOpen, setLibraryOpen] = useState(false)
+  const [activeLibraryItemId, setActiveLibraryItemId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
   const [showNewAdConfirm, setShowNewAdConfirm] = useState(false)
   const [newAdTrigger, setNewAdTrigger] = useState(0)
@@ -58,7 +59,10 @@ function App() {
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
-  const { items: libraryItems, addItem, updateItemThumbnail, removeItem } = useLibrary()
+  /** Last AdSpec state saved to Library (for "Saved" vs "Unsaved" indicator). */
+  const lastSavedStateRef = useRef<AdSpec | null>(null)
+  const [saveVersion, setSaveVersion] = useState(0)
+  const { items: libraryItems, addItem, updateItemThumbnail, updateItem, removeItem } = useLibrary()
   const {
     brands,
     activeBrandId,
@@ -100,6 +104,9 @@ function App() {
       inspectorPushDebounceRef.current = null
     }
     setLibraryOpen(false)
+    setActiveLibraryItemId(null)
+    lastSavedStateRef.current = null
+    setSaveVersion((v) => v + 1)
     clearHistory()
     setNewAdTrigger((t) => t + 1)
     setTimeout(() => promptInputRef.current?.focus(), 100)
@@ -127,14 +134,18 @@ function App() {
 
   const handleInspectorChange = useCallback(
     (updated: AdSpec) => {
-      replacePresent(updated)
       if (inspectorPushDebounceRef.current) {
         clearTimeout(inspectorPushDebounceRef.current)
-      }
-      inspectorPushDebounceRef.current = setTimeout(() => {
-        inspectorPushDebounceRef.current = null
+        replacePresent(updated)
+        inspectorPushDebounceRef.current = setTimeout(() => {
+          inspectorPushDebounceRef.current = null
+        }, INSPECTOR_PUSH_DEBOUNCE_MS)
+      } else {
         push(updated)
-      }, INSPECTOR_PUSH_DEBOUNCE_MS)
+        inspectorPushDebounceRef.current = setTimeout(() => {
+          inspectorPushDebounceRef.current = null
+        }, INSPECTOR_PUSH_DEBOUNCE_MS)
+      }
     },
     [replacePresent, push]
   )
@@ -145,8 +156,26 @@ function App() {
     return () => clearTimeout(id)
   }, [historyToast])
 
+  const handleSaveToLibrary = useCallback(() => {
+    if (!adSpec) return
+    const payload = adSpecToLibraryItemPayload(adSpec)
+    if (activeLibraryItemId) {
+      updateItem(activeLibraryItemId, payload)
+    } else {
+      const id = addItem(payload)
+      setActiveLibraryItemId(id)
+    }
+    lastSavedStateRef.current = adSpec
+    setSaveVersion((v) => v + 1)
+  }, [adSpec, activeLibraryItemId, addItem, updateItem])
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault()
+        handleSaveToLibrary()
+        return
+      }
       if (e.metaKey && e.key === 'z') {
         e.preventDefault()
         if (e.shiftKey) handleRedo()
@@ -155,7 +184,7 @@ function App() {
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [handleUndo, handleRedo])
+  }, [handleUndo, handleRedo, handleSaveToLibrary])
 
   const handleAdGenerated = useCallback(
     (
@@ -171,11 +200,17 @@ function App() {
           background: spec.colors?.background ?? '#ffffff',
           primary: spec.colors?.primary ?? '#000000',
           secondary: spec.colors?.secondary ?? '#666666',
+          headlineColor: spec.colors?.headlineColor,
+          subheadlineColor: spec.colors?.subheadlineColor,
+          ctaColor: spec.colors?.ctaColor,
         },
         prompt,
         chatHistory,
       }
       const id = addItem(baseItem)
+      setActiveLibraryItemId(id)
+      lastSavedStateRef.current = spec
+      setSaveVersion((v) => v + 1)
       setTimeout(() => {
         try {
           const canvas = document.querySelector('canvas')
@@ -257,7 +292,7 @@ function App() {
           onClick={handleUndo}
           disabled={!canUndo}
           aria-label="Undo"
-          title="Undo (⌘Z)"
+          title="Undo (Cmd+Z)"
         >
           <span className="app-toolbar-undo-icon" aria-hidden>↩</span>
         </button>
@@ -267,10 +302,26 @@ function App() {
           onClick={handleRedo}
           disabled={!canRedo}
           aria-label="Redo"
-          title="Redo (⌘⇧Z)"
+          title="Redo (Cmd+Shift+Z)"
         >
           <span className="app-toolbar-redo-icon" aria-hidden>↪</span>
         </button>
+        {adSpec && (
+          <span className="app-toolbar-save-status" aria-live="polite">
+            {lastSavedStateRef.current != null &&
+            JSON.stringify(adSpec) === JSON.stringify(lastSavedStateRef.current) ? (
+              <>
+                <span className="app-toolbar-save-status-dot app-toolbar-save-status-dot-saved" aria-hidden />
+                Saved
+              </>
+            ) : (
+              <>
+                <span className="app-toolbar-save-status-dot app-toolbar-save-status-dot-unsaved" aria-hidden />
+                Unsaved changes
+              </>
+            )}
+          </span>
+        )}
         <button
           type="button"
           className="app-toolbar-brand-btn"
@@ -381,11 +432,24 @@ function App() {
           onClose={() => setLibraryOpen(false)}
           items={libraryItems}
           onLoad={(item) => {
-            push(libraryItemToAdSpec(item))
+            const spec = libraryItemToAdSpec(item)
+            push(spec)
+            setActiveLibraryItemId(item.id)
+            lastSavedStateRef.current = spec
             setRestoredChatHistory(item.chatHistory ?? [])
             setLibraryOpen(false)
           }}
-          onRemove={removeItem}
+          onRemove={(id) => {
+            if (id === activeLibraryItemId) {
+              clearHistory()
+              setActiveLibraryItemId(null)
+              lastSavedStateRef.current = null
+              setSaveVersion((v) => v + 1)
+              setRestoredChatHistory(null)
+              setNewAdTrigger((t) => t + 1)
+            }
+            removeItem(id)
+          }}
         />
         <BrandTokensPanel
           isOpen={brandOpen}

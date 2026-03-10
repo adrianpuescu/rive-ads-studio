@@ -16,6 +16,12 @@ export interface LibraryItem {
     background: string;
     primary: string;
     secondary: string;
+    /** Headline text color (hex). Optional for older items. */
+    headlineColor?: string;
+    /** Subheadline text color (hex). Optional for older items. */
+    subheadlineColor?: string;
+    /** CTA text color (hex). Optional for older items. */
+    ctaColor?: string;
   };
   prompt: string;
   /** base64 JPEG, optional (missing for older items) */
@@ -91,6 +97,30 @@ export function useLibrary() {
     });
   }, []);
 
+  /** Updates an existing item's spec fields (headline, subheadline, cta, colors, prompt). Keeps id, createdAt, thumbnail, chatHistory. */
+  const updateItem = useCallback(
+    (id: string, data: Omit<LibraryItem, 'id' | 'createdAt'>) => {
+      setItems((prev) => {
+        const next = prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                headline: data.headline,
+                subheadline: data.subheadline,
+                cta: data.cta,
+                colors: data.colors,
+                prompt: data.prompt,
+                chatHistory: data.chatHistory ?? item.chatHistory,
+              }
+            : item
+        );
+        saveToStorage(next);
+        return next;
+      });
+    },
+    []
+  );
+
   const removeItem = useCallback((id: string) => {
     setItems((prev) => {
       const next = prev.filter((x) => x.id !== id);
@@ -104,5 +134,5 @@ export function useLibrary() {
     saveToStorage([]);
   }, []);
 
-  return { items, addItem, updateItemThumbnail, removeItem, clearAll };
+  return { items, addItem, updateItemThumbnail, updateItem, removeItem, clearAll };
 }

@@ -6,6 +6,30 @@
 import type { AdSpec } from '../types/ad-spec.schema';
 import type { LibraryItem } from '../hooks/useLibrary';
 
+/** Payload for adding or updating a library item (no id, createdAt). */
+export type LibraryItemPayload = Omit<LibraryItem, 'id' | 'createdAt'>;
+
+/**
+ * Converts current AdSpec to library item payload for save (add/update).
+ */
+export function adSpecToLibraryItemPayload(spec: AdSpec): LibraryItemPayload {
+  return {
+    headline: spec.text?.headline?.value ?? '',
+    subheadline: spec.text?.subheadline?.value ?? '',
+    cta: spec.text?.cta?.value ?? '',
+    colors: {
+      background: spec.colors?.background ?? '#ffffff',
+      primary: spec.colors?.primary ?? '#000000',
+      secondary: spec.colors?.secondary ?? '#666666',
+      headlineColor: spec.colors?.headlineColor,
+      subheadlineColor: spec.colors?.subheadlineColor,
+      ctaColor: spec.colors?.ctaColor,
+    },
+    prompt: spec.generation?.prompt ?? '',
+    chatHistory: [],
+  };
+}
+
 export function libraryItemToAdSpec(item: LibraryItem): AdSpec {
   return {
     version: '1.0',
@@ -35,9 +59,9 @@ export function libraryItemToAdSpec(item: LibraryItem): AdSpec {
       primary: item.colors.primary,
       secondary: item.colors.secondary,
       background: item.colors.background,
-      headlineColor: '#111827',
-      subheadlineColor: '#4b5563',
-      ctaColor: '#ffffff',
+      headlineColor: item.colors.headlineColor ?? '#111827',
+      subheadlineColor: item.colors.subheadlineColor ?? '#4b5563',
+      ctaColor: item.colors.ctaColor ?? '#ffffff',
     },
     generation: {
       prompt: item.prompt,

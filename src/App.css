@@ -184,6 +184,30 @@ body {
   line-height: 1;
 }
 
+/* Save status (Saved / Unsaved changes) */
+.app-toolbar-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.app-toolbar-save-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.app-toolbar-save-status-dot-saved {
+  background: #22c55e;
+}
+
+.app-toolbar-save-status-dot-unsaved {
+  background: #f97316;
+}
+
 /* Library toolbar button */
 .app-toolbar-library-btn {
   display: flex;
