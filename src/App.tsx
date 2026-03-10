@@ -8,8 +8,12 @@ import { LibraryPanel } from './components/LibraryPanel'
 import { BrandTokensPanel } from './components/BrandTokensPanel'
 import { useLibrary } from './hooks/useLibrary'
 import { useBrandTokens } from './hooks/useBrandTokens'
+import { useAdHistory } from './hooks/useAdHistory'
 import { libraryItemToAdSpec } from './lib/libraryAdSpec'
 import type { AdSpec } from './types/ad-spec.schema'
+
+const INSPECTOR_PUSH_DEBOUNCE_MS = 600
+const HISTORY_TOAST_DURATION_MS = 1500
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''
 
@@ -27,7 +31,16 @@ function readStored(key: string, fallback: boolean): boolean {
 }
 
 function App() {
-  const [currentSpec, setCurrentSpec] = useState<AdSpec | null>(null)
+  const {
+    present: adSpec,
+    canUndo,
+    canRedo,
+    push,
+    undo,
+    redo,
+    clear: clearHistory,
+    replacePresent,
+  } = useAdHistory(null)
   const [chatCollapsed, setChatCollapsed] = useState(() =>
     readStored(CHAT_COLLAPSED_KEY, false)
   )
@@ -41,7 +54,9 @@ function App() {
   const [restoredChatHistory, setRestoredChatHistory] = useState<
     Array<{ role: 'user' | 'assistant'; content: string }> | null
   >(null)
+  const [historyToast, setHistoryToast] = useState<{ message: string } | null>(null)
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { items: libraryItems, addItem, updateItemThumbnail, removeItem } = useLibrary()
   const {
@@ -65,7 +80,7 @@ function App() {
   }, [])
 
   const handleNewAdClick = useCallback(() => {
-    if (currentSpec) {
+    if (adSpec) {
       setShowNewAdConfirm(true)
       clearNewAdConfirmTimeout()
       newAdConfirmTimeoutRef.current = setTimeout(() => {
@@ -75,16 +90,72 @@ function App() {
     } else {
       doNewAd()
     }
-  }, [currentSpec])
+  }, [adSpec])
 
   const doNewAd = useCallback(() => {
     setShowNewAdConfirm(false)
     clearNewAdConfirmTimeout()
+    if (inspectorPushDebounceRef.current) {
+      clearTimeout(inspectorPushDebounceRef.current)
+      inspectorPushDebounceRef.current = null
+    }
     setLibraryOpen(false)
-    setCurrentSpec(null)
+    clearHistory()
     setNewAdTrigger((t) => t + 1)
     setTimeout(() => promptInputRef.current?.focus(), 100)
-  }, [])
+  }, [clearHistory])
+
+  const handleUndo = useCallback(() => {
+    if (!canUndo) return
+    if (inspectorPushDebounceRef.current) {
+      clearTimeout(inspectorPushDebounceRef.current)
+      inspectorPushDebounceRef.current = null
+    }
+    undo()
+    setHistoryToast({ message: '↩ Reverted to previous version' })
+  }, [canUndo, undo])
+
+  const handleRedo = useCallback(() => {
+    if (!canRedo) return
+    if (inspectorPushDebounceRef.current) {
+      clearTimeout(inspectorPushDebounceRef.current)
+      inspectorPushDebounceRef.current = null
+    }
+    redo()
+    setHistoryToast({ message: '↪ Restored next version' })
+  }, [canRedo, redo])
+
+  const handleInspectorChange = useCallback(
+    (updated: AdSpec) => {
+      replacePresent(updated)
+      if (inspectorPushDebounceRef.current) {
+        clearTimeout(inspectorPushDebounceRef.current)
+      }
+      inspectorPushDebounceRef.current = setTimeout(() => {
+        inspectorPushDebounceRef.current = null
+        push(updated)
+      }, INSPECTOR_PUSH_DEBOUNCE_MS)
+    },
+    [replacePresent, push]
+  )
+
+  useEffect(() => {
+    if (!historyToast) return
+    const id = setTimeout(() => setHistoryToast(null), HISTORY_TOAST_DURATION_MS)
+    return () => clearTimeout(id)
+  }, [historyToast])
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) handleRedo()
+        else handleUndo()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [handleUndo, handleRedo])
 
   const handleAdGenerated = useCallback(
     (
@@ -182,6 +253,26 @@ function App() {
         )}
         <button
           type="button"
+          className="app-toolbar-undo-btn"
+          onClick={handleUndo}
+          disabled={!canUndo}
+          aria-label="Undo"
+          title="Undo (⌘Z)"
+        >
+          <span className="app-toolbar-undo-icon" aria-hidden>↩</span>
+        </button>
+        <button
+          type="button"
+          className="app-toolbar-redo-btn"
+          onClick={handleRedo}
+          disabled={!canRedo}
+          aria-label="Redo"
+          title="Redo (⌘⇧Z)"
+        >
+          <span className="app-toolbar-redo-icon" aria-hidden>↪</span>
+        </button>
+        <button
+          type="button"
           className="app-toolbar-brand-btn"
           onClick={() => setBrandOpen((prev) => !prev)}
           aria-label={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active — edit` : 'Open Brand Manager'}
@@ -210,9 +301,9 @@ function App() {
           <span className="app-toolbar-badge" aria-label="Ad size">
             728 × 90
           </span>
-          {currentSpec && (
+          {adSpec && (
             <ExportButton
-              spec={currentSpec}
+              spec={adSpec}
               rivFileName="test-template.riv"
             />
           )}
@@ -228,9 +319,9 @@ function App() {
           >
             <ChatPanel
               promptInputRef={promptInputRef}
-              currentSpec={currentSpec}
-              onSpecUpdate={setCurrentSpec}
-              onInitialGenerate={setCurrentSpec}
+              currentSpec={adSpec}
+              onSpecUpdate={push}
+              onInitialGenerate={push}
               onAdGenerated={handleAdGenerated}
               restoredChatHistory={restoredChatHistory}
               onRestoredChatHistoryApplied={() => setRestoredChatHistory(null)}
@@ -254,18 +345,23 @@ function App() {
           >
             {chatCollapsed ? '›' : '‹'}
           </button>
-          {currentSpec ? (
+          {adSpec ? (
             <div className="app-canvas-wrapper">
               <AdCanvas
-                spec={currentSpec}
+                spec={adSpec}
                 width={728}
                 height={90}
               />
+              {historyToast && (
+                <div className="app-history-toast" role="status">
+                  {historyToast.message}
+                </div>
+              )}
             </div>
           ) : (
             <p className="app-placeholder">Your ad will appear here</p>
           )}
-          {currentSpec && (
+          {adSpec && (
             <button
               type="button"
               className="app-sidebar-toggle app-sidebar-toggle-right"
@@ -285,7 +381,7 @@ function App() {
           onClose={() => setLibraryOpen(false)}
           items={libraryItems}
           onLoad={(item) => {
-            setCurrentSpec(libraryItemToAdSpec(item))
+            push(libraryItemToAdSpec(item))
             setRestoredChatHistory(item.chatHistory ?? [])
             setLibraryOpen(false)
           }}
@@ -303,7 +399,7 @@ function App() {
           onDeleteBrand={deleteBrand}
           onSetActiveBrand={setActiveBrand}
         />
-        {currentSpec && (
+        {adSpec && (
           <div
             className={`app-right-wrap ${inspectorCollapsed ? 'app-sidebar-collapsed' : ''}`}
           >
@@ -312,8 +408,8 @@ function App() {
             >
               <p className="panel-label">INSPECTOR</p>
               <SpecInspector
-                spec={currentSpec}
-                onChange={setCurrentSpec}
+                spec={adSpec}
+                onChange={handleInspectorChange}
               />
             </div>
           </div>
