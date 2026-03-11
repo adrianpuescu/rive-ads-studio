@@ -7,6 +7,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Pencil, X } from 'lucide-react';
 import { DrawerHeader } from './DrawerHeader';
+import { SelectDropdown } from './SelectDropdown';
 import type { Brand } from '../hooks/useBrandTokens';
 import type { BrandTokens as BrandTokensType } from '../types/brand-tokens';
 
@@ -125,7 +126,7 @@ export function BrandTokensPanel({
   const activeBrand = activeBrandId ? brands.find((b) => b.id === activeBrandId) ?? null : null;
 
   if (view === 'form') {
-    const formTitle = formMode.kind === 'new' ? 'New Brand' : `Edit ${formMode.brand.name}`;
+    const formTitle = formMode.kind === 'new' ? 'New Brand' : 'Edit brand';
     return (
       <div className={`absolute right-0 top-0 w-[300px] h-full z-[25] bg-white border-l border-gray-200 flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[300px]'}`} role="dialog" aria-label={formTitle}>
         <DrawerHeader title={formTitle} onClose={onClose} back={{ label: '← Back', onClick: goToList }} />
@@ -166,15 +167,17 @@ export function BrandTokensPanel({
             <h3 className="text-xs font-semibold tracking-wider uppercase text-gray-500 m-0 mb-2.5">Typography</h3>
             <label className="block text-xs font-medium text-gray-900 mb-2">
               Font Family
-              <select className="block w-full mt-1 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white cursor-pointer" value={form.tokens.fontFamily} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, fontFamily: e.target.value } }))}>
-                {FONT_OPTIONS.map((font) => (
-                  <option key={font} value={font}>{font}</option>
-                ))}
-              </select>
+              <SelectDropdown
+                className="mt-1"
+                value={form.tokens.fontFamily}
+                options={FONT_OPTIONS.map((font) => ({ value: font, label: font }))}
+                onChange={(fontFamily) => setForm((p) => ({ ...p, tokens: { ...p.tokens, fontFamily } }))}
+                ariaLabel="Font family"
+              />
             </label>
           </section>
           <button type="button" className="w-full py-2.5 px-4 text-sm font-medium text-white bg-gray-900 border-0 rounded cursor-pointer mt-2 hover:bg-gray-800 transition-colors" onClick={handleSave}>Save Brand</button>
-          <button type="button" className="block w-full text-sm text-gray-500 bg-transparent border-0 cursor-pointer mt-1 text-center hover:text-gray-900 transition-colors" onClick={goToList}>Cancel</button>
+          <button type="button" className="block w-full text-sm text-gray-500 bg-transparent border-0 cursor-pointer mt-5 text-center hover:text-gray-900 transition-colors" onClick={goToList}>Cancel</button>
         </div>
       </div>
     );
@@ -187,7 +190,7 @@ export function BrandTokensPanel({
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col scrollbar-thin">
         {/* TOGGLE BRAND TOKENS */}
         <label className="flex items-center justify-between px-4 py-3 border-b border-gray-100 cursor-pointer select-none flex-shrink-0">
-          <span className="text-sm text-gray-900">Brand tokens</span>
+          <span className="text-sm text-gray-900">Enable</span>
           <input type="checkbox" className="peer absolute opacity-0 w-0 h-0" checked={isEnabled} onChange={onToggleEnabled} aria-label="Use brand tokens" />
           <span className="relative w-9 h-5 bg-gray-300 rounded-full transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:shadow-sm after:transition-transform duration-200 peer-checked:bg-gray-900 peer-checked:after:translate-x-4" />
         </label>
@@ -210,18 +213,30 @@ export function BrandTokensPanel({
                 return (
                   <li
                     key={brand.id}
-                    className={`border border-gray-200 rounded-lg p-3 cursor-pointer transition-colors hover:border-gray-400 ${isActive ? 'border-l-4 border-l-gray-900 bg-gray-50' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    className={`border rounded-lg p-3 cursor-pointer transition-colors hover:border-gray-400 ${isActive ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}`}
+                    onClick={() => onSetActiveBrand(brand.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSetActiveBrand(brand.id);
+                      }
+                    }}
                   >
                     {/* ROW 1 */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <input
-                          type="radio"
-                          name="activeBrand"
-                          className="w-4 h-4 m-0 flex-shrink-0 cursor-pointer"
-                          checked={isActive}
-                          onChange={() => onSetActiveBrand(brand.id)}
+                        <button
+                          type="button"
+                          className={`flex-shrink-0 w-3 h-3 rounded-full ${isActive ? 'bg-blue-500' : 'border-2 border-gray-300'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetActiveBrand(brand.id);
+                          }}
                           aria-label={`Select ${brand.name} as active`}
+                          aria-checked={isActive}
+                          role="radio"
                         />
                         <span className="text-sm font-semibold text-gray-900 truncate">{brand.name}</span>
                       </div>
