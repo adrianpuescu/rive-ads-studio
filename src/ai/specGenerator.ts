@@ -128,7 +128,7 @@ export async function generateAdSpec(
   let spec: AdSpec;
   try {
     spec = JSON.parse(clean);
-  } catch (err) {
+  } catch {
     throw new Error(`AI returned invalid JSON: ${clean}`);
   }
 

@@ -66,7 +66,8 @@ function loadFromStorage(): Ad[] {
       .map((item) => {
         const chatHistory = getChatHistoryFromItem(item);
         if ((item as AdLike).conversationHistory !== undefined) needsMigrate = true;
-        const { conversationHistory: _drop, ...rest } = item as AdLike & { conversationHistory?: unknown };
+        const { conversationHistory: _dropped, ...rest } = item as AdLike & { conversationHistory?: unknown };
+        void _dropped; // intentionally omitted for migration
         return { ...rest, chatHistory } as Ad;
       })
       .sort((a, b) => b.createdAt - a.createdAt);
