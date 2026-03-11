@@ -215,7 +215,7 @@ export function BrandTokensPanel({
                     key={brand.id}
                     role="button"
                     tabIndex={0}
-                    className={`border rounded-lg p-3 cursor-pointer transition-colors hover:border-gray-400 ${isActive ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}`}
+                    className={`relative border rounded-lg p-3 cursor-pointer transition-colors ${isConfirmingDelete ? 'border-red-200 bg-red-50' : isActive ? 'border-blue-200 bg-blue-50 hover:border-gray-400' : 'border-gray-200 hover:border-gray-400'}`}
                     onClick={() => onSetActiveBrand(brand.id)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -240,19 +240,9 @@ export function BrandTokensPanel({
                         />
                         <span className="text-sm font-semibold text-gray-900 truncate">{brand.name}</span>
                       </div>
-                      <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                        {isConfirmingDelete ? (
-                          <>
-                            <span className="text-xs text-gray-500">Delete?</span>
-                            <button type="button" className="text-xs text-red-500 bg-transparent border-0 cursor-pointer px-1.5 py-1 hover:underline" onClick={() => handleDelete(brand.id)}>Yes</button>
-                            <button type="button" className="text-xs text-gray-500 bg-transparent border-0 cursor-pointer px-1.5 py-1 hover:underline" onClick={() => setConfirmDeleteId(null)}>No</button>
-                          </>
-                        ) : (
-                          <>
-                            <button type="button" className="text-gray-400 hover:text-gray-900 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors flex items-center" onClick={() => openEdit(brand)} aria-label={`Edit ${brand.name}`}><Pencil className="w-3.5 h-3.5" /></button>
-                            <button type="button" className="text-gray-400 hover:text-red-500 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors flex items-center" onClick={() => handleDelete(brand.id)} aria-label={`Delete ${brand.name}`}><X className="w-3.5 h-3.5" /></button>
-                          </>
-                        )}
+                      <div className="flex gap-2 flex-shrink-0 justify-end items-center" onClick={(e) => e.stopPropagation()}>
+                        <button type="button" className="text-gray-400 hover:text-gray-900 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors flex items-center" onClick={() => openEdit(brand)} aria-label={`Edit ${brand.name}`}><Pencil className="w-3.5 h-3.5" /></button>
+                        <button type="button" className="text-gray-400 hover:text-red-500 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors flex items-center" onClick={() => handleDelete(brand.id)} aria-label={`Delete ${brand.name}`}><X className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -271,6 +261,20 @@ export function BrandTokensPanel({
                         <span className="text-xs text-gray-500 font-mono truncate">{brand.tokens.fontFamily}</span>
                       </div>
                     </div>
+                    {isConfirmingDelete && (
+                      <div
+                        className="absolute inset-0 rounded-lg bg-red-50/95 flex flex-col items-center justify-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-label="Delete brand?"
+                      >
+                        <span className="text-sm text-gray-600">Delete brand?</span>
+                        <div className="flex gap-2">
+                          <button type="button" className="text-sm font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded border-0 cursor-pointer" onClick={() => handleDelete(brand.id)}>Yes</button>
+                          <button type="button" className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 bg-transparent border-0 cursor-pointer" onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 );
               })}
