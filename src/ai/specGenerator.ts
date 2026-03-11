@@ -75,6 +75,59 @@ AdSpec schema for reference:
 }
 `;
 
+/** System prompt rules only (before schema). Brand block is inserted between this and SCHEMA when active. */
+const SYSTEM_PROMPT_RULES = `
+You are the creative AI engine for RiveAds Studio, an artistic ad creation platform.
+
+Your job is to take a user's brief and return a single valid AdSpec JSON object.
+
+Rules:
+- Return ONLY raw JSON. No markdown, no backticks, no explanation, no preamble.
+- Every field must conform to the AdSpec schema exactly.
+- template.id must be "test-template".
+- template.artboard must be "Banner 728x90".
+- template.stateMachine must be "State Machine 1".
+- text values must be short, punchy, and artistic — not generic marketing copy.
+- Headline: max 4 words. CTA: max 3 words.
+- Do NOT generate tagline. This template does not have a tagline slot.
+- Colors must form a cohesive, intentional palette. Never use random or clashing colors.
+- Generate headlineColor, subheadlineColor, and ctaColor as hex strings. Ensure sufficient contrast with backgroundColor at all times.
+- headlineColor: the most prominent text (white, black, or a strong accent that contrasts with background).
+- subheadlineColor: a subtler shade than the headline (e.g. softer gray or muted variant).
+- ctaColor: must stand out from the rest of the text (high contrast, often accent or complementary).
+- NEVER use the same hex for any text color and the background; text and background must always differ.
+- stateInputs.speed: dreamy/slow = 0.3–0.5, neutral = 0.8–1.0, energetic = 1.2–2.0
+- stateInputs.intensity: subtle = 0.1–0.3, balanced = 0.4–0.6, bold = 0.7–1.0
+- stateInputs.mood must be exactly "dreamy" (the only available mood in this template).
+- Always populate generation.rationale with 1-2 sentences explaining the creative choices.
+- version must be "1.0".
+- format.size must be { "preset": "leaderboard" }.
+- format.loop must be true.
+`;
+
+const SYSTEM_PROMPT_SCHEMA = `
+AdSpec schema for reference:
+{
+  version: "1.0",
+  id: string (generate a short uuid),
+  createdAt: string (ISO timestamp),
+  template: { id, artboard, stateMachine },
+  format: { size: AdSize, durationMs: number, loop: boolean },
+  text: {
+    headline?: { value: string },
+    subheadline?: { value: string },
+    body?: { value: string },
+    cta?: { value: string },
+    tagline?: { value: string },
+    custom?: Record<string, { value: string }>
+  },
+  colors: { primary: string, secondary: string, background: string, accent?: string, headlineColor: string, subheadlineColor: string, ctaColor: string },
+  assets: {},
+  stateInputs: { speed?: number, intensity?: number, mood?: string },
+  generation: { prompt: string, model: string, rationale: string, variantIndex: number }
+}
+`;
+
 /**
  * Generates an AdSpec from a natural language prompt using Claude API
  */
@@ -87,10 +140,15 @@ export async function generateAdSpec(
     throw new Error('VITE_ANTHROPIC_API_KEY is not configured');
   }
 
+  const hasActiveBrand = options.activeBrand != null;
+  const activeBrand = options.activeBrand;
   const systemPrompt =
-    options.activeBrand != null
-      ? getBrandTokensPromptBlock(options.activeBrand.name, options.activeBrand.tokens) + '\n\n' + SYSTEM_PROMPT
+    hasActiveBrand && activeBrand != null
+      ? SYSTEM_PROMPT_RULES + '\n\n' + getBrandTokensPromptBlock(activeBrand.name, activeBrand.tokens) + SYSTEM_PROMPT_SCHEMA
       : SYSTEM_PROMPT;
+
+  console.log('[specGenerator] options:', JSON.stringify(options));
+  console.log('[specGenerator] system prompt trimis:', systemPrompt);
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -187,7 +245,7 @@ export async function generateSingleVariant(
 
   const baseSystem =
     brandTokens != null
-      ? getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + '\n\n' + SYSTEM_PROMPT
+      ? SYSTEM_PROMPT_RULES + '\n\n' + getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + SYSTEM_PROMPT_SCHEMA
       : SYSTEM_PROMPT;
   const systemPrompt = baseSystem + '\n\n' + systemSuffix;
 
@@ -236,8 +294,11 @@ export async function generateVariants(
 ): Promise<(AdSpec | null)[]> {
   const baseSystem =
     brandTokens != null
-      ? getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + '\n\n' + SYSTEM_PROMPT
+      ? SYSTEM_PROMPT_RULES + '\n\n' + getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + SYSTEM_PROMPT_SCHEMA
       : SYSTEM_PROMPT;
+
+  console.log('[specGenerator] options:', JSON.stringify({ prompt, brandTokens }));
+  console.log('[specGenerator] system prompt trimis:', baseSystem);
 
   const results = await Promise.all(
     VARIANT_STYLE_SUFFIXES.map((suffix, index) => {

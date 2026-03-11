@@ -12,13 +12,15 @@ export interface BrandTokens {
 }
 
 export function getBrandTokensPromptBlock(brandName: string, tokens: BrandTokens): string {
-  return `Brand tokens for this session:
+  return `IMPORTANT — Brand tokens override all other color rules below.
+You MUST use exactly these colors, even if they seem bold or unusual:
+- backgroundColor MUST be exactly: ${tokens.backgroundColor}
+- primaryColor MUST be exactly: ${tokens.primaryColor}
+- secondaryColor MUST be exactly: ${tokens.secondaryColor}
+You may adjust headlineColor, subheadlineColor, ctaColor to ensure readability against the brand backgroundColor,
+but all other colors are fixed and non-negotiable.
+
 Brand name: ${brandName}
 Brand voice: ${tokens.brandVoice}
-Primary color: ${tokens.primaryColor}
-Secondary color: ${tokens.secondaryColor}
-Background color: ${tokens.backgroundColor}
-Font family: ${tokens.fontFamily}
-
-Always use these exact colors and font in your ad spec unless the user explicitly requests different ones.`;
+Font family: ${tokens.fontFamily}`;
 }

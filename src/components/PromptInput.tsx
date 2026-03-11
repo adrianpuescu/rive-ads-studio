@@ -7,12 +7,14 @@
 import { useState } from 'react';
 import type { AdSpec } from '../types/ad-spec.schema';
 import { generateAdSpec } from '../ai/specGenerator';
+import { useBrandTokens } from '../hooks/useBrandTokens';
 
 export interface PromptInputProps {
   onGenerate: (spec: AdSpec) => void;
 }
 
 export function PromptInput({ onGenerate }: PromptInputProps) {
+  const { activeBrand, hasActiveBrand } = useBrandTokens();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +26,10 @@ export function PromptInput({ onGenerate }: PromptInputProps) {
     setError(null);
 
     try {
-      const result = await generateAdSpec({ prompt });
+      const result = await generateAdSpec({
+        prompt,
+        activeBrand: hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : undefined,
+      });
       onGenerate(result.spec);
       setPrompt(''); // Clear textarea on success
     } catch (err) {
