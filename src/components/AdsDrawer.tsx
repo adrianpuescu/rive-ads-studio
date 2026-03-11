@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DrawerHeader } from './DrawerHeader';
 import type { Ad } from '../hooks/useAds';
 
 export interface AdsDrawerProps {
@@ -126,21 +127,11 @@ export function AdsDrawer({
 
   return (
     <div
-      className={`absolute left-0 top-0 w-[300px] h-full z-20 bg-white border-r border-[#e5e5e5] flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-[300px]'}`}
+      className={`absolute left-0 top-0 w-[300px] h-full z-20 bg-white border-r border-gray-200 flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-[300px]'}`}
       role="dialog"
       aria-label="Projects"
     >
-      <div className="flex-shrink-0 flex items-center justify-between py-3 px-4 border-b border-[#e5e5e5]">
-        <h2 className="font-sans font-semibold text-sm m-0 text-text-primary">Projects</h2>
-        <button
-          type="button"
-          className="w-7 h-7 p-0 text-xl leading-none text-text-secondary bg-transparent border-0 rounded-sm cursor-pointer hover:text-text-primary hover:bg-[#f0f0f0] transition-colors duration-150"
-          onClick={onClose}
-          aria-label="Close projects"
-        >
-          ×
-        </button>
-      </div>
+      <DrawerHeader title="Projects" onClose={onClose} />
       <div className="flex-1 min-h-0 overflow-y-auto p-4 scrollbar-thin">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
@@ -156,10 +147,10 @@ export function AdsDrawer({
           </div>
         )}
       </div>
-      <footer className="flex-shrink-0 py-3 px-4 border-t border-[#e5e5e5]">
+      <footer className="flex-shrink-0 px-4 py-3 border-t border-gray-200">
         <button
           type="button"
-          className="font-sans text-[13px] text-text-primary bg-transparent border-0 p-0 cursor-pointer leading-inherit hover:underline"
+          className="text-sm text-gray-900 bg-transparent border-0 p-0 cursor-pointer leading-inherit hover:underline"
           onClick={() => {
             onClose();
             navigate('/projects');

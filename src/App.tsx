@@ -570,7 +570,7 @@ function App() {
         <div className="relative flex-1 min-w-0 h-full flex flex-col items-center justify-center bg-[#FAFAFA] overflow-hidden app-center-panel-mobile px-5 max-md:order-1 max-md:min-h-[40vh] max-md:py-8 max-md:px-6">
           <button
             type="button"
-            className="absolute left-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-l-0 rounded-r cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200"
+            className={`absolute left-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-l-0 rounded-r cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200 transition-opacity duration-150 ease-out ${projectsDrawerOpen ? 'opacity-0 pointer-events-none' : ''}`}
             onClick={toggleChat}
             aria-label={chatCollapsed ? 'Expand chat' : 'Collapse chat'}
             aria-expanded={!chatCollapsed}
@@ -597,7 +597,7 @@ function App() {
           {adSpec && (
             <button
               type="button"
-              className="absolute right-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-r-0 rounded-l cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200"
+              className={`absolute right-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-r-0 rounded-l cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200 transition-opacity duration-150 ease-out ${brandOpen ? 'opacity-0 pointer-events-none' : ''}`}
               onClick={toggleInspector}
               aria-label={inspectorCollapsed ? 'Expand inspector' : 'Collapse inspector'}
               aria-expanded={!inspectorCollapsed}
