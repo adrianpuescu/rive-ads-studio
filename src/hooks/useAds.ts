@@ -4,8 +4,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-
-const STORAGE_KEY = 'riveads_library';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 export interface Ad {
   id: string;
@@ -26,15 +25,33 @@ export interface Ad {
   chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
+type AdLike = Ad & { conversationHistory?: Ad['chatHistory'] };
+
+function getChatHistoryFromItem(item: AdLike): Ad['chatHistory'] {
+  if (item.chatHistory && Array.isArray(item.chatHistory)) return item.chatHistory;
+  if (item.conversationHistory && Array.isArray(item.conversationHistory)) return item.conversationHistory;
+  return undefined;
+}
+
+function rawFromStorage(): string | null {
+  return (
+    localStorage.getItem(STORAGE_KEYS.ADS) ||
+    localStorage.getItem('riveads_library') ||
+    localStorage.getItem('riveads_ads') ||
+    null
+  );
+}
+
 function loadFromStorage(): Ad[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = rawFromStorage();
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed
+    let needsMigrate = false;
+    const normalized = parsed
       .filter(
-        (x): x is Ad =>
+        (x): x is AdLike =>
           typeof x?.id === 'string' &&
           typeof x?.createdAt === 'number' &&
           typeof x?.headline === 'string' &&
@@ -46,11 +63,21 @@ function loadFromStorage(): Ad[] {
           typeof (x.colors as { secondary?: string })?.secondary === 'string' &&
           typeof x?.prompt === 'string'
       )
-      .map((item) => ({
-        ...item,
-        chatHistory: item.chatHistory ?? (item as { conversationHistory?: typeof item.chatHistory }).conversationHistory,
-      }))
+      .map((item) => {
+        const chatHistory = getChatHistoryFromItem(item);
+        if ((item as AdLike).conversationHistory !== undefined) needsMigrate = true;
+        const { conversationHistory: _drop, ...rest } = item as AdLike & { conversationHistory?: unknown };
+        return { ...rest, chatHistory } as Ad;
+      })
       .sort((a, b) => b.createdAt - a.createdAt);
+    if (needsMigrate && normalized.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.ADS, JSON.stringify(normalized));
+      } catch {
+        // ignore migration write failure
+      }
+    }
+    return normalized;
   } catch {
     return [];
   }
@@ -58,7 +85,8 @@ function loadFromStorage(): Ad[] {
 
 function saveToStorage(ads: Ad[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ads));
+    console.log('[useAds] saveToStorage — ads count:', ads.length, 'each chatHistory length:', ads.map((a) => a.chatHistory?.length ?? 0));
+    localStorage.setItem(STORAGE_KEYS.ADS, JSON.stringify(ads));
   } catch {
     // ignore
   }

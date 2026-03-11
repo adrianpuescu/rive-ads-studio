@@ -5,8 +5,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { BrandTokens } from '../types/brand-tokens';
-
-const STORAGE_KEY = 'riveads_brand_state';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 export interface Brand {
   id: string;
@@ -23,7 +22,7 @@ export interface BrandState {
 
 function loadFromStorage(): BrandState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEYS.BRAND_STATE);
     if (!raw) return { brands: [], activeBrandId: null, isEnabled: false };
     const parsed = JSON.parse(raw) as unknown;
     if (parsed == null || typeof parsed !== 'object') return { brands: [], activeBrandId: null, isEnabled: false };
@@ -63,7 +62,7 @@ function parseBrands(value: unknown): Brand[] {
 
 function saveToStorage(state: BrandState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEYS.BRAND_STATE, JSON.stringify(state));
   } catch {
     // ignore
   }

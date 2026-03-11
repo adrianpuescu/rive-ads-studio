@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAds } from '../hooks/useAds';
 import type { Ad } from '../hooks/useAds';
 
-const PENDING_LOAD_KEY = 'riveads_pending_load';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 type SortOption = 'newest' | 'oldest' | 'name';
 
@@ -176,7 +176,7 @@ export function ProjectsPage() {
   const handleOpenInEditor = useCallback(
     (item: Ad) => {
       try {
-        localStorage.setItem(PENDING_LOAD_KEY, item.id);
+        localStorage.setItem(STORAGE_KEYS.PENDING_LOAD, item.id);
       } catch {
         // ignore
       }

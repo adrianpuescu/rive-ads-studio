@@ -11,15 +11,12 @@ import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
 import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
 import type { AdSpec } from './types/ad-spec.schema'
+import { STORAGE_KEYS } from './constants/storageKeys'
 
 const INSPECTOR_PUSH_DEBOUNCE_MS = 600
 const HISTORY_TOAST_DURATION_MS = 1500
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''
-
-const CHAT_COLLAPSED_KEY = 'riveads_chat_collapsed'
-const INSPECTOR_COLLAPSED_KEY = 'riveads_inspector_collapsed'
-const PENDING_LOAD_KEY = 'riveads_pending_load'
 
 function readStored(key: string, fallback: boolean): boolean {
   try {
@@ -43,10 +40,10 @@ function App() {
     replacePresent,
   } = useAdHistory(null)
   const [chatCollapsed, setChatCollapsed] = useState(() =>
-    readStored(CHAT_COLLAPSED_KEY, false)
+    readStored(STORAGE_KEYS.CHAT_COLLAPSED, false)
   )
   const [inspectorCollapsed, setInspectorCollapsed] = useState(() =>
-    readStored(INSPECTOR_COLLAPSED_KEY, false)
+    readStored(STORAGE_KEYS.INSPECTOR_COLLAPSED, false)
   )
   const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false)
   const [activeAdId, setActiveAdId] = useState<string | null>(null)
@@ -56,6 +53,10 @@ function App() {
   const [restoredChatHistory, setRestoredChatHistory] = useState<
     Array<{ role: 'user' | 'assistant'; content: string }> | null
   >(null)
+  /** Current chat messages (lifted from ChatPanel) so we can include them when saving the ad. */
+  const [currentChatMessages, setCurrentChatMessages] = useState<
+    Array<{ role: 'user' | 'assistant'; content: string }>
+  >([])
   const [historyToast, setHistoryToast] = useState<{ message: string } | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -126,6 +127,7 @@ function App() {
     }
     setProjectsDrawerOpen(false)
     setActiveAdId(null)
+    setCurrentChatMessages([])
     lastSavedStateRef.current = null
     setSaveVersion((v) => v + 1)
     clearHistory()
@@ -199,6 +201,8 @@ function App() {
     (onAfterSave?: () => void) => {
       if (!adSpec) return
       const payload = adSpecToAdPayload(adSpec)
+      payload.chatHistory = currentChatMessages ?? []
+      console.log('[App] handleSaveToProjects — chatHistory being saved:', payload.chatHistory.length, payload.chatHistory)
       let itemId: string
       if (activeAdId) {
         updateItem(activeAdId, payload)
@@ -211,7 +215,7 @@ function App() {
       setSaveVersion((v) => v + 1)
       captureAndUpdateThumbnail(itemId, onAfterSave)
     },
-    [adSpec, activeAdId, saveAd, updateItem, captureAndUpdateThumbnail]
+    [adSpec, activeAdId, currentChatMessages, saveAd, updateItem, captureAndUpdateThumbnail]
   )
 
   const handleSaveAndNew = useCallback(() => {
@@ -241,6 +245,7 @@ function App() {
       prompt: string,
       chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>
     ) => {
+      setCurrentChatMessages(chatHistory)
       const baseItem = {
         headline: spec.text?.headline?.value ?? '',
         subheadline: spec.text?.subheadline?.value ?? '',
@@ -270,18 +275,18 @@ function App() {
   }, [clearNewAdConfirmTimeout])
 
   useEffect(() => {
-    localStorage.setItem(CHAT_COLLAPSED_KEY, String(chatCollapsed))
+    localStorage.setItem(STORAGE_KEYS.CHAT_COLLAPSED, String(chatCollapsed))
   }, [chatCollapsed])
 
   useEffect(() => {
-    localStorage.setItem(INSPECTOR_COLLAPSED_KEY, String(inspectorCollapsed))
+    localStorage.setItem(STORAGE_KEYS.INSPECTOR_COLLAPSED, String(inspectorCollapsed))
   }, [inspectorCollapsed])
 
   useEffect(() => {
     try {
-      const pendingId = localStorage.getItem(PENDING_LOAD_KEY)
+      const pendingId = localStorage.getItem(STORAGE_KEYS.PENDING_LOAD)
       if (!pendingId) return
-      localStorage.removeItem(PENDING_LOAD_KEY)
+      localStorage.removeItem(STORAGE_KEYS.PENDING_LOAD)
       const item = ads.find((i) => i.id === pendingId)
       if (!item) return
       const spec = adToAdSpec(item)
@@ -442,6 +447,7 @@ function App() {
               onSpecUpdate={push}
               onInitialGenerate={push}
               onAdGenerated={handleAdGenerated}
+              onChatMessagesChange={setCurrentChatMessages}
               onGeneratingChange={setIsGenerating}
               restoredChatHistory={restoredChatHistory}
               onRestoredChatHistoryApplied={() => setRestoredChatHistory(null)}
@@ -500,11 +506,13 @@ function App() {
           onClose={() => setProjectsDrawerOpen(false)}
           items={ads}
           onLoad={(item) => {
+            const chatHistory = item.chatHistory ?? []
+            setCurrentChatMessages(chatHistory)
             const spec = adToAdSpec(item)
             push(spec)
             setActiveAdId(item.id)
             lastSavedStateRef.current = spec
-            setRestoredChatHistory(item.chatHistory ?? [])
+            setRestoredChatHistory(chatHistory)
             setProjectsDrawerOpen(false)
           }}
           onRemove={(id) => {

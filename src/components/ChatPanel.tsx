@@ -22,6 +22,8 @@ export interface ChatPanelProps {
     prompt: string,
     chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>
   ) => void;
+  /** Called whenever messages change so parent can persist them on save. */
+  onChatMessagesChange?: (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => void;
   /** Set to true immediately before Claude API fetch, false in finally. Used only for overlay; not tied to SpecInspector. */
   onGeneratingChange?: (value: boolean) => void;
   /** When set, replaces messages with this history and shows "Loaded from project" separator. Cleared via onRestoredChatHistoryApplied. */
@@ -52,6 +54,7 @@ export function ChatPanel({
   onSpecUpdate,
   onInitialGenerate,
   onAdGenerated,
+  onChatMessagesChange,
   onGeneratingChange,
   restoredChatHistory = null,
   onRestoredChatHistoryApplied,
@@ -87,6 +90,7 @@ export function ChatPanel({
         timestamp: new Date(),
       }));
       setMessages(asMessages);
+      onChatMessagesChange?.(restoredChatHistory);
       setShowLoadedFromProjectsSeparator(true);
       onRestoredChatHistoryApplied?.();
     }
@@ -119,13 +123,15 @@ export function ChatPanel({
         specSnapshot: result.spec,
         timestamp: new Date(),
       };
+      const history = [
+        { role: 'user' as const, content: prompt },
+        { role: 'assistant' as const, content: result.spec.generation?.rationale ?? 'Ad generated.' },
+      ];
       setMessages([userMsg, assistantMsg]);
+      onChatMessagesChange?.(history);
       setInputValue('');
       onInitialGenerate(result.spec);
-      onAdGenerated?.(result.spec, prompt, [
-        { role: 'user', content: prompt },
-        { role: 'assistant', content: result.spec.generation?.rationale ?? 'Ad generated.' },
-      ]);
+      onAdGenerated?.(result.spec, prompt, history);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate');
     } finally {
@@ -163,7 +169,13 @@ export function ChatPanel({
         specSnapshot: updatedSpec,
         timestamp: new Date(),
       };
+      const newHistory = [
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: 'user' as const, content: text },
+        { role: 'assistant' as const, content: explanation },
+      ];
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
+      onChatMessagesChange?.(newHistory);
       setInputValue('');
       onSpecUpdate(updatedSpec);
     } catch (err) {
