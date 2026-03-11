@@ -43,6 +43,12 @@ export interface ChatPanelProps {
   activeBrandName?: string;
   /** Callback when user clicks the brand chip to open panel. */
   onOpenBrandTokens?: () => void;
+  /** When true, disable Generate Variants (e.g. while generating variants). */
+  isGenerating?: boolean;
+  /** Called when user clicks Generate Variants with the current prompt. */
+  onGenerateVariants?: (prompt: string) => void;
+  /** When this value increments, the input is cleared (e.g. after variant selected). */
+  clearInputTrigger?: number;
 }
 
 function nextId(): string {
@@ -65,6 +71,9 @@ export function ChatPanel({
   hasActiveBrand = false,
   activeBrandName = '',
   onOpenBrandTokens,
+  isGenerating = false,
+  onGenerateVariants,
+  clearInputTrigger = 0,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -95,6 +104,12 @@ export function ChatPanel({
       onRestoredChatHistoryApplied?.();
     }
   }, [restoredChatHistory]);
+
+  useEffect(() => {
+    if (clearInputTrigger > 0) {
+      setInputValue('');
+    }
+  }, [clearInputTrigger]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -235,11 +250,17 @@ export function ChatPanel({
           />
           <button
             type="button"
-            className={`w-full h-11 px-6 font-sans font-medium text-sm text-white bg-text-primary border-0 rounded-md cursor-pointer transition-colors duration-150 hover:enabled:bg-[#374151] disabled:opacity-40 disabled:cursor-not-allowed ${isLoading ? 'animate-dots-loading' : ''}`}
-            onClick={handleInitialGenerate}
-            disabled={!inputValue.trim() || isLoading}
+            className={`w-full h-11 px-6 font-sans font-medium text-sm text-white bg-text-primary border-0 rounded-md cursor-pointer transition-colors duration-150 hover:enabled:bg-[#374151] disabled:opacity-40 disabled:cursor-not-allowed ${isGenerating ? 'animate-dots-loading' : ''}`}
+            onClick={() => {
+              const prompt = inputValue.trim();
+              if (prompt) {
+                onGenerateVariants?.(prompt);
+                setInputValue('');
+              }
+            }}
+            disabled={!inputValue.trim() || isGenerating}
           >
-            {isLoading ? 'Generating' : 'Generate Ad'}
+            {isGenerating ? 'Generating' : 'Generate'}
           </button>
           {error && <p className="font-sans text-[13px] text-error m-0">{error}</p>}
         </div>

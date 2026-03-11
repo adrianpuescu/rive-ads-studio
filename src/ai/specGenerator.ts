@@ -142,3 +142,148 @@ export async function generateAdSpec(
 
   return { spec, raw };
 }
+
+export const VARIANT_STYLE_LABELS: ReadonlyArray<string> = ['Bold', 'Elegant', 'Warm'];
+
+const VARIANT_COMMON_COLORS =
+  'The color palette must be completely different from the other variants. Choose colors that genuinely fit the subject matter of the ad. If the user specifies colors in their prompt, use those instead.';
+
+const VARIANT_STYLE_SUFFIXES: ReadonlyArray<string> = [
+  `Generate variant 1 of 3: BOLD style.
+Create an original color palette that fits the ad subject and evokes energy, confidence, high contrast.
+Use strong, saturated colors.
+Make sure headlineColor and ctaColor have strong contrast against backgroundColor.
+Do NOT use white/light backgrounds unless specifically requested.
+Be creative with colors — avoid generic combinations like red/white or blue/white.
+
+${VARIANT_COMMON_COLORS}`,
+  `Generate variant 2 of 3: ELEGANT style.
+Create an original color palette that fits the ad subject and evokes sophistication, luxury, refinement.
+Use deep, muted, or monochromatic tones.
+Avoid bright or saturated colors.
+headlineColor should be subtle but readable against backgroundColor.
+
+${VARIANT_COMMON_COLORS}`,
+  `Generate variant 3 of 3: WARM style.
+Create an original color palette that fits the ad subject and evokes friendliness, optimism, approachability.
+Use warm tones (ambers, terracottas, warm whites, soft greens).
+Avoid cold colors (blue, purple, grey).
+
+${VARIANT_COMMON_COLORS}`,
+];
+
+/**
+ * Generates a single AdSpec with the given variant style (1, 2, or 3).
+ * Used for retrying a failed variant slot.
+ */
+export async function generateSingleVariant(
+  prompt: string,
+  brandTokens: ActiveBrandForPrompt | null | undefined,
+  variantIndex: 1 | 2 | 3
+): Promise<AdSpec | null> {
+  const systemSuffix = VARIANT_STYLE_SUFFIXES[variantIndex - 1];
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+
+  const baseSystem =
+    brandTokens != null
+      ? getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + '\n\n' + SYSTEM_PROMPT
+      : SYSTEM_PROMPT;
+  const systemPrompt = baseSystem + '\n\n' + systemSuffix;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) return null;
+  const data = await response.json();
+  const raw = data.content[0].text;
+  const clean = raw.replace(/```json|```/g, '').trim();
+  let spec: AdSpec;
+  try {
+    spec = JSON.parse(clean);
+  } catch {
+    return null;
+  }
+  spec.generation = {
+    prompt,
+    model: 'claude-haiku-4-5-20251001',
+    rationale: spec.generation?.rationale ?? '',
+    variantIndex: variantIndex - 1,
+  };
+  return spec;
+}
+
+/**
+ * Generates 3 AdSpec variants in parallel (Bold, Elegant, Warm).
+ * Returns array of 3 elements; failed slots are null.
+ */
+export async function generateVariants(
+  prompt: string,
+  brandTokens: ActiveBrandForPrompt | null | undefined
+): Promise<(AdSpec | null)[]> {
+  const baseSystem =
+    brandTokens != null
+      ? getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + '\n\n' + SYSTEM_PROMPT
+      : SYSTEM_PROMPT;
+
+  const results = await Promise.all(
+    VARIANT_STYLE_SUFFIXES.map((suffix, index) => {
+      const systemPrompt = baseSystem + '\n\n' + suffix;
+      return generateAdSpecWithCustomSystem(prompt, systemPrompt, index);
+    })
+  );
+  return results;
+}
+
+async function generateAdSpecWithCustomSystem(
+  prompt: string,
+  systemPrompt: string,
+  variantIndex: number
+): Promise<AdSpec | null> {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const raw = data.content[0].text;
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const spec: AdSpec = JSON.parse(clean);
+    spec.generation = {
+      prompt,
+      model: 'claude-haiku-4-5-20251001',
+      rationale: spec.generation?.rationale ?? '',
+      variantIndex,
+    };
+    return spec;
+  } catch {
+    return null;
+  }
+}

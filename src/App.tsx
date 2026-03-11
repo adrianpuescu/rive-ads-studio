@@ -6,6 +6,8 @@ import { ExportButton } from './components/ExportButton'
 import { SpecInspector } from './components/SpecInspector'
 import { AdsDrawer } from './components/AdsDrawer'
 import { BrandTokensPanel } from './components/BrandTokensPanel'
+import { VariantsModal } from './components/VariantsModal'
+import { generateVariants, generateSingleVariant, VARIANT_STYLE_LABELS } from './ai/specGenerator'
 import { useAds } from './hooks/useAds'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
@@ -59,6 +61,11 @@ function App() {
   >([])
   const [historyToast, setHistoryToast] = useState<{ message: string } | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [variants, setVariants] = useState<(AdSpec | null)[]>([])
+  const [isGeneratingVariants, setIsGeneratingVariants] = useState(false)
+  const [showVariantsModal, setShowVariantsModal] = useState(false)
+  const [variantsPrompt, setVariantsPrompt] = useState('')
+  const [clearInputTrigger, setClearInputTrigger] = useState(0)
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -222,20 +229,34 @@ function App() {
   }, [handleSaveToProjects, doNewAd])
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return
+      }
+
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault()
         handleSaveToProjects()
         return
       }
-      if (e.metaKey && e.key === 'z') {
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
-        if (e.shiftKey) handleRedo()
-        else handleUndo()
+        handleUndo()
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault()
+        handleRedo()
       }
     }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
   }, [handleUndo, handleRedo, handleSaveToProjects])
 
   const handleAdGenerated = useCallback(
@@ -267,6 +288,89 @@ function App() {
       captureAndUpdateThumbnail(id)
     },
     [saveAd, captureAndUpdateThumbnail]
+  )
+
+  const handleGenerateVariants = useCallback(
+    async (prompt: string) => {
+      setIsGeneratingVariants(true)
+      setShowVariantsModal(true)
+      setVariantsPrompt(prompt)
+      setVariants([])
+      try {
+        const results = await generateVariants(prompt, activeBrand ?? undefined)
+        setVariants(results)
+      } finally {
+        setIsGeneratingVariants(false)
+      }
+    },
+    [activeBrand]
+  )
+
+  const handleSelectVariant = useCallback(
+    (spec: AdSpec) => {
+      push(spec)
+      const styleLabel = VARIANT_STYLE_LABELS[spec.generation?.variantIndex ?? 0] ?? 'variant'
+      const headline = spec.text?.headline?.value ?? '—'
+      const bg = spec.colors?.background ?? '—'
+      const headlineColor = spec.colors?.headlineColor ?? '—'
+      const assistantMessage = `I generated this ${styleLabel} variant for you. Headline: ${headline}. Colors: ${bg} background, ${headlineColor} text. Feel free to ask me to refine anything.`
+      const chatHistory = [
+        { role: 'user' as const, content: variantsPrompt },
+        { role: 'assistant' as const, content: assistantMessage },
+      ]
+      const payload = adSpecToAdPayload(spec)
+      payload.prompt = variantsPrompt
+      payload.chatHistory = chatHistory
+      const id = saveAd(payload)
+      setActiveAdId(id)
+      lastSavedStateRef.current = spec
+      setSaveVersion((v) => v + 1)
+      captureAndUpdateThumbnail(id)
+      setShowVariantsModal(false)
+      setVariants([])
+      setVariantsPrompt('')
+      setClearInputTrigger((t) => t + 1)
+      setHistoryToast({ message: 'Variant loaded in editor' })
+    },
+    [push, saveAd, captureAndUpdateThumbnail, variantsPrompt]
+  )
+
+  const handleVariantSelected = useCallback(
+    (variant: AdSpec, prompt: string) => {
+      const styleLabel = VARIANT_STYLE_LABELS[variant.generation?.variantIndex ?? 0] ?? 'variant'
+      const headline = variant.text?.headline?.value ?? '—'
+      const bg = variant.colors?.background ?? '—'
+      const headlineColor = variant.colors?.headlineColor ?? '—'
+      const assistantMessage = `I generated this ${styleLabel} variant for you. Headline: ${headline}. Colors: ${bg} background, ${headlineColor} text. Feel free to ask me to refine anything.`
+      setRestoredChatHistory([
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: assistantMessage },
+      ])
+    },
+    []
+  )
+
+  const handleCloseVariantsModal = useCallback(() => {
+    setShowVariantsModal(false)
+    setVariants([])
+    setVariantsPrompt('')
+  }, [])
+
+  const handleRetryVariant = useCallback(
+    async (index: number) => {
+      if (!variantsPrompt || index < 0 || index > 2) return
+      const result = await generateSingleVariant(
+        variantsPrompt,
+        hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : null,
+        (index + 1) as 1 | 2 | 3
+      )
+      setVariants((prev) => {
+        const next = [...prev]
+        next[index] = result
+        return next
+      })
+    },
+    [variantsPrompt, hasActiveBrand, activeBrand]
   )
 
   useEffect(() => {
@@ -456,6 +560,9 @@ function App() {
               hasActiveBrand={hasActiveBrand}
               activeBrandName={activeBrand?.name ?? ''}
               onOpenBrandTokens={() => setBrandOpen(true)}
+              isGenerating={isGeneratingVariants}
+              onGenerateVariants={handleGenerateVariants}
+              clearInputTrigger={clearInputTrigger}
             />
           </div>
         </div>
@@ -537,6 +644,16 @@ function App() {
           onUpdateBrand={updateBrand}
           onDeleteBrand={deleteBrand}
           onSetActiveBrand={setActiveBrand}
+        />
+        <VariantsModal
+          isOpen={showVariantsModal}
+          onClose={handleCloseVariantsModal}
+          prompt={variantsPrompt}
+          variants={variants}
+          isGenerating={isGeneratingVariants}
+          onSelectVariant={handleSelectVariant}
+          onVariantSelected={handleVariantSelected}
+          onRetryVariant={handleRetryVariant}
         />
         {adSpec && (
           <div
