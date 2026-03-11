@@ -187,23 +187,27 @@ export function ProjectsPage() {
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-[#FAFAFA]">
-      <header className="h-11 flex-shrink-0 flex items-center justify-between py-0 px-5 gap-4 bg-white border-b border-[#e5e5e5]">
+      <header className="h-11 flex-shrink-0 flex items-center py-0 px-5 bg-white border-b border-[#e5e5e5]">
         <Link to="/" className="flex items-center gap-1.5 no-underline text-text-primary">
           <span className="font-serif text-lg leading-none">RiveAds</span>
           <span className="w-1 h-1 rounded-full bg-text-primary" aria-hidden />
           <span className="font-sans text-lg leading-none">Studio</span>
         </Link>
-        <Link to="/editor" className="font-sans text-[13px] font-medium text-text-secondary no-underline py-1.5 px-2.5 -mr-1 border-0 rounded bg-transparent cursor-pointer hover:text-text-primary hover:bg-[#f3f4f6] transition-colors duration-150">
-          Editor
-        </Link>
       </header>
 
-      <section className="py-6 px-6 pb-2">
+      <section className="pt-6 px-6 pb-6 flex items-center justify-between gap-3 flex-wrap">
         <h1 className="font-sans font-bold text-2xl text-text-primary m-0">Projects</h1>
+        <button
+          type="button"
+          onClick={() => navigate('/editor')}
+          className="font-sans text-sm font-medium text-white py-2 px-4 rounded bg-[#0d0c0a] border-0 cursor-pointer hover:opacity-90 focus:outline-none focus:border-[#9ca3af] transition-colors duration-150"
+        >
+          New Project
+        </button>
       </section>
 
       {items.length > 0 && (
-        <div className="px-6 pb-2">
+        <div className="px-6 pb-4">
           <div className="flex items-center gap-4 flex-wrap">
             <SortDropdown value={sort} onChange={setSort} />
             <input
@@ -221,14 +225,23 @@ export function ProjectsPage() {
       {items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 text-center">
           <span className="text-6xl leading-none mb-4" aria-hidden>🎨</span>
-          <h2 className="m-0 mb-2 font-sans font-semibold text-xl text-text-primary">No ads yet</h2>
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+            <h2 className="m-0 font-sans font-semibold text-xl text-text-primary">No ads yet</h2>
+            <button
+              type="button"
+              onClick={() => navigate('/editor')}
+              className="font-sans text-sm font-medium text-white py-2 px-4 rounded bg-[#0d0c0a] border-0 cursor-pointer hover:opacity-90 focus:outline-none transition-colors duration-150"
+            >
+              New Project
+            </button>
+          </div>
           <p className="m-0 mb-6 text-[0.9rem] text-text-secondary">Go to the editor and generate your first ad</p>
           <Link to="/editor" className="font-sans font-medium text-[13px] py-2 px-3.5 rounded border border-text-primary bg-text-primary text-white no-underline inline-flex items-center justify-center hover:bg-[#374151] hover:border-[#374151] transition-colors duration-150">
             Open Editor
           </Link>
         </div>
       ) : (
-        <div className="px-6 pt-4">
+        <div className="px-6 pt-4 pb-8">
           <p className="m-0 mb-3 text-[0.8rem] text-text-secondary">Showing {sorted.length} of {items.length} projects</p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 items-stretch">
           {sorted.map((item) => (

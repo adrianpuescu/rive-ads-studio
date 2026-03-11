@@ -224,6 +224,12 @@ export function ChatPanel({
             className="w-full min-h-[120px] py-3 px-3.5 font-sans text-sm leading-normal text-text-primary bg-surface border border-border rounded-md resize-y transition-colors duration-150 placeholder:text-text-secondary disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-text-primary"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
             placeholder="e.g. a dreamy banner for a luxury perfume launch"
             disabled={isLoading}
           />
@@ -278,6 +284,12 @@ export function ChatPanel({
             className="flex-1 min-h-[40px] py-2.5 px-3.5 font-sans text-[13px] border border-border rounded-md bg-surface text-text-primary resize-none transition-colors duration-150 focus:outline-none focus:border-text-primary"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
             placeholder="Refine your ad..."
             disabled={isLoading}
             rows={1}
