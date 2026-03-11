@@ -25,6 +25,19 @@ export interface GeneratorResult {
   raw: string;  // raw JSON string for debugging
 }
 
+const NO_BRAND_COLOR_INSTRUCTIONS = `
+No brand tokens are set. Use full creative freedom.
+Choose colors that genuinely fit the mood, subject, and style
+of the user's prompt.
+Each variant MUST have a distinctly different color palette
+from the other two — different hues, different energy.
+Avoid repeating the same backgroundColor across variants.
+Be intentional and artistic — the palette should feel
+designed, not random.
+If the user specifies colors in their prompt,
+use those as the base and adapt the palette around them.
+`;
+
 const SYSTEM_PROMPT = `
 You are the creative AI engine for RiveAds Studio, an artistic ad creation platform.
 
@@ -39,12 +52,7 @@ Rules:
 - text values must be short, punchy, and artistic — not generic marketing copy.
 - Headline: max 4 words. CTA: max 3 words.
 - Do NOT generate tagline. This template does not have a tagline slot.
-- Colors must form a cohesive, intentional palette. Never use random or clashing colors.
-- Generate headlineColor, subheadlineColor, and ctaColor as hex strings. Ensure sufficient contrast with backgroundColor at all times.
-- headlineColor: the most prominent text (white, black, or a strong accent that contrasts with background).
-- subheadlineColor: a subtler shade than the headline (e.g. softer gray or muted variant).
-- ctaColor: must stand out from the rest of the text (high contrast, often accent or complementary).
-- NEVER use the same hex for any text color and the background; text and background must always differ.
+${NO_BRAND_COLOR_INSTRUCTIONS}
 - stateInputs.speed: dreamy/slow = 0.3–0.5, neutral = 0.8–1.0, energetic = 1.2–2.0
 - stateInputs.intensity: subtle = 0.1–0.3, balanced = 0.4–0.6, bold = 0.7–1.0
 - stateInputs.mood must be exactly "dreamy" (the only available mood in this template).
@@ -146,9 +154,6 @@ export async function generateAdSpec(
     hasActiveBrand && activeBrand != null
       ? SYSTEM_PROMPT_RULES + '\n\n' + getBrandTokensPromptBlock(activeBrand.name, activeBrand.tokens) + SYSTEM_PROMPT_SCHEMA
       : SYSTEM_PROMPT;
-
-  console.log('[specGenerator] options:', JSON.stringify(options));
-  console.log('[specGenerator] system prompt trimis:', systemPrompt);
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -296,9 +301,6 @@ export async function generateVariants(
     brandTokens != null
       ? SYSTEM_PROMPT_RULES + '\n\n' + getBrandTokensPromptBlock(brandTokens.name, brandTokens.tokens) + SYSTEM_PROMPT_SCHEMA
       : SYSTEM_PROMPT;
-
-  console.log('[specGenerator] options:', JSON.stringify({ prompt, brandTokens }));
-  console.log('[specGenerator] system prompt trimis:', baseSystem);
 
   const results = await Promise.all(
     VARIANT_STYLE_SUFFIXES.map((suffix, index) => {

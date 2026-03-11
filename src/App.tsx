@@ -298,13 +298,16 @@ function App() {
       setVariantsPrompt(prompt)
       setVariants([])
       try {
-        const results = await generateVariants(prompt, activeBrand ?? undefined)
+        const results = await generateVariants(
+          prompt,
+          hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : undefined
+        )
         setVariants(results)
       } finally {
         setIsGeneratingVariants(false)
       }
     },
-    [activeBrand]
+    [activeBrand, hasActiveBrand]
   )
 
   const handleSelectVariant = useCallback(

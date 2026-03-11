@@ -80,7 +80,7 @@ export function useBrandTokens() {
     [state.brands, state.activeBrandId]
   );
 
-  const hasActiveBrand = activeBrand !== null && state.isEnabled;
+  const hasActiveBrand = state.activeBrandId !== null && state.isEnabled;
 
   const addBrand = useCallback((name: string, tokens: BrandTokens): Brand => {
     const brand: Brand = {
