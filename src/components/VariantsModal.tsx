@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
 import type { AdSpec } from '../types/ad-spec.schema';
 import { VARIANT_STYLE_LABELS } from '../ai/specGenerator';
 
@@ -65,15 +66,15 @@ function StaticPreview({ spec }: { spec: AdSpec }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-lg overflow-hidden border-[1.5px] border-[#e5e5e5] bg-[#f5f5f5] animate-skeleton">
-      <div className="h-[120px] bg-[#e8e8e8]" />
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 animate-skeleton">
+      <div className="h-[120px] bg-gray-200" />
       <div className="p-4 space-y-2">
-        <div className="h-4 w-16 bg-[#e0e0e0] rounded" />
-        <div className="h-3 w-full bg-[#e0e0e0] rounded" />
-        <div className="h-3 w-3/4 bg-[#e0e0e0] rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+        <div className="h-3 w-full bg-gray-200 rounded" />
+        <div className="h-3 w-3/4 bg-gray-200 rounded" />
       </div>
-      <div className="p-3 border-t border-[#e5e5e5]">
-        <div className="h-9 w-full bg-[#e0e0e0] rounded" />
+      <div className="p-3 border-t border-gray-200">
+        <div className="h-9 w-full bg-gray-200 rounded" />
       </div>
     </div>
   );
@@ -94,15 +95,15 @@ function VariantCard({
 
   if (spec === null) {
     return (
-      <div className="rounded-lg overflow-hidden border-[1.5px] border-[#e5e5e5] bg-[#f0f0f0] flex flex-col">
-        <div className="h-[120px] flex items-center justify-center text-[#666] font-sans text-sm">
+      <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 flex flex-col">
+        <div className="h-[120px] flex items-center justify-center text-gray-500 text-sm">
           Generation failed
         </div>
         <div className="p-4 flex-1" />
-        <div className="p-3 border-t border-[#e5e5e5]">
+        <div className="p-3 border-t border-gray-200">
           <button
             type="button"
-            className="w-full h-9 font-sans font-medium text-sm text-text-primary bg-transparent border border-[#0d0c0a] rounded cursor-pointer hover:bg-[#e5e5e5] transition-colors duration-150"
+            className="w-full h-9 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded cursor-pointer hover:bg-gray-50 transition-colors duration-150"
             onClick={() => onRetry(index)}
           >
             Retry
@@ -117,47 +118,47 @@ function VariantCard({
   const bgColor = spec.colors?.background ?? '#ffffff';
 
   return (
-    <div className="rounded-lg overflow-hidden border-[1.5px] border-[#e5e5e5] bg-white flex flex-col hover:border-[#0d0c0a] transition-all duration-150 hover:shadow-sm">
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white flex flex-col hover:border-gray-300 hover:shadow-sm transition-all duration-150">
       <div className="h-[120px] flex-shrink-0">
         <StaticPreview spec={spec} />
       </div>
       <div className="p-4 flex flex-col gap-2">
-        <span className="inline-flex w-fit font-sans text-[0.7rem] font-medium px-2 py-0.5 rounded bg-[#f0f0f0] text-text-primary">
+        <span className="inline-flex w-fit text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-700">
           {label}
         </span>
-        <p className="font-sans font-bold text-sm text-text-primary leading-tight truncate">
+        <p className="text-sm font-semibold text-gray-900 leading-tight truncate">
           {spec.text?.headline?.value ?? '—'}
         </p>
-        <p className="font-sans text-[0.85rem] text-[#666] leading-tight line-clamp-2">
+        <p className="text-sm text-gray-500 leading-tight line-clamp-2">
           {spec.text?.subheadline?.value ?? '—'}
         </p>
         <div className="flex items-center gap-1.5">
           <span
-            className="w-3 h-3 rounded-full border border-[#ddd] flex-shrink-0 bg-[var(--dot-bg)]"
-            style={{ ['--dot-bg' as string]: bgColor }}
+            className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0"
+            style={{ background: bgColor }}
             title="Background"
           />
           <span
-            className="w-3 h-3 rounded-full border border-[#ddd] flex-shrink-0 bg-[var(--dot-primary)]"
-            style={{ ['--dot-primary' as string]: primaryColor }}
+            className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0"
+            style={{ background: primaryColor }}
             title="Primary"
           />
           <span
-            className="w-3 h-3 rounded-full border border-[#ddd] flex-shrink-0 bg-[var(--dot-headline)]"
-            style={{ ['--dot-headline' as string]: headlineColor }}
+            className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0"
+            style={{ background: headlineColor }}
             title="Headline"
           />
         </div>
         {spec.text?.cta?.value && (
-          <p className="font-sans text-[0.8rem] italic text-[#999]">
+          <p className="text-xs italic text-gray-400">
             {spec.text.cta.value}
           </p>
         )}
       </div>
-      <div className="p-3 mt-auto border-t border-[#e5e5e5]">
+      <div className="p-3 mt-auto border-t border-gray-200">
         <button
           type="button"
-          className="w-full h-9 font-sans font-medium text-sm text-white bg-text-primary border-0 rounded cursor-pointer transition-colors duration-150 hover:bg-[#374151]"
+          className="w-full h-9 text-sm font-medium text-white bg-gray-900 border-0 rounded cursor-pointer transition-colors duration-150 hover:bg-gray-700"
           onClick={() => onSelect(spec)}
         >
           Use this variant
@@ -204,37 +205,37 @@ export function VariantsModal({
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/70 cursor-default"
+        className="absolute inset-0 bg-black/60 cursor-default"
         onClick={() => !isGenerating && onClose()}
         aria-label="Close modal"
       />
       <div
-        className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-lg bg-white shadow-xl"
+        className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex-shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[#e5e5e5]">
+        <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <div className="min-w-0">
-            <h2 id="variants-modal-title" className="font-sans text-lg font-semibold text-text-primary m-0">
+            <h2 id="variants-modal-title" className="text-base font-semibold text-gray-900 m-0">
               Choose a variant
             </h2>
-            <p className="font-sans text-sm text-[#666] mt-1 m-0 truncate">
+            <p className="text-sm text-gray-500 mt-0.5 m-0 truncate">
               {truncatedPrompt || '—'}
             </p>
           </div>
           <button
             type="button"
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-text-primary bg-transparent border-0 rounded cursor-pointer hover:bg-[#f0f0f0] transition-colors duration-150 text-lg leading-none"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 bg-transparent border-0 rounded cursor-pointer hover:bg-gray-50 transition-colors duration-150"
             onClick={onClose}
             aria-label="Close"
           >
-            ×
+            <X className="w-4 h-4" aria-hidden />
           </button>
         </header>
 
         <div className="flex-1 min-h-0 overflow-y-auto p-8">
           {isGenerating ? (
             <>
-              <p className="font-sans text-sm text-[#666] mb-4">Generating 3 variants...</p>
+              <p className="text-sm text-gray-500 mb-4">Generating 3 variants...</p>
               <div className="grid grid-cols-3 gap-6">
                 <SkeletonCard />
                 <SkeletonCard />

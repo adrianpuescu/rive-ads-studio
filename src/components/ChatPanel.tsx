@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { ArrowUp } from 'lucide-react';
 import type { AdSpec } from '../types/ad-spec.schema';
 import type { ActiveBrandForPrompt } from '../ai/specGenerator';
 import type { ChatMessage } from '../types/chat';
@@ -217,26 +218,27 @@ export function ChatPanel({
   const brandChip = hasActiveBrand && (
     <button
       type="button"
-      className="inline-flex items-center gap-1 py-1 px-2 text-[0.7rem] font-sans text-text-secondary bg-[#f0f0f0] border-0 rounded cursor-pointer mb-2 hover:bg-[#e5e5e5] transition-colors duration-150"
+      className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded text-xs text-gray-500 cursor-pointer hover:bg-gray-200 transition-colors duration-150"
       onClick={onOpenBrandTokens}
       aria-label={`${activeBrandName} active — click to edit`}
     >
-      ◈ {activeBrandName}
+      <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden />
+      {activeBrandName}
     </button>
   );
 
   if (isInitial) {
     return (
       <div className="w-full h-full min-h-0 flex flex-col p-0 m-0 flex-1">
-        {brandChip}
         <div className="flex flex-col gap-4 py-6 px-4 w-full box-border">
-          <label className="font-sans font-medium text-[11px] tracking-wider uppercase text-text-primary m-0" htmlFor="chat-initial-textarea">
-            DESCRIBE YOUR AD
+          {brandChip}
+          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider m-0" htmlFor="chat-initial-textarea">
+            Describe your ad
           </label>
           <textarea
             ref={promptInputRef}
             id="chat-initial-textarea"
-            className="w-full min-h-[120px] py-3 px-3.5 font-sans text-sm leading-normal text-text-primary bg-surface border border-border rounded-md resize-y transition-colors duration-150 placeholder:text-text-secondary disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-text-primary"
+            className="w-full min-h-[120px] border border-gray-200 rounded px-3 py-2 text-sm leading-normal text-gray-900 bg-white resize-y transition-colors duration-150 placeholder:text-gray-400 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-gray-900"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
@@ -250,7 +252,7 @@ export function ChatPanel({
           />
           <button
             type="button"
-            className={`w-full h-11 px-6 font-sans font-medium text-sm text-white bg-text-primary border-0 rounded-md cursor-pointer transition-colors duration-150 hover:enabled:bg-[#374151] disabled:opacity-40 disabled:cursor-not-allowed ${isGenerating ? 'animate-dots-loading' : ''}`}
+            className={`w-full h-11 px-6 font-medium text-sm text-white bg-gray-900 border-0 rounded cursor-pointer transition-colors duration-150 hover:enabled:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed ${isGenerating ? 'animate-dots-loading' : ''}`}
             onClick={() => {
               const prompt = inputValue.trim();
               if (prompt) {
@@ -262,7 +264,7 @@ export function ChatPanel({
           >
             {isGenerating ? 'Generating' : 'Generate'}
           </button>
-          {error && <p className="font-sans text-[13px] text-error m-0">{error}</p>}
+          {error && <p className="text-sm text-red-500 m-0">{error}</p>}
         </div>
       </div>
     );
@@ -273,36 +275,41 @@ export function ChatPanel({
       <div className="flex flex-col flex-1 min-h-0 p-0 m-0">
         <div
           ref={messagesContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4 px-4 pb-2 scrollbar-thin"
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-end gap-3 py-4 px-4 pb-2 scrollbar-thin"
           role="log"
           aria-live="polite"
         >
           {showLoadedFromProjectsSeparator && (
-            <div className="text-[11px] text-text-secondary text-center py-2 m-0 mb-2 border-b border-border">
+            <div className="text-xs text-gray-300 text-center py-2 m-0 mb-2 border-b border-gray-200">
               — Loaded from project —
             </div>
           )}
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex flex-col max-w-[80%] ${msg.role === 'user' ? 'self-end' : 'self-start'}`}
+              className={`flex flex-col ${msg.role === 'user' ? 'self-end max-w-[85%]' : 'self-start'}`}
               data-role={msg.role}
             >
-              <div className={`py-2.5 px-3.5 text-[13px] leading-normal font-sans break-words rounded-lg ${msg.role === 'user' ? 'bg-[#f3f4f6] text-text-primary' : 'bg-surface border border-border text-text-primary shadow-sm'}`}>
+              <div className={`text-sm leading-normal break-words ${msg.role === 'user' ? 'bg-gray-100 text-gray-900 rounded-2xl rounded-br-sm px-3 py-2' : 'text-gray-600'}`}>
                 {msg.content}
               </div>
               {msg.specSnapshot != null && (
-                <span className="text-[11px] text-text-secondary mt-1 pl-0.5">↻ Ad updated</span>
+                <span className="text-xs text-gray-400 mt-1 pl-0.5">↻ Ad updated</span>
               )}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        {brandChip}
-        <div className="flex gap-2 items-end flex-shrink-0 w-full m-0 py-3 px-4 pb-4 border-t border-border bg-[#f5f5f5]">
+        <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50">
+          {brandChip && (
+            <div className="px-4 pt-3 pb-0">
+              {brandChip}
+            </div>
+          )}
+          <div className="flex items-center gap-2 w-full m-0 py-3 px-4 pb-4">
           <textarea
             aria-label="Refine your ad"
-            className="flex-1 min-h-[40px] py-2.5 px-3.5 font-sans text-[13px] border border-border rounded-md bg-surface text-text-primary resize-none transition-colors duration-150 focus:outline-none focus:border-text-primary"
+            className="flex-1 min-h-[40px] border border-gray-200 rounded px-3 py-2 text-sm bg-white text-gray-900 resize-none transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-gray-900 placeholder:text-gray-400"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
@@ -317,15 +324,16 @@ export function ChatPanel({
           />
           <button
             type="button"
-            className="h-10 w-10 rounded-md bg-user-bubble text-white border-0 cursor-pointer text-lg leading-none flex items-center justify-center flex-shrink-0 transition-colors duration-150 shadow-sm hover:enabled:bg-user-bubble-hover disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-9 h-9 rounded bg-gray-900 text-white border-0 cursor-pointer flex items-center justify-center flex-shrink-0 transition-colors duration-150 hover:enabled:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleSubmit}
             disabled={!canSubmit}
             aria-label="Send"
           >
-            →
+            <ArrowUp className="w-4 h-4" aria-hidden />
           </button>
+          </div>
         </div>
-        {error && <p className="font-sans text-[13px] text-error m-0">{error}</p>}
+        {error && <p className="text-sm text-red-500 m-0 px-4 pb-2">{error}</p>}
       </div>
     </div>
   );

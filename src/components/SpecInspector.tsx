@@ -39,13 +39,13 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
     });
   };
 
-  const sectionLabel = 'font-sans font-medium text-[11px] tracking-wider uppercase text-text-primary m-0 pb-2 border-b border-border';
-  const fieldLabel = 'text-[11px] text-text-secondary font-sans';
-  const fieldInput = 'w-full h-8 px-2.5 font-sans text-[13px] text-text-primary bg-surface border border-border rounded-sm transition-colors duration-150 focus:outline-none focus:border-text-primary';
+  const sectionLabel = 'text-xs font-semibold text-gray-400 uppercase tracking-wider m-0 pb-2 border-b border-gray-200';
+  const fieldLabel = 'text-xs text-gray-500';
+  const fieldInput = 'w-full border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-gray-900 placeholder:text-gray-400';
   const colorRow = 'flex items-center gap-2';
-  const colorInput = 'w-8 h-8 p-0.5 border border-border rounded-sm cursor-pointer bg-transparent';
-  const colorHex = 'text-xs font-mono text-text-secondary';
-  const colorHexInput = 'flex-1 min-w-0 h-8 py-1 px-2 text-xs font-mono text-text-primary border border-border rounded-sm bg-surface focus:outline-none focus:border-text-primary';
+  const colorInput = 'w-8 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-transparent flex-shrink-0';
+  const colorHex = 'text-xs font-mono text-gray-500';
+  const colorHexInput = 'flex-1 min-w-0 border border-gray-200 rounded px-3 py-2 text-xs font-mono text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900';
 
   return (
     <div className="flex flex-col gap-6">

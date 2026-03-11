@@ -103,10 +103,17 @@ body {
   50% { opacity: 1; }
 }
 
+/* Global scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
+*::-webkit-scrollbar { width: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+
 /* Scrollbars — soft, consistent */
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #e8e8e8 transparent;
+  scrollbar-color: #e5e7eb transparent;
 }
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
@@ -117,11 +124,11 @@ body {
   background: transparent !important;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #e8e8e8 !important;
+  background: #e5e7eb !important;
   border-radius: 4px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #d8d8d8 !important;
+  background: #d1d5db !important;
 }
 
 /* Responsive — mobile: stack vertical, canvas first, inspector second, chat last */

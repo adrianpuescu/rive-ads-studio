@@ -50,40 +50,40 @@ function AdCard({ item, onLoad, onRemove }: AdCardProps) {
   }, [confirmDelete, item.id, onRemove]);
 
   return (
-    <div className="border border-[#e5e5e5] rounded-sm overflow-hidden bg-white">
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm transition-all duration-150">
       {item.thumbnail ? (
-        <div className="p-2 bg-[#fafafa] rounded-t-sm">
-          <img src={item.thumbnail} alt="" className="w-full h-auto object-contain block" />
+        <div className="p-2 bg-gray-50 rounded-t-lg overflow-hidden">
+          <img src={item.thumbnail} alt="" className="w-full h-auto object-contain block rounded-md" />
         </div>
       ) : (
-        <div className="h-1.5 rounded-t-[3px] w-full" style={{ background: item.colors.background }} />
+        <div className="h-1.5 w-full" style={{ background: item.colors.background }} />
       )}
-      <div className="p-3">
-        <div className="font-semibold text-[0.9rem] text-text-primary mb-1">{item.headline || '—'}</div>
-        <div className="text-[0.8rem] text-[#666] mb-1.5">{item.subheadline || '—'}</div>
-        <div className="text-[0.7rem] text-[#999] mb-1.5">{formatTimestamp(item.createdAt)}</div>
-        <div className="text-[0.75rem] text-[#999] italic mb-2.5">{truncatePrompt(item.prompt, 60)}</div>
+      <div className="p-4">
+        <div className="text-sm font-semibold text-gray-900 mb-1">{item.headline || '—'}</div>
+        <div className="text-sm text-gray-500 mb-1">{item.subheadline || '—'}</div>
+        <div className="text-xs text-gray-400 mb-1">{formatTimestamp(item.createdAt)}</div>
+        <div className="text-xs text-gray-400 italic mb-3">{truncatePrompt(item.prompt, 60)}</div>
         <div className="flex flex-row gap-2 items-center">
           <button
             type="button"
-            className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-border bg-white text-text-primary hover:bg-[#f0f0f0] hover:border-[#d5d5d5] transition-colors duration-150"
+            className="py-1.5 px-3 text-sm border border-gray-200 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
             onClick={() => onLoad(item)}
           >
             Load
           </button>
           {confirmDelete ? (
             <>
-              <span className="text-xs text-text-secondary mr-1">Sure?</span>
+              <span className="text-xs text-gray-500 mr-1">Sure?</span>
               <button
                 type="button"
-                className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-error bg-[#fef2f2] text-error hover:bg-[#fee2e2] transition-colors duration-150"
+                className="py-1.5 px-3 text-sm border border-red-200 bg-red-50 text-red-500 rounded hover:bg-red-100 cursor-pointer transition-colors duration-150 min-h-[32px]"
                 onClick={handleDelete}
               >
                 Yes
               </button>
               <button
                 type="button"
-                className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-border bg-white text-text-primary hover:bg-[#f5f5f5] transition-colors duration-150"
+                className="py-1.5 px-3 text-sm border border-gray-200 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
                 onClick={() => setConfirmDelete(false)}
               >
                 No
@@ -92,7 +92,7 @@ function AdCard({ item, onLoad, onRemove }: AdCardProps) {
           ) : (
             <button
               type="button"
-              className="py-1 px-2.5 font-sans text-xs font-medium rounded-sm cursor-pointer border border-border bg-white text-text-secondary hover:bg-[#fef2f2] hover:border-[#fecaca] hover:text-error transition-colors duration-150"
+              className="text-sm text-gray-400 hover:text-red-500 px-2 py-1 cursor-pointer bg-transparent border-0 transition-colors duration-150"
               onClick={handleDelete}
             >
               Delete
@@ -135,9 +135,8 @@ export function AdsDrawer({
       <div className="flex-1 min-h-0 overflow-y-auto p-4 scrollbar-thin">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <span className="text-5xl leading-none mb-4" aria-hidden>🎨</span>
-            <p className="font-sans font-semibold text-sm text-text-primary m-0 mb-2">No ads yet</p>
-            <p className="text-[13px] text-text-secondary m-0">Generate your first ad to see it here</p>
+            <p className="text-sm font-semibold text-gray-900 m-0 mb-1">No ads yet</p>
+            <p className="text-sm text-gray-500 m-0">Generate your first ad to see it here</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">

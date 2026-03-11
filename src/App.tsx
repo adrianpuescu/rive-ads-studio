@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus, Undo2, Redo2, Layers, LayoutGrid } from 'lucide-react'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
@@ -413,32 +414,35 @@ function App() {
 
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden app-mobile-stack max-md:h-auto max-md:min-h-screen max-md:overflow-auto">
-      <header className="h-11 flex-shrink-0 flex items-center px-4 gap-2 bg-white border-b border-[#e5e5e5]">
-        <Link to="/" className="flex items-center gap-1.5 no-underline text-inherit">
-          <span className="font-serif text-lg leading-none text-text-primary">RiveAds</span>
-          <span className="w-1 h-1 rounded-full bg-text-primary flex-shrink-0" aria-hidden />
-          <span className="font-sans text-lg leading-none text-text-primary">Studio</span>
+      <header className="h-11 flex-shrink-0 flex items-center px-4 gap-2 bg-white border-b border-gray-200">
+        <Link to="/" className="flex items-center gap-1.5 no-underline text-inherit mr-1">
+          <span className="font-serif text-sm font-semibold leading-none text-gray-900">RiveAds</span>
+          <span className="w-1 h-1 rounded-full bg-gray-900 flex-shrink-0" aria-hidden />
+          <span className="font-sans text-sm font-semibold leading-none text-gray-900">Studio</span>
         </Link>
+
+        <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
+
         {showNewAdConfirm ? (
-          <div className="flex items-center gap-2 py-0 px-1 text-[0.8rem]">
-            <span className="font-sans text-[0.8rem] text-text-secondary">Unsaved changes</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Unsaved changes</span>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-primary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
+              className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
               onClick={handleSaveAndNew}
             >
-              Save Ad & New
+              Save & New
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-primary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
+              className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
               onClick={doNewAd}
             >
               Discard
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-secondary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
+              className="text-sm text-gray-500 hover:text-gray-900 px-2 py-1 cursor-pointer bg-transparent border-0 transition-colors duration-150"
               onClick={() => {
                 setShowNewAdConfirm(false)
                 clearNewAdConfirmTimeout()
@@ -450,87 +454,96 @@ function App() {
         ) : (
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 py-1.5 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-[#e5e5e5] rounded cursor-pointer hover:bg-[#f5f5f5] transition-colors duration-150"
+            className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
             onClick={handleNewAdClick}
             aria-label="New ad"
           >
-            <span className="text-sm leading-none" aria-hidden>+</span>
+            <Plus className="w-3.5 h-3.5" aria-hidden />
             New Ad
           </button>
         )}
+
+        <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
+
         <button
           type="button"
-          className="flex items-center justify-center w-8 h-8 p-0 text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
+          className="flex items-center justify-center w-8 h-8 p-0 border border-gray-200 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
           onClick={handleUndo}
           disabled={!canUndo}
           aria-label="Undo"
           title="Undo (Cmd+Z)"
         >
-          <span className="text-sm leading-none" aria-hidden>↩</span>
+          <Undo2 className="w-3.5 h-3.5" aria-hidden />
         </button>
         <button
           type="button"
-          className="flex items-center justify-center w-8 h-8 p-0 text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
+          className="flex items-center justify-center w-8 h-8 p-0 border border-gray-200 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
           onClick={handleRedo}
           disabled={!canRedo}
           aria-label="Redo"
           title="Redo (Cmd+Shift+Z)"
         >
-          <span className="text-sm leading-none" aria-hidden>↪</span>
+          <Redo2 className="w-3.5 h-3.5" aria-hidden />
         </button>
         {adSpec && (
-          <span className="inline-flex items-center gap-1.5 font-mono text-[0.7rem] text-[#999] tabular-nums" aria-live="polite">
+          <span className="inline-flex items-center gap-1.5 text-xs text-gray-400 tabular-nums" aria-live="polite">
             {lastSavedStateRef.current != null &&
             JSON.stringify(adSpec) === JSON.stringify(lastSavedStateRef.current) ? (
               <>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" aria-hidden />
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden />
                 Saved
               </>
             ) : (
               <>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]" aria-hidden />
-                Unsaved changes
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" aria-hidden />
+                Unsaved
               </>
             )}
           </span>
         )}
+
+        <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
+
         <button
           type="button"
-          className="relative flex items-center gap-1.5 h-8 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] transition-colors duration-150"
+          className="relative inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
           onClick={() => setBrandOpen((prev) => !prev)}
           aria-label={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active — edit` : 'Open Brand Manager'}
-          title={hasActiveBrand ? `◈ ${activeBrand?.name ?? 'Brand'} active` : 'Brand Manager'}
+          title={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active` : 'Brand Manager'}
         >
-          <span className="text-sm leading-none" aria-hidden>◈</span>
+          <Layers className="w-3.5 h-3.5" aria-hidden />
           Brand
-          {hasActiveBrand && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#22c55e]" aria-hidden />}
+          {hasActiveBrand && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden />}
         </button>
         <button
           type="button"
-          className="flex items-center gap-1.5 h-8 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] transition-colors duration-150"
+          className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
           onClick={() => setProjectsDrawerOpen((prev) => !prev)}
           aria-label="Open Projects"
         >
-          <span className="text-sm leading-none" aria-hidden>⊞</span>
+          <LayoutGrid className="w-3.5 h-3.5" aria-hidden />
           Projects
           {ads.length > 0 && (
-            <span className="min-w-[18px] h-[18px] py-0 px-1.5 text-[11px] font-medium leading-[18px] text-center text-white bg-text-primary rounded-[9px] tabular-nums" aria-label={`${ads.length} projects`}>
+            <span className="min-w-[18px] h-[18px] px-1 text-[11px] font-medium leading-[18px] text-center text-white bg-gray-900 rounded-full tabular-nums" aria-label={`${ads.length} projects`}>
               {ads.length}
             </span>
           )}
         </button>
+
         <div className="flex-1" />
-        <div className="flex items-center gap-4">
-          <span className="font-sans text-[13px] text-text-secondary tabular-nums" aria-label="Ad size">
-            728 × 90
-          </span>
-          {adSpec && (
-            <ExportButton
-              spec={adSpec}
-              rivFileName="test-template.riv"
-            />
-          )}
-        </div>
+
+        <span className="text-sm text-gray-400 tabular-nums" aria-label="Ad size">
+          728 × 90
+        </span>
+
+        <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
+
+        {adSpec && (
+          <ExportButton
+            spec={adSpec}
+            rivFileName="test-template.riv"
+          />
+        )}
       </header>
 
       <div className="relative flex-1 min-h-0 flex flex-row overflow-hidden app-main-mobile max-md:flex-col">
@@ -666,7 +679,7 @@ function App() {
             <div
               className={`w-[280px] flex-shrink-0 h-full overflow-y-auto overflow-x-hidden py-8 px-5 border-l border-border bg-surface transition-transform duration-250 ease-out scrollbar-thin app-right-panel-mobile ${inspectorCollapsed ? 'translate-x-[280px]' : 'translate-x-0'} max-md:w-full max-md:[.app-right-wrap-mobile.w-0_&]:translate-x-full`}
             >
-              <p className="font-sans text-[10px] font-medium tracking-widest uppercase text-text-secondary mb-5">INSPECTOR</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-5">Inspector</p>
               <SpecInspector
                 spec={adSpec}
                 onChange={handleInspectorChange}

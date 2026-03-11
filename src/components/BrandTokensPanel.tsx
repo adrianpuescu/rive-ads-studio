@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { Pencil, X } from 'lucide-react';
 import { DrawerHeader } from './DrawerHeader';
 import type { Brand } from '../hooks/useBrandTokens';
 import type { BrandTokens as BrandTokensType } from '../types/brand-tokens';
@@ -233,25 +234,27 @@ export function BrandTokensPanel({
                           </>
                         ) : (
                           <>
-                            <button type="button" className="text-sm text-gray-400 hover:text-gray-900 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors" onClick={() => openEdit(brand)} aria-label={`Edit ${brand.name}`}>✎</button>
-                            <button type="button" className="text-sm text-gray-400 hover:text-red-500 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors" onClick={() => handleDelete(brand.id)} aria-label={`Delete ${brand.name}`}>×</button>
+                            <button type="button" className="text-gray-400 hover:text-gray-900 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors flex items-center" onClick={() => openEdit(brand)} aria-label={`Edit ${brand.name}`}><Pencil className="w-3.5 h-3.5" /></button>
+                            <button type="button" className="text-gray-400 hover:text-red-500 px-2 py-1 bg-transparent border-0 cursor-pointer transition-colors flex items-center" onClick={() => handleDelete(brand.id)} aria-label={`Delete ${brand.name}`}><X className="w-3.5 h-3.5" /></button>
                           </>
                         )}
                       </div>
                     </div>
-                    {/* ROW 2 */}
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-gray-400 w-12">Colors</span>
-                      <div className="flex gap-1">
-                        <span className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0" style={{ background: brand.tokens.primaryColor }} aria-hidden />
-                        <span className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0" style={{ background: brand.tokens.secondaryColor }} aria-hidden />
-                        <span className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0" style={{ background: brand.tokens.backgroundColor }} aria-hidden />
+                    <div className="space-y-2">
+                      {/* ROW 2 */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 w-12">Colors</span>
+                        <div className="flex gap-1">
+                          <span className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0" style={{ background: brand.tokens.primaryColor }} aria-hidden />
+                          <span className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0" style={{ background: brand.tokens.secondaryColor }} aria-hidden />
+                          <span className="w-4 h-4 rounded-full ring-1 ring-black/10 flex-shrink-0" style={{ background: brand.tokens.backgroundColor }} aria-hidden />
+                        </div>
                       </div>
-                    </div>
-                    {/* ROW 3 */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-12">Font</span>
-                      <span className="text-xs text-gray-500 font-mono truncate">{brand.tokens.fontFamily}</span>
+                      {/* ROW 3 */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 w-12">Font</span>
+                        <span className="text-xs text-gray-500 font-mono truncate">{brand.tokens.fontFamily}</span>
+                      </div>
                     </div>
                   </li>
                 );
