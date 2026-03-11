@@ -85,7 +85,6 @@ function loadFromStorage(): Ad[] {
 
 function saveToStorage(ads: Ad[]): void {
   try {
-    console.log('[useAds] saveToStorage — ads count:', ads.length, 'each chatHistory length:', ads.map((a) => a.chatHistory?.length ?? 0));
     localStorage.setItem(STORAGE_KEYS.ADS, JSON.stringify(ads));
   } catch {
     // ignore

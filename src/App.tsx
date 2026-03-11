@@ -202,7 +202,6 @@ function App() {
       if (!adSpec) return
       const payload = adSpecToAdPayload(adSpec)
       payload.chatHistory = currentChatMessages ?? []
-      console.log('[App] handleSaveToProjects — chatHistory being saved:', payload.chatHistory.length, payload.chatHistory)
       let itemId: string
       if (activeAdId) {
         updateItem(activeAdId, payload)
