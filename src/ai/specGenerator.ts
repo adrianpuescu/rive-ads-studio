@@ -213,24 +213,20 @@ const VARIANT_COMMON_COLORS =
 
 const VARIANT_STYLE_SUFFIXES: ReadonlyArray<string> = [
   `Generate variant 1 of 3: BOLD style.
-Create an original color palette that fits the ad subject and evokes energy, confidence, high contrast.
-Use strong, saturated colors.
-Make sure headlineColor and ctaColor have strong contrast against backgroundColor.
-Do NOT use white/light backgrounds unless specifically requested.
-Be creative with colors — avoid generic combinations like red/white or blue/white.
+BOLD style: high energy, strong contrast, commanding presence.
+Choose colors that fit the subject AND feel bold and confident.
 
 ${VARIANT_COMMON_COLORS}`,
   `Generate variant 2 of 3: ELEGANT style.
-Create an original color palette that fits the ad subject and evokes sophistication, luxury, refinement.
-Use deep, muted, or monochromatic tones.
-Avoid bright or saturated colors.
-headlineColor should be subtle but readable against backgroundColor.
+ELEGANT style: sophisticated, refined, premium feel.
+Choose colors that fit the subject AND feel luxurious and understated.
 
 ${VARIANT_COMMON_COLORS}`,
   `Generate variant 3 of 3: WARM style.
-Create an original color palette that fits the ad subject and evokes friendliness, optimism, approachability.
-Use warm tones (ambers, terracottas, warm whites, soft greens).
-Avoid cold colors (blue, purple, grey).
+WARM style: inviting, optimistic, approachable energy.
+Choose colors that fit the subject AND feel friendly and welcoming.
+Warm style refers to the emotional warmth, not necessarily warm color temperatures —
+a warm ocean scene can use warm blues and soft aquas.
 
 ${VARIANT_COMMON_COLORS}`,
 ];
