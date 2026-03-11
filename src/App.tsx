@@ -133,6 +133,7 @@ function App() {
       clearTimeout(inspectorPushDebounceRef.current)
       inspectorPushDebounceRef.current = null
     }
+    setChatCollapsed(false)
     setProjectsDrawerOpen(false)
     setActiveAdId(null)
     setCurrentChatMessages([])
