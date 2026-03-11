@@ -1,12 +1,13 @@
 /**
- * Creative Library: session history of generated ads, persisted in localStorage.
+ * Ads: session history of generated ads, persisted in localStorage.
+ * Used by editor and by /projects page.
  */
 
 import { useState, useCallback, useEffect } from 'react';
 
 const STORAGE_KEY = 'riveads_library';
 
-export interface LibraryItem {
+export interface Ad {
   id: string;
   createdAt: number;
   headline: string;
@@ -16,21 +17,16 @@ export interface LibraryItem {
     background: string;
     primary: string;
     secondary: string;
-    /** Headline text color (hex). Optional for older items. */
     headlineColor?: string;
-    /** Subheadline text color (hex). Optional for older items. */
     subheadlineColor?: string;
-    /** CTA text color (hex). Optional for older items. */
     ctaColor?: string;
   };
   prompt: string;
-  /** base64 JPEG, optional (missing for older items) */
   thumbnail?: string;
-  /** Chat messages at save time (optional for older items) */
   chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
-function loadFromStorage(): LibraryItem[] {
+function loadFromStorage(): Ad[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -38,7 +34,7 @@ function loadFromStorage(): LibraryItem[] {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .filter(
-        (x): x is LibraryItem =>
+        (x): x is Ad =>
           typeof x?.id === 'string' &&
           typeof x?.createdAt === 'number' &&
           typeof x?.headline === 'string' &&
@@ -50,36 +46,40 @@ function loadFromStorage(): LibraryItem[] {
           typeof (x.colors as { secondary?: string })?.secondary === 'string' &&
           typeof x?.prompt === 'string'
       )
+      .map((item) => ({
+        ...item,
+        chatHistory: item.chatHistory ?? (item as { conversationHistory?: typeof item.chatHistory }).conversationHistory,
+      }))
       .sort((a, b) => b.createdAt - a.createdAt);
   } catch {
     return [];
   }
 }
 
-function saveToStorage(items: LibraryItem[]): void {
+function saveToStorage(ads: Ad[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ads));
   } catch {
     // ignore
   }
 }
 
-export function useLibrary() {
-  const [items, setItems] = useState<LibraryItem[]>(loadFromStorage);
+export function useAds() {
+  const [ads, setAds] = useState<Ad[]>(loadFromStorage);
 
   useEffect(() => {
     const stored = loadFromStorage();
-    setItems(stored);
+    setAds(stored);
   }, []);
 
-  const addItem = useCallback((item: Omit<LibraryItem, 'id' | 'createdAt'>): string => {
+  const saveAd = useCallback((ad: Omit<Ad, 'id' | 'createdAt'>): string => {
     const id = crypto.randomUUID();
-    const full: LibraryItem = {
-      ...item,
+    const full: Ad = {
+      ...ad,
       id,
       createdAt: Date.now(),
     };
-    setItems((prev) => {
+    setAds((prev) => {
       const next = [full, ...prev];
       saveToStorage(next);
       return next;
@@ -88,7 +88,7 @@ export function useLibrary() {
   }, []);
 
   const updateItemThumbnail = useCallback((id: string, thumbnail: string) => {
-    setItems((prev) => {
+    setAds((prev) => {
       const next = prev.map((item) =>
         item.id === id ? { ...item, thumbnail } : item
       );
@@ -97,10 +97,9 @@ export function useLibrary() {
     });
   }, []);
 
-  /** Updates an existing item's spec fields (headline, subheadline, cta, colors, prompt). Keeps id, createdAt, thumbnail, chatHistory. */
   const updateItem = useCallback(
-    (id: string, data: Omit<LibraryItem, 'id' | 'createdAt'>) => {
-      setItems((prev) => {
+    (id: string, data: Omit<Ad, 'id' | 'createdAt'>) => {
+      setAds((prev) => {
         const next = prev.map((item) =>
           item.id === id
             ? {
@@ -122,7 +121,7 @@ export function useLibrary() {
   );
 
   const removeItem = useCallback((id: string) => {
-    setItems((prev) => {
+    setAds((prev) => {
       const next = prev.filter((x) => x.id !== id);
       saveToStorage(next);
       return next;
@@ -130,9 +129,9 @@ export function useLibrary() {
   }, []);
 
   const clearAll = useCallback(() => {
-    setItems([]);
+    setAds([]);
     saveToStorage([]);
   }, []);
 
-  return { items, addItem, updateItemThumbnail, updateItem, removeItem, clearAll };
+  return { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem, clearAll };
 }

@@ -1,6 +1,6 @@
 /**
  * AdCanvas Component
- * 
+ *
  * Thin wrapper that renders an AdSpec on a canvas element.
  * Handles loading states and error display.
  */
@@ -27,8 +27,7 @@ export interface AdCanvasProps {
  */
 export function AdCanvas({ spec, width, height, isGenerating = false, className = '' }: AdCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // riveInstance exposed for parent components that need direct Rive access
-  const { isLoading, error } = useAdSpecRenderer(spec, canvasRef);
+  const { error } = useAdSpecRenderer(spec, canvasRef);
 
   return (
     <div className={`relative overflow-hidden bg-[#f5f5f5] shadow-[0_4px_24px_rgba(0,0,0,0.08)] ${className}`} style={{ width, height }}>

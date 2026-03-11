@@ -4,12 +4,12 @@ import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
 import { SpecInspector } from './components/SpecInspector'
-import { LibraryPanel } from './components/LibraryPanel'
+import { AdsDrawer } from './components/AdsDrawer'
 import { BrandTokensPanel } from './components/BrandTokensPanel'
-import { useLibrary } from './hooks/useLibrary'
+import { useAds } from './hooks/useAds'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
-import { libraryItemToAdSpec, adSpecToLibraryItemPayload } from './lib/libraryAdSpec'
+import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
 import type { AdSpec } from './types/ad-spec.schema'
 
 const INSPECTOR_PUSH_DEBOUNCE_MS = 600
@@ -48,8 +48,8 @@ function App() {
   const [inspectorCollapsed, setInspectorCollapsed] = useState(() =>
     readStored(INSPECTOR_COLLAPSED_KEY, false)
   )
-  const [libraryOpen, setLibraryOpen] = useState(false)
-  const [activeLibraryItemId, setActiveLibraryItemId] = useState<string | null>(null)
+  const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false)
+  const [activeAdId, setActiveAdId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
   const [showNewAdConfirm, setShowNewAdConfirm] = useState(false)
   const [newAdTrigger, setNewAdTrigger] = useState(0)
@@ -61,10 +61,10 @@ function App() {
   const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
-  /** Last AdSpec state saved to Library (for "Saved" vs "Unsaved" indicator). */
+  /** Last AdSpec state saved to Projects (for "Saved" vs "Unsaved" indicator). */
   const lastSavedStateRef = useRef<AdSpec | null>(null)
-  const [saveVersion, setSaveVersion] = useState(0)
-  const { items: libraryItems, addItem, updateItemThumbnail, updateItem, removeItem } = useLibrary()
+  const [, setSaveVersion] = useState(0)
+  const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem } = useAds()
   const {
     brands,
     activeBrandId,
@@ -124,8 +124,8 @@ function App() {
       clearTimeout(inspectorPushDebounceRef.current)
       inspectorPushDebounceRef.current = null
     }
-    setLibraryOpen(false)
-    setActiveLibraryItemId(null)
+    setProjectsDrawerOpen(false)
+    setActiveAdId(null)
     lastSavedStateRef.current = null
     setSaveVersion((v) => v + 1)
     clearHistory()
@@ -195,34 +195,34 @@ function App() {
     [updateItemThumbnail]
   )
 
-  const handleSaveToLibrary = useCallback(
+  const handleSaveToProjects = useCallback(
     (onAfterSave?: () => void) => {
       if (!adSpec) return
-      const payload = adSpecToLibraryItemPayload(adSpec)
+      const payload = adSpecToAdPayload(adSpec)
       let itemId: string
-      if (activeLibraryItemId) {
-        updateItem(activeLibraryItemId, payload)
-        itemId = activeLibraryItemId
+      if (activeAdId) {
+        updateItem(activeAdId, payload)
+        itemId = activeAdId
       } else {
-        itemId = addItem(payload)
-        setActiveLibraryItemId(itemId)
+        itemId = saveAd(payload)
+        setActiveAdId(itemId)
       }
       lastSavedStateRef.current = adSpec
       setSaveVersion((v) => v + 1)
       captureAndUpdateThumbnail(itemId, onAfterSave)
     },
-    [adSpec, activeLibraryItemId, addItem, updateItem, captureAndUpdateThumbnail]
+    [adSpec, activeAdId, saveAd, updateItem, captureAndUpdateThumbnail]
   )
 
   const handleSaveAndNew = useCallback(() => {
-    handleSaveToLibrary(doNewAd)
-  }, [handleSaveToLibrary, doNewAd])
+    handleSaveToProjects(doNewAd)
+  }, [handleSaveToProjects, doNewAd])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault()
-        handleSaveToLibrary()
+        handleSaveToProjects()
         return
       }
       if (e.metaKey && e.key === 'z') {
@@ -233,7 +233,7 @@ function App() {
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [handleUndo, handleRedo, handleSaveToLibrary])
+  }, [handleUndo, handleRedo, handleSaveToProjects])
 
   const handleAdGenerated = useCallback(
     (
@@ -256,13 +256,13 @@ function App() {
         prompt,
         chatHistory,
       }
-      const id = addItem(baseItem)
-      setActiveLibraryItemId(id)
+      const id = saveAd(baseItem)
+      setActiveAdId(id)
       lastSavedStateRef.current = spec
       setSaveVersion((v) => v + 1)
       captureAndUpdateThumbnail(id)
     },
-    [addItem, captureAndUpdateThumbnail]
+    [saveAd, captureAndUpdateThumbnail]
   )
 
   useEffect(() => {
@@ -282,18 +282,18 @@ function App() {
       const pendingId = localStorage.getItem(PENDING_LOAD_KEY)
       if (!pendingId) return
       localStorage.removeItem(PENDING_LOAD_KEY)
-      const item = libraryItems.find((i) => i.id === pendingId)
+      const item = ads.find((i) => i.id === pendingId)
       if (!item) return
-      const spec = libraryItemToAdSpec(item)
+      const spec = adToAdSpec(item)
       push(spec)
-      setActiveLibraryItemId(item.id)
+      setActiveAdId(item.id)
       lastSavedStateRef.current = spec
       setRestoredChatHistory(item.chatHistory ?? [])
       setHistoryToast({ message: 'Loaded from project' })
     } catch {
       // ignore
     }
-  }, [libraryItems, push])
+  }, [ads, push])
 
   const toggleChat = useCallback(() => {
     setChatCollapsed((c) => !c)
@@ -319,7 +319,7 @@ function App() {
               className="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] font-medium text-text-primary bg-transparent border border-[#e5e5e5] rounded hover:bg-[#f5f5f5] transition-colors duration-150"
               onClick={handleSaveAndNew}
             >
-              Save & New
+              Save Ad & New
             </button>
             <button
               type="button"
@@ -400,14 +400,14 @@ function App() {
         <button
           type="button"
           className="flex items-center gap-1.5 h-8 px-3 font-medium text-[13px] text-text-primary bg-transparent border border-border rounded-sm cursor-pointer hover:bg-[#f5f5f5] hover:border-[#d5d5d5] transition-colors duration-150"
-          onClick={() => setLibraryOpen((prev) => !prev)}
+          onClick={() => setProjectsDrawerOpen((prev) => !prev)}
           aria-label="Open Projects"
         >
           <span className="text-sm leading-none" aria-hidden>⊞</span>
           Projects
-          {libraryItems.length > 0 && (
-            <span className="min-w-[18px] h-[18px] py-0 px-1.5 text-[11px] font-medium leading-[18px] text-center text-white bg-text-primary rounded-[9px] tabular-nums" aria-label={`${libraryItems.length} projects`}>
-              {libraryItems.length}
+          {ads.length > 0 && (
+            <span className="min-w-[18px] h-[18px] py-0 px-1.5 text-[11px] font-medium leading-[18px] text-center text-white bg-text-primary rounded-[9px] tabular-nums" aria-label={`${ads.length} projects`}>
+              {ads.length}
             </span>
           )}
         </button>
@@ -495,22 +495,22 @@ function App() {
           )}
         </div>
 
-        <LibraryPanel
-          isOpen={libraryOpen}
-          onClose={() => setLibraryOpen(false)}
-          items={libraryItems}
+        <AdsDrawer
+          isOpen={projectsDrawerOpen}
+          onClose={() => setProjectsDrawerOpen(false)}
+          items={ads}
           onLoad={(item) => {
-            const spec = libraryItemToAdSpec(item)
+            const spec = adToAdSpec(item)
             push(spec)
-            setActiveLibraryItemId(item.id)
+            setActiveAdId(item.id)
             lastSavedStateRef.current = spec
             setRestoredChatHistory(item.chatHistory ?? [])
-            setLibraryOpen(false)
+            setProjectsDrawerOpen(false)
           }}
           onRemove={(id) => {
-            if (id === activeLibraryItemId) {
+            if (id === activeAdId) {
               clearHistory()
-              setActiveLibraryItemId(null)
+              setActiveAdId(null)
               lastSavedStateRef.current = null
               setSaveVersion((v) => v + 1)
               setRestoredChatHistory(null)

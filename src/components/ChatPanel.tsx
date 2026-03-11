@@ -67,14 +67,14 @@ export function ChatPanel({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showLoadedFromLibrarySeparator, setShowLoadedFromLibrarySeparator] = useState(false);
+  const [showLoadedFromProjectsSeparator, setShowLoadedFromProjectsSeparator] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (newAdTrigger > 0) {
       setMessages([]);
-      setShowLoadedFromLibrarySeparator(false);
+      setShowLoadedFromProjectsSeparator(false);
     }
   }, [newAdTrigger]);
 
@@ -87,7 +87,7 @@ export function ChatPanel({
         timestamp: new Date(),
       }));
       setMessages(asMessages);
-      setShowLoadedFromLibrarySeparator(true);
+      setShowLoadedFromProjectsSeparator(true);
       onRestoredChatHistoryApplied?.();
     }
   }, [restoredChatHistory]);
@@ -127,7 +127,7 @@ export function ChatPanel({
         { role: 'assistant', content: result.spec.generation?.rationale ?? 'Ad generated.' },
       ]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate ad');
+      setError(err instanceof Error ? err.message : 'Failed to generate');
     } finally {
       setIsLoading(false);
       onGeneratingChange?.(false);
@@ -238,7 +238,7 @@ export function ChatPanel({
           role="log"
           aria-live="polite"
         >
-          {showLoadedFromLibrarySeparator && (
+          {showLoadedFromProjectsSeparator && (
             <div className="text-[11px] text-text-secondary text-center py-2 m-0 mb-2 border-b border-border">
               — Loaded from project —
             </div>

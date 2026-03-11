@@ -5,8 +5,8 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useLibrary } from '../hooks/useLibrary';
-import type { LibraryItem } from '../hooks/useLibrary';
+import { useAds } from '../hooks/useAds';
+import type { Ad } from '../hooks/useAds';
 
 const PENDING_LOAD_KEY = 'riveads_pending_load';
 
@@ -86,13 +86,13 @@ function SortDropdown({ value, onChange }: SortDropdownProps) {
   );
 }
 
-interface LibraryCardProps {
-  item: LibraryItem;
-  onOpenInEditor: (item: LibraryItem) => void;
+interface AdCardProps {
+  item: Ad;
+  onOpenInEditor: (item: Ad) => void;
   onRemove: (id: string) => void;
 }
 
-function LibraryCard({ item, onOpenInEditor, onRemove }: LibraryCardProps) {
+function AdCard({ item, onOpenInEditor, onRemove }: AdCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleDelete = useCallback(() => {
@@ -144,7 +144,7 @@ function LibraryCard({ item, onOpenInEditor, onRemove }: LibraryCardProps) {
 
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const { items, removeItem } = useLibrary();
+  const { items, removeItem } = useAds();
   const [sort, setSort] = useState<SortOption>('newest');
   const [search, setSearch] = useState('');
 
@@ -174,7 +174,7 @@ export function ProjectsPage() {
   }, [filtered, sort]);
 
   const handleOpenInEditor = useCallback(
-    (item: LibraryItem) => {
+    (item: Ad) => {
       try {
         localStorage.setItem(PENDING_LOAD_KEY, item.id);
       } catch {
@@ -232,7 +232,7 @@ export function ProjectsPage() {
           <p className="m-0 mb-3 text-[0.8rem] text-text-secondary">Showing {sorted.length} of {items.length} projects</p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 items-stretch">
           {sorted.map((item) => (
-            <LibraryCard key={item.id} item={item} onOpenInEditor={handleOpenInEditor} onRemove={removeItem} />
+            <AdCard key={item.id} item={item} onOpenInEditor={handleOpenInEditor} onRemove={removeItem} />
           ))}
           </div>
         </div>

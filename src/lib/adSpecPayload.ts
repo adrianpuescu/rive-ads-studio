@@ -1,18 +1,18 @@
 /**
- * Converts LibraryItem to AdSpec for loading an ad from Creative Library.
+ * Converts Ad to AdSpec for loading an ad from Projects.
  * Uses the same template/format defaults as the AI generator.
  */
 
 import type { AdSpec } from '../types/ad-spec.schema';
-import type { LibraryItem } from '../hooks/useLibrary';
+import type { Ad } from '../hooks/useAds';
 
-/** Payload for adding or updating a library item (no id, createdAt). */
-export type LibraryItemPayload = Omit<LibraryItem, 'id' | 'createdAt'>;
+/** Payload for adding or updating an ad (no id, createdAt). */
+export type AdPayload = Omit<Ad, 'id' | 'createdAt'>;
 
 /**
- * Converts current AdSpec to library item payload for save (add/update).
+ * Converts current AdSpec to ad payload for save (add/update).
  */
-export function adSpecToLibraryItemPayload(spec: AdSpec): LibraryItemPayload {
+export function adSpecToAdPayload(spec: AdSpec): AdPayload {
   return {
     headline: spec.text?.headline?.value ?? '',
     subheadline: spec.text?.subheadline?.value ?? '',
@@ -30,7 +30,7 @@ export function adSpecToLibraryItemPayload(spec: AdSpec): LibraryItemPayload {
   };
 }
 
-export function libraryItemToAdSpec(item: LibraryItem): AdSpec {
+export function adToAdSpec(ad: Ad): AdSpec {
   return {
     version: '1.0',
     id: crypto.randomUUID(),
@@ -46,9 +46,9 @@ export function libraryItemToAdSpec(item: LibraryItem): AdSpec {
       loop: true,
     },
     text: {
-      headline: { value: item.headline },
-      subheadline: { value: item.subheadline },
-      cta: { value: item.cta },
+      headline: { value: ad.headline },
+      subheadline: { value: ad.subheadline },
+      cta: { value: ad.cta },
     },
     stateInputs: {
       speed: 1,
@@ -56,15 +56,15 @@ export function libraryItemToAdSpec(item: LibraryItem): AdSpec {
       mood: 'dreamy',
     },
     colors: {
-      primary: item.colors.primary,
-      secondary: item.colors.secondary,
-      background: item.colors.background,
-      headlineColor: item.colors.headlineColor ?? '#111827',
-      subheadlineColor: item.colors.subheadlineColor ?? '#4b5563',
-      ctaColor: item.colors.ctaColor ?? '#ffffff',
+      primary: ad.colors.primary,
+      secondary: ad.colors.secondary,
+      background: ad.colors.background,
+      headlineColor: ad.colors.headlineColor ?? '#111827',
+      subheadlineColor: ad.colors.subheadlineColor ?? '#4b5563',
+      ctaColor: ad.colors.ctaColor ?? '#ffffff',
     },
     generation: {
-      prompt: item.prompt,
+      prompt: ad.prompt,
       model: '',
       rationale: '',
       variantIndex: 0,

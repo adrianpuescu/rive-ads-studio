@@ -28,7 +28,7 @@ export function PromptInput({ onGenerate }: PromptInputProps) {
       onGenerate(result.spec);
       setPrompt(''); // Clear textarea on success
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate ad');
+      setError(err instanceof Error ? err.message : 'Failed to generate');
     } finally {
       setIsGenerating(false);
     }
@@ -56,7 +56,7 @@ export function PromptInput({ onGenerate }: PromptInputProps) {
         onClick={handleGenerate}
         disabled={isDisabled}
       >
-        {isGenerating ? 'Generating' : 'Generate Ad'}
+        {isGenerating ? 'Generating' : 'Generate'}
       </button>
 
       {error && (

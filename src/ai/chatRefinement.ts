@@ -124,7 +124,7 @@ export async function refineAdSpec(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Refinement API failed: ${response.status} ${response.statusText}`);
+    throw new Error(`Refinement API failed: ${response.status} ${response.statusText}. ${errorText.slice(0, 200)}`);
   }
 
   const data = await response.json();

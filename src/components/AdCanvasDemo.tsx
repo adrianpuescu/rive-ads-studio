@@ -1,7 +1,7 @@
 /**
- * AdCanvas Demo Component
- * 
- * Demonstrates the AdCanvas component with a hardcoded test AdSpec.
+ * ItemCanvas Demo Component
+ *
+ * Demonstrates the ItemCanvas component with a hardcoded test ItemSpec.
  */
 
 import { AdCanvas } from './AdCanvas';
@@ -13,31 +13,30 @@ import type { AdSpec } from '../types/ad-spec.schema';
  */
 const demoSpec: AdSpec = {
   template: {
-    id: "test-template",
-    artboard: "Artboard",
-    stateMachine: "State Machine 1",
+    id: 'test-template',
+    artboard: 'Banner 728x90',
+    stateMachine: 'State Machine 1',
   },
   text: {
-    headline: "Hello Rive",
-    subheadline: "Dynamic ad rendering powered by Rive",
-    cta: "Learn More",
-    brand: "RiveAds",
+    headline: { value: 'Hello Rive' },
+    subheadline: { value: 'Dynamic ad rendering powered by Rive' },
+    cta: { value: 'Learn More' },
   },
   stateInputs: {
     speed: 0.5,
     intensity: 0.3,
-    mood: "dreamy", // was 'energetic'
+    mood: 'dreamy',
   },
   colors: {
-    primary: "#e84b2a",
-    secondary: "#1e88e5",
-    background: "#ffffff",
-    textColor: "#333333",
+    primary: '#e84b2a',
+    secondary: '#1e88e5',
+    background: '#ffffff',
+    headlineColor: '#333333',
   },
 };
 
 /**
- * Demo component showing AdCanvas in action
+ * Demo component showing ItemCanvas in action
  */
 export function AdCanvasDemo() {
   return (
@@ -51,10 +50,10 @@ export function AdCanvasDemo() {
         <code>public/templates/test-template.riv</code> with:
       </p>
       <ul className="demo-requirements">
-        <li>Artboard named "default"</li>
-        <li>State Machine named "State Machine 1"</li>
-        <li>Text runs: TEXT_HEADLINE, TEXT_SUBHEADLINE, TEXT_CTA, TEXT_BRAND</li>
-        <li>Inputs: speed (number), intensity (number), mood_energetic (boolean)</li>
+        <li>Artboard named &quot;Banner 728x90&quot;</li>
+        <li>State Machine named &quot;State Machine 1&quot;</li>
+        <li>Text runs: TEXT_HEADLINE, TEXT_SUBHEADLINE, TEXT_CTA</li>
+        <li>Inputs: speed (number), intensity (number), mood_dreamy (boolean)</li>
       </ul>
 
       <div className="demo-canvas-wrapper">

@@ -1,17 +1,17 @@
 /**
- * Projects panel: drawer from the left listing saved ads.
+ * Ads drawer: panel from the left listing saved ads (Projects container).
  * Load restores an ad into the editor; Delete removes with inline confirm.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { LibraryItem } from '../hooks/useLibrary';
+import type { Ad } from '../hooks/useAds';
 
-export interface LibraryPanelProps {
+export interface AdsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  items: LibraryItem[];
-  onLoad: (item: LibraryItem) => void;
+  items: Ad[];
+  onLoad: (item: Ad) => void;
   onRemove: (id: string) => void;
 }
 
@@ -30,13 +30,13 @@ function truncatePrompt(prompt: string, maxLen: number): string {
   return prompt.slice(0, maxLen).trim() + '…';
 }
 
-interface LibraryCardProps {
-  item: LibraryItem;
-  onLoad: (item: LibraryItem) => void;
+interface AdCardProps {
+  item: Ad;
+  onLoad: (item: Ad) => void;
   onRemove: (id: string) => void;
 }
 
-function LibraryCard({ item, onLoad, onRemove }: LibraryCardProps) {
+function AdCard({ item, onLoad, onRemove }: AdCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleDelete = useCallback(() => {
@@ -103,13 +103,13 @@ function LibraryCard({ item, onLoad, onRemove }: LibraryCardProps) {
   );
 }
 
-export function LibraryPanel({
+export function AdsDrawer({
   isOpen,
   onClose,
   items,
   onLoad,
   onRemove,
-}: LibraryPanelProps) {
+}: AdsDrawerProps) {
   const navigate = useNavigate();
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -151,7 +151,7 @@ export function LibraryPanel({
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {items.map((item) => (
-              <LibraryCard key={item.id} item={item} onLoad={onLoad} onRemove={onRemove} />
+              <AdCard key={item.id} item={item} onLoad={onLoad} onRemove={onRemove} />
             ))}
           </div>
         )}
