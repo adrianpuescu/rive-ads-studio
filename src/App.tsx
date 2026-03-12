@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Undo2, Redo2, LayoutGrid } from 'lucide-react'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
@@ -34,6 +34,7 @@ function readStored(key: string, fallback: boolean): boolean {
 function App() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const {
     present: adSpec,
     canUndo,
@@ -53,6 +54,13 @@ function App() {
   const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false)
   const [activeAdId, setActiveAdId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('openBrands') === 'true') {
+      setTimeout(() => setBrandOpen(true), 100)
+    }
+  }, [])
+
   const [showNewAdConfirm, setShowNewAdConfirm] = useState(false)
   const [newAdTrigger, setNewAdTrigger] = useState(0)
   const [restoredChatHistory, setRestoredChatHistory] = useState<
@@ -81,6 +89,7 @@ function App() {
     activeBrandId,
     activeBrand,
     hasActiveBrand,
+    loading: brandsLoading,
     addBrand,
     updateBrand,
     deleteBrand,
@@ -682,6 +691,7 @@ function App() {
           isOpen={brandOpen}
           onClose={() => setBrandOpen(false)}
           brands={brands}
+          isLoading={brandsLoading}
           activeBrandId={activeBrandId}
           onAddBrand={addBrand}
           onUpdateBrand={updateBrand}

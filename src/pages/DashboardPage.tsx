@@ -292,7 +292,7 @@ export function DashboardPage() {
             {!brandsLoading && sortedBrands.length > 0 && (
               <button
                 type="button"
-                onClick={() => navigate('/editor')}
+                onClick={() => navigate('/editor?openBrands=true')}
                 className="text-sm text-gray-500 hover:text-gray-900 px-1 py-0 border-0 bg-transparent cursor-pointer transition-colors duration-150"
               >
                 Manage →
@@ -308,7 +308,7 @@ export function DashboardPage() {
               </p>
               <button
                 type="button"
-                onClick={() => navigate('/editor')}
+                onClick={() => navigate('/editor?openBrands=true')}
                 className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm px-3 py-2 rounded hover:bg-gray-700 border-0 cursor-pointer transition-colors duration-150 min-h-[32px] mt-1"
               >
                 Add brand
