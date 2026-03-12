@@ -24,3 +24,16 @@ Brand name: ${brandName}
 Brand voice: ${tokens.brandVoice}
 Font family: ${tokens.fontFamily}`;
 }
+
+export function getBrandTokensRefinementBlock(brandName: string, tokens: BrandTokens): string {
+  return `Brand tokens are guidelines for this ad.
+If the user explicitly requests a color change, honor their request even if it differs from brand tokens.
+Brand tokens are suggestions, not hard constraints during refinement.
+- backgroundColor suggestion: ${tokens.backgroundColor}
+- primaryColor suggestion: ${tokens.primaryColor}
+- secondaryColor suggestion: ${tokens.secondaryColor}
+
+Brand name: ${brandName}
+Brand voice: ${tokens.brandVoice}
+Font family: ${tokens.fontFamily}`;
+}
