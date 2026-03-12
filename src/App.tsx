@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Plus, Undo2, Redo2, LayoutGrid } from 'lucide-react'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
@@ -9,7 +9,7 @@ import { AdsDrawer } from './components/AdsDrawer'
 import { BrandTokensPanel } from './components/BrandTokensPanel'
 import { VariantsModal } from './components/VariantsModal'
 import { generateVariants, generateSingleVariant, VARIANT_STYLE_LABELS } from './ai/specGenerator'
-import { useAds } from './hooks/useAds'
+import { useAds, type Ad } from './hooks/useAds'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
 import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
@@ -32,6 +32,8 @@ function readStored(key: string, fallback: boolean): boolean {
 }
 
 function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const {
     present: adSpec,
     canUndo,
@@ -267,6 +269,7 @@ function App() {
     ) => {
       setCurrentChatMessages(chatHistory)
       const baseItem = {
+        adSpec: spec,
         headline: spec.text?.headline?.value ?? '',
         subheadline: spec.text?.subheadline?.value ?? '',
         cta: spec.text?.cta?.value ?? '',
@@ -388,13 +391,32 @@ function App() {
     localStorage.setItem(STORAGE_KEYS.INSPECTOR_COLLAPSED, String(inspectorCollapsed))
   }, [inspectorCollapsed])
 
+  // Instant load when navigating from Projects page with state (no wait for ads)
+  useEffect(() => {
+    const item = (location.state as { pendingLoadItem?: Ad } | null)?.pendingLoadItem
+    if (!item) return
+    try {
+      localStorage.removeItem(STORAGE_KEYS.PENDING_LOAD)
+    } catch {
+      // ignore
+    }
+    const spec = adToAdSpec(item)
+    push(spec)
+    setActiveAdId(item.id)
+    lastSavedStateRef.current = spec
+    setRestoredChatHistory(item.chatHistory ?? [])
+    setHistoryToast({ message: 'Loaded from project' })
+    navigate(location.pathname, { replace: true })
+  }, [location.state, location.pathname, push, navigate])
+
+  // Fallback: load by id from localStorage when ads list is ready (e.g. after refresh)
   useEffect(() => {
     try {
       const pendingId = localStorage.getItem(STORAGE_KEYS.PENDING_LOAD)
       if (!pendingId) return
-      localStorage.removeItem(STORAGE_KEYS.PENDING_LOAD)
       const item = ads.find((i) => i.id === pendingId)
       if (!item) return
+      localStorage.removeItem(STORAGE_KEYS.PENDING_LOAD)
       const spec = adToAdSpec(item)
       push(spec)
       setActiveAdId(item.id)

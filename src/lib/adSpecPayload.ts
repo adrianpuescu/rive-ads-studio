@@ -14,6 +14,7 @@ export type AdPayload = Omit<Ad, 'id' | 'createdAt'>;
  */
 export function adSpecToAdPayload(spec: AdSpec): AdPayload {
   return {
+    adSpec: spec,
     headline: spec.text?.headline?.value ?? '',
     subheadline: spec.text?.subheadline?.value ?? '',
     cta: spec.text?.cta?.value ?? '',

@@ -3,14 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useBrandTokens } from '../hooks/useBrandTokens'
-import { useAds } from '../hooks/useAds'
+import { useAds, type Ad, fetchAdById } from '../hooks/useAds'
 import { STORAGE_KEYS } from '../constants/storageKeys'
 
 interface SupabaseProject {
   id: string
   name: string | null
   updated_at: string | null
-  thumbnail_url: string | null
+  thumbnail: string | null
+  ad_spec: { colors?: { background?: string } } | null
 }
 
 function formatUpdatedAt(value: string | null): string {
@@ -29,6 +30,7 @@ export function DashboardPage() {
   const [supabaseProjects, setSupabaseProjects] = useState<SupabaseProject[]>([])
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [projectsError, setProjectsError] = useState<string | null>(null)
+  const [openingId, setOpeningId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -71,13 +73,33 @@ export function DashboardPage() {
     }
   }
 
-  const handleOpenProjectInEditor = (projectId: string) => {
+  const handleOpenProjectInEditor = async (projectId: string) => {
+    if (!user) return
     try {
       localStorage.setItem(STORAGE_KEYS.PENDING_LOAD, projectId)
     } catch {
       // ignore
     }
+    setOpeningId(projectId)
+    try {
+      const item = await fetchAdById(user.id, projectId)
+      if (item) {
+        navigate('/editor', { state: { pendingLoadItem: item } })
+        return
+      }
+    } finally {
+      setOpeningId(null)
+    }
     navigate('/editor')
+  }
+
+  const handleOpenAdInEditor = (item: Ad) => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.PENDING_LOAD, item.id)
+    } catch {
+      // ignore
+    }
+    navigate('/editor', { state: { pendingLoadItem: item } })
   }
 
   const userEmail = user?.email ?? ''
@@ -150,17 +172,24 @@ export function DashboardPage() {
                   key={project.id}
                   type="button"
                   onClick={() => handleOpenProjectInEditor(project.id)}
-                  className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150"
+                  disabled={openingId === project.id}
+                  className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 disabled:opacity-70 disabled:cursor-wait"
                 >
                   <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
-                    {project.thumbnail_url ? (
+                    {project.thumbnail ? (
                       <img
-                        src={project.thumbnail_url}
+                        src={project.thumbnail}
                         alt=""
                         className="max-w-full max-h-24 object-contain block rounded-md"
                       />
                     ) : (
-                      <div className="w-full h-24 rounded-md bg-gray-100" />
+                      <div
+                        className="w-full h-24 rounded-md flex-shrink-0"
+                        style={{
+                          background:
+                            project.ad_spec?.colors?.background ?? '#e5e7eb',
+                        }}
+                      />
                     )}
                   </div>
                   <div className="p-4 pb-3 flex flex-col flex-1 min-h-0 text-left">
@@ -180,7 +209,7 @@ export function DashboardPage() {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleOpenProjectInEditor(item.id)}
+                  onClick={() => handleOpenAdInEditor(item)}
                   className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150"
                 >
                   <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">

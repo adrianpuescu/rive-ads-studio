@@ -122,7 +122,7 @@ export function ProjectsPage() {
       } catch {
         // ignore
       }
-      navigate('/editor');
+      navigate('/editor', { state: { pendingLoadItem: item } });
     },
     [navigate]
   );

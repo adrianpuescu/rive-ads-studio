@@ -1,14 +1,17 @@
 /**
- * Ads: session history of generated ads, persisted in localStorage.
+ * Ads: session history of generated ads, persisted in Supabase.
  * Used by editor and by /projects page.
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { STORAGE_KEYS } from '../constants/storageKeys';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './useAuth';
+import type { AdSpec } from '../types/ad-spec.schema';
 
 export interface Ad {
   id: string;
   createdAt: number;
+  adSpec?: AdSpec;
   headline: string;
   subheadline: string;
   cta: string;
@@ -25,105 +28,155 @@ export interface Ad {
   chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
-type AdLike = Ad & { conversationHistory?: Ad['chatHistory'] };
-
-function getChatHistoryFromItem(item: AdLike): Ad['chatHistory'] {
-  if (item.chatHistory && Array.isArray(item.chatHistory)) return item.chatHistory;
-  if (item.conversationHistory && Array.isArray(item.conversationHistory)) return item.conversationHistory;
-  return undefined;
+interface AdRow {
+  id: string;
+  user_id: string;
+  name: string | null;
+  ad_spec: AdSpec | null;
+  chat_history: Ad['chatHistory'] | null;
+  thumbnail: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
-function rawFromStorage(): string | null {
-  return (
-    localStorage.getItem(STORAGE_KEYS.ADS) ||
-    localStorage.getItem('riveads_library') ||
-    localStorage.getItem('riveads_ads') ||
-    null
-  );
+function mapRowToAd(row: AdRow): Ad {
+  const spec = row.ad_spec ?? undefined;
+  const createdAt =
+    row.created_at != null ? new Date(row.created_at).getTime() : Date.now();
+
+  return {
+    id: row.id,
+    createdAt,
+    adSpec: spec,
+    headline: row.ad_spec?.text?.headline?.value || '',
+    subheadline: row.ad_spec?.text?.subheadline?.value || '',
+    cta: row.ad_spec?.text?.cta?.value || '',
+    colors: {
+      background: row.ad_spec?.colors?.background || '#ffffff',
+      primary: row.ad_spec?.colors?.primary || '#000000',
+      secondary: row.ad_spec?.colors?.secondary || '#666666',
+      headlineColor: row.ad_spec?.colors?.headlineColor,
+      subheadlineColor: row.ad_spec?.colors?.subheadlineColor,
+      ctaColor: row.ad_spec?.colors?.ctaColor,
+    },
+    prompt: spec?.generation?.prompt ?? '',
+    thumbnail: row.thumbnail ?? undefined,
+    chatHistory: row.chat_history ?? [],
+  };
 }
 
-function loadFromStorage(): Ad[] {
-  try {
-    const raw = rawFromStorage();
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    let needsMigrate = false;
-    const normalized = parsed
-      .filter(
-        (x): x is AdLike =>
-          typeof x?.id === 'string' &&
-          typeof x?.createdAt === 'number' &&
-          typeof x?.headline === 'string' &&
-          typeof x?.subheadline === 'string' &&
-          typeof x?.cta === 'string' &&
-          x?.colors != null &&
-          typeof (x.colors as { background?: string })?.background === 'string' &&
-          typeof (x.colors as { primary?: string })?.primary === 'string' &&
-          typeof (x.colors as { secondary?: string })?.secondary === 'string' &&
-          typeof x?.prompt === 'string'
-      )
-      .map((item) => {
-        const chatHistory = getChatHistoryFromItem(item);
-        if ((item as AdLike).conversationHistory !== undefined) needsMigrate = true;
-        const { conversationHistory: _dropped, ...rest } = item as AdLike & { conversationHistory?: unknown };
-        void _dropped; // intentionally omitted for migration
-        return { ...rest, chatHistory } as Ad;
-      })
-      .sort((a, b) => b.createdAt - a.createdAt);
-    if (needsMigrate && normalized.length > 0) {
-      try {
-        localStorage.setItem(STORAGE_KEYS.ADS, JSON.stringify(normalized));
-      } catch {
-        // ignore migration write failure
-      }
-    }
-    return normalized;
-  } catch {
-    return [];
-  }
+async function loadAds(userId: string): Promise<Ad[]> {
+  const { data, error } = await supabase
+    .from<AdRow>('ads')
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+
+  if (error || data == null) return [];
+
+  return data.map(mapRowToAd);
 }
 
-function saveToStorage(ads: Ad[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEYS.ADS, JSON.stringify(ads));
-  } catch {
-    // ignore
-  }
+/** Fetch a single ad by id for the user (e.g. Dashboard opening in editor with state). */
+export async function fetchAdById(userId: string, id: string): Promise<Ad | null> {
+  const { data, error } = await supabase
+    .from<AdRow>('ads')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('id', id)
+    .maybeSingle();
+  if (error || data == null) return null;
+  return mapRowToAd(data);
 }
 
 export function useAds() {
-  const [ads, setAds] = useState<Ad[]>(loadFromStorage);
+  const { user, loading: authLoading } = useAuth();
+  const [ads, setAds] = useState<Ad[]>([]);
 
   useEffect(() => {
-    const stored = loadFromStorage();
-    setAds(stored);
-  }, []);
+    if (authLoading) return;
 
-  const saveAd = useCallback((ad: Omit<Ad, 'id' | 'createdAt'>): string => {
-    const id = crypto.randomUUID();
-    const full: Ad = {
-      ...ad,
-      id,
-      createdAt: Date.now(),
+    if (!user) {
+      setAds([]);
+      return;
+    }
+
+    let isCancelled = false;
+
+    void (async () => {
+      const loaded = await loadAds(user.id);
+      if (!isCancelled) {
+        setAds(loaded);
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
     };
-    setAds((prev) => {
-      const next = [full, ...prev];
-      saveToStorage(next);
-      return next;
-    });
-    return id;
-  }, []);
+  }, [authLoading, user]);
 
-  const updateItemThumbnail = useCallback((id: string, thumbnail: string) => {
-    setAds((prev) => {
-      const next = prev.map((item) =>
-        item.id === id ? { ...item, thumbnail } : item
+  const saveAd = useCallback(
+    (ad: Omit<Ad, 'id' | 'createdAt'>): string => {
+      const full: Ad = {
+        ...ad,
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+      };
+
+      setAds((prev) => [full, ...prev]);
+
+      if (user) {
+        const payload: AdRow = {
+          id: full.id,
+          user_id: user.id,
+          name: full.adSpec?.text?.headline?.value || full.headline || 'Untitled',
+          ad_spec: full.adSpec ?? null,
+          chat_history: full.chatHistory ?? [],
+          thumbnail: full.thumbnail ?? null,
+          created_at: new Date(full.createdAt || Date.now()).toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        void supabase.from<AdRow>('ads').upsert(payload).select().then(({ error }) => {
+          if (error) console.error('[saveAd] upsert error:', error);
+        });
+      }
+
+      return full.id;
+    },
+    [user]
+  );
+
+  const updateItemThumbnail = useCallback(
+    (id: string, thumbnail: string) => {
+      setAds((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                thumbnail,
+              }
+            : item
+        )
       );
-      saveToStorage(next);
-      return next;
-    });
-  }, []);
+
+      if (user) {
+        const payload: Partial<AdRow> = {
+          thumbnail,
+          updated_at: new Date().toISOString(),
+        };
+
+        void supabase
+          .from<AdRow>('ads')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .then(({ error }) => {
+            if (error) console.error('[updateThumbnail] error:', error);
+          });
+      }
+    },
+    [user]
+  );
 
   const updateItem = useCallback(
     (id: string, data: Omit<Ad, 'id' | 'createdAt'>) => {
@@ -132,6 +185,7 @@ export function useAds() {
           item.id === id
             ? {
                 ...item,
+                adSpec: data.adSpec ?? item.adSpec,
                 headline: data.headline,
                 subheadline: data.subheadline,
                 cta: data.cta,
@@ -141,25 +195,51 @@ export function useAds() {
               }
             : item
         );
-        saveToStorage(next);
         return next;
       });
+
+      if (user) {
+        const nextSpec = data.adSpec ?? undefined;
+        const payload: Partial<AdRow> = {
+          name: nextSpec?.text?.headline?.value,
+          ad_spec: nextSpec ?? null,
+          chat_history: data.chatHistory ?? null,
+          thumbnail: data.thumbnail,
+          updated_at: new Date().toISOString(),
+        };
+
+        void supabase
+          .from<AdRow>('ads')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', user.id);
+      }
     },
-    []
+    [user]
   );
 
-  const removeItem = useCallback((id: string) => {
-    setAds((prev) => {
-      const next = prev.filter((x) => x.id !== id);
-      saveToStorage(next);
-      return next;
-    });
-  }, []);
+  const removeItem = useCallback(
+    (id: string) => {
+      setAds((prev) => prev.filter((x) => x.id !== id));
+
+      if (user) {
+        void supabase
+          .from<AdRow>('ads')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id);
+      }
+    },
+    [user]
+  );
 
   const clearAll = useCallback(() => {
     setAds([]);
-    saveToStorage([]);
-  }, []);
+
+    if (user) {
+      void supabase.from<AdRow>('ads').delete().eq('user_id', user.id);
+    }
+  }, [user]);
 
   return { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem, clearAll };
 }

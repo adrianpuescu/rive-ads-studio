@@ -210,7 +210,7 @@ export function ChatPanel({
     }
   };
 
-  const isInitial = messages.length === 0;
+  const isInitial = currentSpec === null && messages.length === 0;
   const canSubmit = isInitial
     ? inputValue.trim().length > 0 && !isLoading
     : inputValue.trim().length > 0 && !isLoading && currentSpec !== null;
