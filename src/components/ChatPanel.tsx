@@ -80,14 +80,13 @@ export function ChatPanel({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showLoadedFromProjectsSeparator, setShowLoadedFromProjectsSeparator] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (newAdTrigger > 0) {
       setMessages([]);
-      setShowLoadedFromProjectsSeparator(false);
+
     }
   }, [newAdTrigger]);
 
@@ -101,7 +100,6 @@ export function ChatPanel({
       }));
       setMessages(asMessages);
       onChatMessagesChange?.(restoredChatHistory);
-      setShowLoadedFromProjectsSeparator(true);
       onRestoredChatHistoryApplied?.();
     }
   }, [restoredChatHistory]);
@@ -298,15 +296,11 @@ export function ChatPanel({
       <div className="flex flex-col flex-1 min-h-0 p-0 m-0">
         <div
           ref={messagesContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-end gap-3 py-4 px-4 pb-2 scrollbar-thin"
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-start gap-3 py-4 px-4 pb-2 scrollbar-thin"
           role="log"
           aria-live="polite"
         >
-          {showLoadedFromProjectsSeparator && (
-            <div className="text-xs text-gray-300 text-center py-2 m-0 mb-2 border-b border-gray-200">
-              — Loaded from project —
-            </div>
-          )}
+
           {messages.map((msg) => (
             <div
               key={msg.id}
