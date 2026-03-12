@@ -67,7 +67,7 @@ function mapRowToAd(row: AdRow): Ad {
 
 async function loadAds(userId: string): Promise<Ad[]> {
   const { data, error } = await supabase
-    .from<AdRow>('ads')
+    .from('ads')
     .select('*')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
@@ -80,7 +80,7 @@ async function loadAds(userId: string): Promise<Ad[]> {
 /** Fetch a single ad by id for the user (e.g. Dashboard opening in editor with state). */
 export async function fetchAdById(userId: string, id: string): Promise<Ad | null> {
   const { data, error } = await supabase
-    .from<AdRow>('ads')
+    .from('ads')
     .select('*')
     .eq('user_id', userId)
     .eq('id', id)
@@ -136,7 +136,7 @@ export function useAds() {
           created_at: new Date(full.createdAt || Date.now()).toISOString(),
           updated_at: new Date().toISOString(),
         };
-        void supabase.from<AdRow>('ads').upsert(payload).select().then(({ error }) => {
+        void supabase.from('ads').upsert(payload).select().then(({ error }) => {
           if (error) console.error('[saveAd] upsert error:', error);
         });
       }
@@ -166,7 +166,7 @@ export function useAds() {
         };
 
         void supabase
-          .from<AdRow>('ads')
+          .from('ads')
           .update(payload)
           .eq('id', id)
           .eq('user_id', user.id)
@@ -209,7 +209,7 @@ export function useAds() {
         };
 
         void supabase
-          .from<AdRow>('ads')
+          .from('ads')
           .update(payload)
           .eq('id', id)
           .eq('user_id', user.id);
@@ -224,7 +224,7 @@ export function useAds() {
 
       if (user) {
         void supabase
-          .from<AdRow>('ads')
+          .from('ads')
           .delete()
           .eq('id', id)
           .eq('user_id', user.id);
@@ -237,7 +237,7 @@ export function useAds() {
     setAds([]);
 
     if (user) {
-      void supabase.from<AdRow>('ads').delete().eq('user_id', user.id);
+      void supabase.from('ads').delete().eq('user_id', user.id);
     }
   }, [user]);
 

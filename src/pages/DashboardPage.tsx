@@ -29,7 +29,7 @@ export function DashboardPage() {
 
   const [supabaseProjects, setSupabaseProjects] = useState<SupabaseProject[]>([])
   const [projectsLoading, setProjectsLoading] = useState(true)
-  const [projectsError, setProjectsError] = useState<string | null>(null)
+  const [, setProjectsError] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export function DashboardPage() {
     setProjectsError(null)
 
     supabase
-      .from<SupabaseProject>('ads')
+      .from('ads')
       .select('*')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
@@ -53,11 +53,10 @@ export function DashboardPage() {
           return
         }
         setSupabaseProjects(data ?? [])
+        if (!cancelled) setProjectsLoading(false)
       })
-      .finally(() => {
-        if (!cancelled) {
-          setProjectsLoading(false)
-        }
+      .catch(() => {
+        if (!cancelled) setProjectsLoading(false)
       })
 
     return () => {

@@ -34,7 +34,7 @@ interface BrandRow {
 
 async function loadBrands(userId: string): Promise<Brand[]> {
   const { data, error } = await supabase
-    .from<BrandRow>('brands')
+    .from('brands')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
@@ -124,7 +124,7 @@ export function useBrandTokens() {
         created_at: new Date(brand.createdAt).toISOString(),
       };
 
-      void supabase.from<BrandRow>('brands')
+      void supabase.from('brands')
         .upsert(payload)
         .then(({ error }) => {
           if (error) console.error('[addBrand] upsert error:', error);
@@ -158,7 +158,7 @@ export function useBrandTokens() {
         };
 
         void supabase
-          .from<BrandRow>('brands')
+          .from('brands')
           .update(payload)
           .eq('id', id)
           .eq('user_id', user.id);
@@ -179,7 +179,7 @@ export function useBrandTokens() {
 
       if (user) {
         void supabase
-          .from<BrandRow>('brands')
+          .from('brands')
           .delete()
           .eq('id', id)
           .eq('user_id', user.id);

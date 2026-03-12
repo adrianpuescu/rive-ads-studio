@@ -30,10 +30,6 @@ const DEFAULT_TOKENS: BrandTokensType = {
   brandVoice: '',
 };
 
-function truncateFont(name: string, maxLen: number): string {
-  if (name.length <= maxLen) return name;
-  return name.slice(0, maxLen).trim() + '…';
-}
 
 export interface BrandTokensPanelProps {
   isOpen: boolean;
