@@ -175,8 +175,8 @@ export function ProjectsPage() {
 
       {items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-16">
-          <h2 className="m-0 mb-2 text-base font-semibold text-gray-900">No ads yet</h2>
-          <p className="m-0 mb-6 text-sm text-gray-500">Go to the editor and generate your first ad</p>
+          <h2 className="m-0 mb-2 text-base font-semibold text-gray-900">No projects yet</h2>
+          <p className="m-0 mb-6 text-sm text-gray-500">Generate your first ad to get started.</p>
           <button
             type="button"
             onClick={() => navigate('/editor')}

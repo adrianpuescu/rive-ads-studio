@@ -58,16 +58,19 @@ async function loadBrands(userId: string): Promise<Brand[]> {
 export function useBrandTokens() {
   const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<BrandState>({ brands: [], activeBrandId: null });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
       setState({ brands: [], activeBrandId: null });
+      setLoading(false);
       return;
     }
 
     let isCancelled = false;
+    setLoading(true);
 
     void (async () => {
       const brands = await loadBrands(user.id);
@@ -81,6 +84,7 @@ export function useBrandTokens() {
               : null;
           return { brands, activeBrandId };
         });
+        setLoading(false);
       }
     })();
 
@@ -200,6 +204,7 @@ export function useBrandTokens() {
     activeBrandId: state.activeBrandId,
     activeBrand,
     hasActiveBrand,
+    loading,
     addBrand,
     updateBrand,
     deleteBrand,

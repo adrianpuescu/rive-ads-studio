@@ -24,7 +24,7 @@ function formatUpdatedAt(value: string | null): string {
 export function DashboardPage() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
-  const { brands } = useBrandTokens()
+  const { brands, loading: brandsLoading } = useBrandTokens()
   const { items: localAds } = useAds()
 
   const [supabaseProjects, setSupabaseProjects] = useState<SupabaseProject[]>([])
@@ -140,13 +140,15 @@ export function DashboardPage() {
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col gap-8">
         <section className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-lg font-semibold text-gray-900 m-0">Dashboard</h1>
-          <button
-            type="button"
-            onClick={() => navigate('/editor')}
-            className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm px-3 py-2 rounded hover:bg-gray-700 border-0 cursor-pointer transition-colors duration-150 min-h-[32px]"
-          >
-            + New project
-          </button>
+          {!projectsLoading && (supabaseProjects.length > 0 || localAds.length > 0) && (
+            <button
+              type="button"
+              onClick={() => navigate('/editor')}
+              className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm px-3 py-2 rounded hover:bg-gray-700 border-0 cursor-pointer transition-colors duration-150 min-h-[32px]"
+            >
+              + New project
+            </button>
+          )}
         </section>
 
         <section aria-labelledby="recent-projects-heading" className="flex flex-col gap-4">
@@ -157,18 +159,18 @@ export function DashboardPage() {
             >
               Recent projects
             </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/projects')}
-              className="text-sm text-gray-500 hover:text-gray-900 px-1 py-0 border-0 bg-transparent cursor-pointer transition-colors duration-150"
-            >
-              View all →
-            </button>
+            {!projectsLoading && (supabaseProjects.length > 0 || localAds.length > 0) && (
+              <button
+                type="button"
+                onClick={() => navigate('/projects')}
+                className="text-sm text-gray-500 hover:text-gray-900 px-1 py-0 border-0 bg-transparent cursor-pointer transition-colors duration-150"
+              >
+                View all →
+              </button>
+            )}
           </div>
 
-          {projectsLoading ? (
-            <p className="text-sm text-gray-500">Loading your projects…</p>
-          ) : supabaseProjects.length > 0 ? (
+          {projectsLoading ? null : supabaseProjects.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {supabaseProjects.map((project) => (
                 <button
@@ -268,6 +270,13 @@ export function DashboardPage() {
               <p className="m-0 text-sm text-gray-500">
                 Generate your first ad to get started.
               </p>
+              <button
+                type="button"
+                onClick={() => navigate('/editor')}
+                className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm px-3 py-2 rounded hover:bg-gray-700 border-0 cursor-pointer transition-colors duration-150 min-h-[32px] mt-1"
+              >
+                Create new project
+              </button>
             </div>
           )}
         </section>
@@ -280,21 +289,30 @@ export function DashboardPage() {
             >
               Brands
             </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/editor')}
-              className="text-sm text-gray-500 hover:text-gray-900 px-1 py-0 border-0 bg-transparent cursor-pointer transition-colors duration-150"
-            >
-              Manage →
-            </button>
+            {!brandsLoading && sortedBrands.length > 0 && (
+              <button
+                type="button"
+                onClick={() => navigate('/editor')}
+                className="text-sm text-gray-500 hover:text-gray-900 px-1 py-0 border-0 bg-transparent cursor-pointer transition-colors duration-150"
+              >
+                Manage →
+              </button>
+            )}
           </div>
 
-          {sortedBrands.length === 0 ? (
+          {brandsLoading ? null : sortedBrands.length === 0 ? (
             <div className="flex flex-col items-start justify-center gap-2 rounded-lg border border-dashed border-gray-200 bg-white px-5 py-6">
               <p className="m-0 text-sm font-medium text-gray-900">No brands yet</p>
               <p className="m-0 text-sm text-gray-500">
                 Add a brand to keep your ads consistent.
               </p>
+              <button
+                type="button"
+                onClick={() => navigate('/editor')}
+                className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm px-3 py-2 rounded hover:bg-gray-700 border-0 cursor-pointer transition-colors duration-150 min-h-[32px] mt-1"
+              >
+                Add brand
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3">
