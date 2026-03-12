@@ -39,13 +39,14 @@ export function DashboardPage() {
     setProjectsLoading(true)
     setProjectsError(null)
 
-    supabase
-      .from('ads')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(6)
-      .then(({ data, error }) => {
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ads')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(6)
         if (cancelled) return
         if (error) {
           setProjectsError('Could not load recent projects.')
@@ -53,11 +54,14 @@ export function DashboardPage() {
           return
         }
         setSupabaseProjects(data ?? [])
+      } catch (error) {
+        console.error(error)
+      } finally {
         if (!cancelled) setProjectsLoading(false)
-      })
-      .catch(() => {
-        if (!cancelled) setProjectsLoading(false)
-      })
+      }
+    }
+
+    void fetchProjects()
 
     return () => {
       cancelled = true
