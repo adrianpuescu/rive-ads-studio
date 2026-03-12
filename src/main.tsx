@@ -4,23 +4,64 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { ProjectsPage } from './pages/ProjectsPage.tsx'
-import { LandingPage } from './pages/LandingPage.tsx'
 import { LoginPage } from './pages/LoginPage.tsx'
 import { RegisterPage } from './pages/RegisterPage.tsx'
 import { DashboardPage } from './pages/DashboardPage.tsx'
+import { useAuth } from './hooks/useAuth'
+
+function AppRoutes() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-sm text-gray-500">Loading session…</p>
+      </div>
+    )
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        }
+      />
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+      />
+      <Route
+        path="/register"
+        element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
+      />
+      <Route
+        path="/dashboard"
+        element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/editor"
+        element={user ? <App /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/projects"
+        element={user ? <ProjectsPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="*"
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        }
+      />
+    </Routes>
+  )
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/editor" element={<App />} />
-        <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="*" element={<Navigate to="/editor" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   </StrictMode>,
 )

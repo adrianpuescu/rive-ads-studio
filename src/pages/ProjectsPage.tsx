@@ -130,7 +130,7 @@ export function ProjectsPage() {
   return (
     <div className="flex flex-col w-full min-h-screen bg-gray-50">
       <header className="h-11 flex-shrink-0 flex items-center py-0 px-5 bg-white border-b border-gray-200">
-        <Link to="/" className="flex items-center gap-1.5 no-underline text-gray-900">
+        <Link to="/dashboard" className="flex items-center gap-1.5 no-underline text-gray-900">
           <span className="font-serif text-sm font-semibold leading-none">RiveAds</span>
           <span className="w-1 h-1 rounded-full bg-gray-900" aria-hidden />
           <span className="font-sans text-sm font-semibold leading-none">Studio</span>
