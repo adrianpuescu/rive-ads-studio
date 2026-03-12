@@ -611,6 +611,14 @@ function App() {
           )}
         </div>
 
+        {projectsDrawerOpen && (
+          <button
+            type="button"
+            className="absolute inset-0 z-[19] cursor-default border-0 p-0 m-0 bg-transparent"
+            onClick={() => setProjectsDrawerOpen(false)}
+            aria-label="Close Projects"
+          />
+        )}
         <AdsDrawer
           isOpen={projectsDrawerOpen}
           onClose={() => setProjectsDrawerOpen(false)}
@@ -637,6 +645,14 @@ function App() {
             removeItem(id)
           }}
         />
+        {brandOpen && (
+          <button
+            type="button"
+            className="absolute inset-0 z-[24] cursor-default border-0 p-0 m-0 bg-transparent"
+            onClick={() => setBrandOpen(false)}
+            aria-label="Close Brands"
+          />
+        )}
         <BrandTokensPanel
           isOpen={brandOpen}
           onClose={() => setBrandOpen(false)}
