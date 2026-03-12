@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Palette } from 'lucide-react';
 import type { AdSpec } from '../types/ad-spec.schema';
 import type { ActiveBrandForPrompt } from '../ai/specGenerator';
 import type { ChatMessage } from '../types/chat';
@@ -42,7 +42,7 @@ export interface ChatPanelProps {
   hasActiveBrand?: boolean;
   /** Active brand name for chip label. */
   activeBrandName?: string;
-  /** Callback when user clicks the brand chip to open panel. */
+  /** Callback when user clicks the brand button to open panel. */
   onOpenBrandTokens?: () => void;
   /** When true, disable Generate Variants (e.g. while generating variants). */
   isGenerating?: boolean;
@@ -215,23 +215,45 @@ export function ChatPanel({
     ? inputValue.trim().length > 0 && !isLoading
     : inputValue.trim().length > 0 && !isLoading && currentSpec !== null;
 
-  const brandChip = hasActiveBrand && (
-    <button
-      type="button"
-      className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded text-xs text-gray-500 cursor-pointer hover:bg-gray-200 transition-colors duration-150"
-      onClick={onOpenBrandTokens}
-      aria-label={`${activeBrandName} active — click to edit`}
-    >
-      <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden />
-      {activeBrandName}
-    </button>
-  );
+  const isCreationMode = currentSpec === null;
+  const brandButton =
+    isCreationMode && onOpenBrandTokens ? (
+      <button
+        type="button"
+        className={`inline-flex items-center gap-2 px-3 py-2 border rounded text-sm cursor-pointer transition-colors duration-150 min-h-[36px] ${
+          hasActiveBrand
+            ? 'border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900'
+            : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700'
+        }`}
+        onClick={onOpenBrandTokens}
+        aria-label={hasActiveBrand ? `${activeBrandName} — edit brand` : 'Add brand'}
+      >
+        {hasActiveBrand && activeBrand?.tokens ? (
+          <span className="flex items-center gap-1 flex-shrink-0" aria-hidden>
+            <span
+              className="w-3 h-3 rounded-full ring-1 ring-black/10 flex-shrink-0"
+              style={{ backgroundColor: activeBrand.tokens.primaryColor }}
+            />
+            <span
+              className="w-3 h-3 rounded-full ring-1 ring-black/10 flex-shrink-0"
+              style={{ backgroundColor: activeBrand.tokens.secondaryColor }}
+            />
+            <span
+              className="w-3 h-3 rounded-full ring-1 ring-black/10 flex-shrink-0"
+              style={{ backgroundColor: activeBrand.tokens.backgroundColor }}
+            />
+          </span>
+        ) : (
+          <Palette className="w-4 h-4 flex-shrink-0" aria-hidden />
+        )}
+        <span>{hasActiveBrand ? activeBrandName : 'Add brand'}</span>
+      </button>
+    ) : null;
 
   if (isInitial) {
     return (
       <div className="w-full h-full min-h-0 flex flex-col p-0 m-0 flex-1">
         <div className="flex flex-col gap-4 py-6 px-4 w-full box-border">
-          {brandChip}
           <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider m-0" htmlFor="chat-initial-textarea">
             Describe your ad
           </label>
@@ -250,6 +272,7 @@ export function ChatPanel({
             placeholder="e.g. a dreamy banner for a luxury perfume launch"
             disabled={isLoading}
           />
+          {brandButton}
           <button
             type="button"
             className={`w-full h-11 px-6 font-medium text-sm text-white bg-gray-900 border-0 rounded cursor-pointer transition-colors duration-150 hover:enabled:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed ${isGenerating ? 'animate-dots-loading' : ''}`}
@@ -301,11 +324,6 @@ export function ChatPanel({
           <div ref={messagesEndRef} />
         </div>
         <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50">
-          {brandChip && (
-            <div className="px-4 pt-3 pb-0">
-              {brandChip}
-            </div>
-          )}
           <div className="flex items-center gap-2 w-full m-0 py-3 px-4 pb-4">
           <textarea
             aria-label="Refine your ad"

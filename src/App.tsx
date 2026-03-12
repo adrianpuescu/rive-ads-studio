@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Undo2, Redo2, Layers, LayoutGrid } from 'lucide-react'
+import { Plus, Undo2, Redo2, LayoutGrid } from 'lucide-react'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
@@ -78,13 +78,11 @@ function App() {
     brands,
     activeBrandId,
     activeBrand,
-    isEnabled,
     hasActiveBrand,
     addBrand,
     updateBrand,
     deleteBrand,
     setActiveBrand,
-    toggleEnabled,
   } = useBrandTokens()
 
   const clearNewAdConfirmTimeout = useCallback(() => {
@@ -510,17 +508,6 @@ function App() {
 
         <button
           type="button"
-          className="relative inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
-          onClick={() => setBrandOpen((prev) => !prev)}
-          aria-label={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active — edit` : 'Open Brand Manager'}
-          title={hasActiveBrand ? `${activeBrand?.name ?? 'Brand'} active` : 'Brand Manager'}
-        >
-          <Layers className="w-3.5 h-3.5" aria-hidden />
-          Brand
-          {hasActiveBrand && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden />}
-        </button>
-        <button
-          type="button"
           className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
           onClick={() => setProjectsDrawerOpen((prev) => !prev)}
           aria-label="Open Projects"
@@ -587,7 +574,7 @@ function App() {
         <div className="relative flex-1 min-w-0 h-full flex flex-col items-center justify-center bg-[#FAFAFA] overflow-hidden app-center-panel-mobile px-5 max-md:order-1 max-md:min-h-[40vh] max-md:py-8 max-md:px-6">
           <button
             type="button"
-            className={`absolute left-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-l-0 rounded-r cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200 transition-opacity duration-150 ease-out ${projectsDrawerOpen ? 'opacity-0 pointer-events-none' : ''}`}
+            className={`absolute left-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-l-0 rounded-r cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200 transition-opacity duration-150 ease-out ${projectsDrawerOpen || brandOpen ? 'opacity-0 pointer-events-none' : ''}`}
             onClick={toggleChat}
             aria-label={chatCollapsed ? 'Expand chat' : 'Collapse chat'}
             aria-expanded={!chatCollapsed}
@@ -614,7 +601,7 @@ function App() {
           {adSpec && (
             <button
               type="button"
-              className={`absolute right-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-r-0 rounded-l cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200 transition-opacity duration-150 ease-out ${brandOpen ? 'opacity-0 pointer-events-none' : ''}`}
+              className="absolute right-0 top-[60px] w-5 h-12 p-0 flex items-center justify-center text-sm text-text-primary bg-[#f5f5f5] border border-[#e5e5e5] border-r-0 rounded-l cursor-pointer hover:bg-[#ebebeb] hover:border-[#e0e0e0] focus:outline-none focus-visible:bg-[#ebebeb] focus-visible:border-border z-[1] transition-colors duration-200 transition-opacity duration-150 ease-out"
               onClick={toggleInspector}
               aria-label={inspectorCollapsed ? 'Expand inspector' : 'Collapse inspector'}
               aria-expanded={!inspectorCollapsed}
@@ -655,8 +642,6 @@ function App() {
           onClose={() => setBrandOpen(false)}
           brands={brands}
           activeBrandId={activeBrandId}
-          isEnabled={isEnabled}
-          onToggleEnabled={toggleEnabled}
           onAddBrand={addBrand}
           onUpdateBrand={updateBrand}
           onDeleteBrand={deleteBrand}
@@ -681,9 +666,9 @@ function App() {
             }`}
           >
             <div
-              className={`w-[280px] flex-shrink-0 h-full overflow-y-auto overflow-x-hidden py-8 px-5 border-l border-border bg-surface transition-transform duration-250 ease-out scrollbar-thin app-right-panel-mobile ${inspectorCollapsed ? 'translate-x-[280px]' : 'translate-x-0'} max-md:w-full max-md:[.app-right-wrap-mobile.w-0_&]:translate-x-full`}
+              className={`w-[280px] flex-shrink-0 h-full overflow-y-auto overflow-x-hidden py-6 px-5 border-l border-border bg-surface transition-transform duration-250 ease-out scrollbar-thin app-right-panel-mobile ${inspectorCollapsed ? 'translate-x-[280px]' : 'translate-x-0'} max-md:w-full max-md:[.app-right-wrap-mobile.w-0_&]:translate-x-full`}
             >
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-5">Inspector</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-5 mt-0">Inspector</p>
               <SpecInspector
                 spec={adSpec}
                 onChange={handleInspectorChange}

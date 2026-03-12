@@ -17,22 +17,22 @@ export interface Brand {
 export interface BrandState {
   brands: Brand[];
   activeBrandId: string | null;
-  isEnabled: boolean;
 }
 
 function loadFromStorage(): BrandState {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.BRAND_STATE);
-    if (!raw) return { brands: [], activeBrandId: null, isEnabled: false };
+    if (!raw) return { brands: [], activeBrandId: null };
     const parsed = JSON.parse(raw) as unknown;
-    if (parsed == null || typeof parsed !== 'object') return { brands: [], activeBrandId: null, isEnabled: false };
+    if (parsed == null || typeof parsed !== 'object') return { brands: [], activeBrandId: null };
     const o = parsed as Record<string, unknown>;
     const brands = parseBrands(o.brands);
-    const activeBrandId = typeof o.activeBrandId === 'string' ? o.activeBrandId : null;
-    const isEnabled = typeof o.isEnabled === 'boolean' ? o.isEnabled : false;
-    return { brands, activeBrandId, isEnabled };
+    let activeBrandId = typeof o.activeBrandId === 'string' ? o.activeBrandId : null;
+    const isEnabled = typeof o.isEnabled === 'boolean' ? o.isEnabled : true;
+    if (!isEnabled) activeBrandId = null;
+    return { brands, activeBrandId };
   } catch {
-    return { brands: [], activeBrandId: null, isEnabled: false };
+    return { brands: [], activeBrandId: null };
   }
 }
 
@@ -80,7 +80,7 @@ export function useBrandTokens() {
     [state.brands, state.activeBrandId]
   );
 
-  const hasActiveBrand = state.activeBrandId !== null && state.isEnabled;
+  const hasActiveBrand = state.activeBrandId !== null;
 
   const addBrand = useCallback((name: string, tokens: BrandTokens): Brand => {
     const brand: Brand = {
@@ -116,7 +116,6 @@ export function useBrandTokens() {
       const next: BrandState = {
         brands: prev.brands.filter((b) => b.id !== id),
         activeBrandId: prev.activeBrandId === id ? null : prev.activeBrandId,
-        isEnabled: prev.activeBrandId === id ? false : prev.isEnabled,
       };
       saveToStorage(next);
       return next;
@@ -131,24 +130,14 @@ export function useBrandTokens() {
     });
   }, []);
 
-  const toggleEnabled = useCallback(() => {
-    setState((prev) => {
-      const next = { ...prev, isEnabled: !prev.isEnabled };
-      saveToStorage(next);
-      return next;
-    });
-  }, []);
-
   return {
     brands: state.brands,
     activeBrandId: state.activeBrandId,
     activeBrand,
-    isEnabled: state.isEnabled,
     hasActiveBrand,
     addBrand,
     updateBrand,
     deleteBrand,
     setActiveBrand,
-    toggleEnabled,
   };
 }

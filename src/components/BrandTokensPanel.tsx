@@ -1,6 +1,6 @@
 /**
- * Brand Manager panel: drawer from the right.
- * State 1: list of brands + global enable toggle.
+ * Brand Manager panel: drawer from the left (over ChatPanel).
+ * State 1: list of brands; select/deselect one as active (or None).
  * State 2: form to create or edit a brand.
  */
 
@@ -40,8 +40,6 @@ export interface BrandTokensPanelProps {
   onClose: () => void;
   brands: Brand[];
   activeBrandId: string | null;
-  isEnabled: boolean;
-  onToggleEnabled: () => void;
   onAddBrand: (name: string, tokens: BrandTokensType) => Brand;
   onUpdateBrand: (id: string, updates: Partial<Brand>) => void;
   onDeleteBrand: (id: string) => void;
@@ -56,8 +54,6 @@ export function BrandTokensPanel({
   onClose,
   brands,
   activeBrandId,
-  isEnabled,
-  onToggleEnabled,
   onAddBrand,
   onUpdateBrand,
   onDeleteBrand,
@@ -103,13 +99,12 @@ export function BrandTokensPanel({
     if (formMode.kind === 'new') {
       const added = onAddBrand(name, tokens);
       onSetActiveBrand(added.id);
-      if (!isEnabled) onToggleEnabled();
       goToList();
     } else {
       onUpdateBrand(formMode.brand.id, { name, tokens });
       goToList();
     }
-  }, [form, formMode, isEnabled, onAddBrand, onUpdateBrand, onSetActiveBrand, onToggleEnabled, goToList]);
+  }, [form, formMode, onAddBrand, onUpdateBrand, onSetActiveBrand, goToList]);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -139,7 +134,7 @@ export function BrandTokensPanel({
             Brand Voice
             <input type="text" className="block w-full mt-1 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white" value={form.tokens.brandVoice} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, brandVoice: e.target.value } }))} placeholder="e.g. bold and energetic" />
           </label>
-          <section className="mb-5 mt-5">
+          <section className="mb-5 mt-4">
             <h3 className="text-xs font-semibold tracking-wider uppercase text-gray-500 m-0 mb-2.5">Colors</h3>
             <label className="block text-xs font-medium text-gray-900 mb-2">
               Primary Color
@@ -163,7 +158,7 @@ export function BrandTokensPanel({
               </div>
             </label>
           </section>
-          <section className="mb-5">
+          <section className="mb-5 mt-4">
             <h3 className="text-xs font-semibold tracking-wider uppercase text-gray-500 m-0 mb-2.5">Typography</h3>
             <label className="block text-xs font-medium text-gray-900 mb-2">
               Font Family
@@ -184,19 +179,12 @@ export function BrandTokensPanel({
   }
 
   return (
-    <div className={`absolute right-0 top-0 w-[300px] h-full z-[25] bg-white border-l border-gray-200 flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[300px]'}`} role="dialog" aria-label="Brands">
+    <div className={`absolute left-0 top-0 w-[300px] h-full z-[25] bg-white border-r border-gray-200 flex flex-col transition-transform duration-250 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-[300px]'}`} role="dialog" aria-label="Brands">
       <DrawerHeader title="Brands" onClose={onClose} action={{ label: '+ New brand', onClick: openNew }} />
 
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col scrollbar-thin">
-        {/* TOGGLE BRAND TOKENS */}
-        <label className="flex items-center justify-between px-4 py-3 border-b border-gray-100 cursor-pointer select-none flex-shrink-0">
-          <span className="text-sm text-gray-900">Enable</span>
-          <input type="checkbox" className="peer absolute opacity-0 w-0 h-0" checked={isEnabled} onChange={onToggleEnabled} aria-label="Use brand tokens" />
-          <span className="relative w-9 h-5 bg-gray-300 rounded-full transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:shadow-sm after:transition-transform duration-200 peer-checked:bg-gray-900 peer-checked:after:translate-x-4" />
-        </label>
-
-        {/* LISTA BRANDURI */}
-        <div className={`flex-1 min-h-0 flex flex-col ${!isEnabled ? 'opacity-60 pointer-events-none' : ''}`}>
+        {/* LIST: None + brands */}
+        <div className="flex-1 min-h-0 flex flex-col">
           {brands.length === 0 ? (
             /* STARE GOALĂ */
             <div className="flex flex-col items-center justify-center p-8 text-center gap-3">
@@ -207,6 +195,24 @@ export function BrandTokensPanel({
             </div>
           ) : (
             <ul className="list-none m-0 p-3 flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto" role="list">
+              {/* None = deselect */}
+              <li
+                role="button"
+                tabIndex={0}
+                className={`border rounded-lg p-3 cursor-pointer transition-colors ${activeBrandId === null ? 'border-blue-200 bg-blue-50' : 'border-gray-200 hover:border-gray-400'}`}
+                onClick={() => onSetActiveBrand(null)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSetActiveBrand(null);
+                  }
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={`flex-shrink-0 w-3 h-3 rounded-full border-2 ${activeBrandId === null ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`} aria-hidden />
+                  <span className="text-sm font-medium text-gray-700">None</span>
+                </div>
+              </li>
               {brands.map((brand) => {
                 const isActive = activeBrandId === brand.id;
                 const isConfirmingDelete = confirmDeleteId === brand.id;
@@ -216,11 +222,11 @@ export function BrandTokensPanel({
                     role="button"
                     tabIndex={0}
                     className={`relative border rounded-lg p-3 cursor-pointer transition-colors ${isConfirmingDelete ? 'border-red-200 bg-red-50' : isActive ? 'border-blue-200 bg-blue-50 hover:border-gray-400' : 'border-gray-200 hover:border-gray-400'}`}
-                    onClick={() => onSetActiveBrand(brand.id)}
+                    onClick={() => onSetActiveBrand(isActive ? null : brand.id)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        onSetActiveBrand(brand.id);
+                        onSetActiveBrand(isActive ? null : brand.id);
                       }
                     }}
                   >
@@ -232,9 +238,9 @@ export function BrandTokensPanel({
                           className={`flex-shrink-0 w-3 h-3 rounded-full ${isActive ? 'bg-blue-500' : 'border-2 border-gray-300'}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onSetActiveBrand(brand.id);
+                            onSetActiveBrand(isActive ? null : brand.id);
                           }}
-                          aria-label={`Select ${brand.name} as active`}
+                          aria-label={isActive ? `Deselect ${brand.name}` : `Select ${brand.name} as active`}
                           aria-checked={isActive}
                           role="radio"
                         />
@@ -284,7 +290,7 @@ export function BrandTokensPanel({
       </div>
 
       {/* FOOTER */}
-      {activeBrand && isEnabled && (
+      {activeBrand && (
         <footer className="flex-shrink-0 mt-auto px-4 py-3 border-t border-gray-200" role="status">
           <span className="text-xs text-green-700">● {activeBrand.name} active</span>
         </footer>

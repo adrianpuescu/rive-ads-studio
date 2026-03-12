@@ -48,7 +48,7 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
   const colorHexInput = 'flex-1 min-w-0 border border-gray-200 rounded px-3 py-2 text-xs font-mono text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900';
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 mt-3">
       {/* TEXT SECTION */}
       <div className="flex flex-col gap-3">
         <h3 className={sectionLabel}>Text</h3>
