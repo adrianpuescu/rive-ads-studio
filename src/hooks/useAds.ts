@@ -38,6 +38,7 @@ interface AdRow {
   thumbnail: string | null;
   created_at: string | null;
   updated_at: string | null;
+  share_token?: string | null;
 }
 
 function mapRowToAd(row: AdRow): Ad {
@@ -89,6 +90,32 @@ export async function fetchAdById(userId: string, id: string): Promise<Ad | null
     .maybeSingle();
   if (error || data == null) return null;
   return mapRowToAd(data);
+}
+
+/** Fetch a single ad by share_token (public access, no auth required). */
+export async function fetchAdByShareToken(token: string): Promise<Ad | null> {
+  const { data, error } = await supabase
+    .from('ads')
+    .select('*')
+    .eq('share_token', token)
+    .maybeSingle();
+  if (error || data == null) return null;
+  return mapRowToAd(data);
+}
+
+/** Generate a share token for an ad and update it in Supabase. */
+export async function generateShareToken(adId: string, userId: string): Promise<string | null> {
+  const token = crypto.randomUUID();
+  const { error } = await supabase
+    .from('ads')
+    .update({ share_token: token })
+    .eq('id', adId)
+    .eq('user_id', userId);
+  if (error) {
+    console.error('[generateShareToken] error:', error);
+    return null;
+  }
+  return token;
 }
 
 export function useAds() {

@@ -9,6 +9,7 @@ import { RegisterPage } from './pages/RegisterPage.tsx'
 import { DashboardPage } from './pages/DashboardPage.tsx'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './pages/ResetPasswordPage.tsx'
+import { PreviewPage } from './pages/PreviewPage.tsx'
 import { useAuth } from './hooks/useAuth'
 import { PageLoader } from './components/PageLoader'
 
@@ -37,6 +38,7 @@ function AppRoutes() {
       />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/preview/:token" element={<PreviewPage />} />
       <Route
         path="/dashboard"
         element={user ? <DashboardPage /> : <Navigate to="/login" replace />}

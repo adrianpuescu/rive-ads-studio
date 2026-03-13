@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Undo2, Redo2, LayoutGrid, ChevronDown } from 'lucide-react'
+import { Plus, Undo2, Redo2, LayoutGrid, ChevronDown, Share2 } from 'lucide-react'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
@@ -8,7 +8,9 @@ import { SpecInspector } from './components/SpecInspector'
 import { AdsDrawer } from './components/AdsDrawer'
 import { BrandTokensPanel } from './components/BrandTokensPanel'
 import { VariantsModal } from './components/VariantsModal'
-import { useAds, type Ad } from './hooks/useAds'
+import { ShareModal } from './components/ShareModal'
+import { useAds, generateShareToken, type Ad } from './hooks/useAds'
+import { useAuth } from './hooks/useAuth'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
 import { useSaveIndicator } from './hooks/useSaveIndicator'
@@ -63,6 +65,10 @@ function App() {
   const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false)
   const [activeAdId, setActiveAdId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState('')
+  const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false)
+  const { user } = useAuth()
 
   const handleOpenProjects = useCallback(() => {
     setBrandOpen(false)
@@ -120,6 +126,23 @@ function App() {
     },
     [activeAdId, renameItem, adSpec, replacePresent]
   )
+
+  const handleShare = useCallback(async () => {
+    if (!activeAdId || !user) return
+    setIsGeneratingShareLink(true)
+    try {
+      const token = await generateShareToken(activeAdId, user.id)
+      if (token) {
+        const url = `https://riveads.webz.ro/preview/${token}`
+        setShareUrl(url)
+        setShareModalOpen(true)
+      }
+    } catch (err) {
+      console.error('[handleShare] error:', err)
+    } finally {
+      setIsGeneratingShareLink(false)
+    }
+  }, [activeAdId, user])
 
   const captureAndUpdateThumbnail = useCallback(
     (itemId: string, onDone?: () => void) => {
@@ -502,6 +525,19 @@ function App() {
 
         <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
 
+        {adSpec && activeAdId && (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px] disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleShare}
+            disabled={isGeneratingShareLink}
+            aria-label="Share preview link"
+          >
+            <Share2 className="w-3.5 h-3.5" aria-hidden />
+            {isGeneratingShareLink ? 'Sharing...' : 'Share'}
+          </button>
+        )}
+
         {adSpec && (
           <ExportButton
             spec={adSpec}
@@ -648,6 +684,12 @@ function App() {
           onSelectVariant={handleSelectVariant}
           onVariantSelected={handleVariantSelected}
           onRetryVariant={handleRetryVariant}
+        />
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          shareUrl={shareUrl}
+          projectName={currentProjectName || 'Untitled'}
         />
         {adSpec && (
           <div
