@@ -7,6 +7,8 @@ import { ProjectsPage } from './pages/ProjectsPage.tsx'
 import { LoginPage } from './pages/LoginPage.tsx'
 import { RegisterPage } from './pages/RegisterPage.tsx'
 import { DashboardPage } from './pages/DashboardPage.tsx'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx'
+import { ResetPasswordPage } from './pages/ResetPasswordPage.tsx'
 import { useAuth } from './hooks/useAuth'
 
 function AppRoutes() {
@@ -36,6 +38,8 @@ function AppRoutes() {
         path="/register"
         element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
       />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/dashboard"
         element={user ? <DashboardPage /> : <Navigate to="/login" replace />}

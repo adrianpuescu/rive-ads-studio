@@ -80,6 +80,12 @@ export function LoginPage() {
           >
             {submitting || authLoading ? 'Signing in…' : 'Sign in'}
           </button>
+
+          <p className="text-xs text-center">
+            <Link to="/forgot-password" className="text-gray-500 hover:underline">
+              Forgot password?
+            </Link>
+          </p>
         </form>
 
         <p className="mt-4 text-xs text-gray-600 text-center">
