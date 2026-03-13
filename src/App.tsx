@@ -12,6 +12,8 @@ import { generateVariants, generateSingleVariant, VARIANT_STYLE_LABELS } from '.
 import { useAds, type Ad } from './hooks/useAds'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
+import { useSaveIndicator } from './hooks/useSaveIndicator'
+import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
 import type { AdSpec } from './types/ad-spec.schema'
 import { STORAGE_KEYS } from './constants/storageKeys'
@@ -61,7 +63,6 @@ function App() {
     }
   }, [])
 
-  const [showNewAdConfirm, setShowNewAdConfirm] = useState(false)
   const [newAdTrigger, setNewAdTrigger] = useState(0)
   const [restoredChatHistory, setRestoredChatHistory] = useState<
     Array<{ role: 'user' | 'assistant'; content: string }> | null
@@ -77,12 +78,8 @@ function App() {
   const [showVariantsModal, setShowVariantsModal] = useState(false)
   const [variantsPrompt, setVariantsPrompt] = useState('')
   const [clearInputTrigger, setClearInputTrigger] = useState(0)
-  const newAdConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
-  /** Last AdSpec state saved to Projects (for "Saved" vs "Unsaved" indicator). */
-  const lastSavedStateRef = useRef<AdSpec | null>(null)
-  const [, setSaveVersion] = useState(0)
   const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem } = useAds()
   const {
     brands,
@@ -96,48 +93,9 @@ function App() {
     setActiveBrand,
   } = useBrandTokens()
 
-  const clearNewAdConfirmTimeout = useCallback(() => {
-    if (newAdConfirmTimeoutRef.current) {
-      clearTimeout(newAdConfirmTimeoutRef.current)
-      newAdConfirmTimeoutRef.current = null
-    }
-  }, [])
-
-  const saveStatus =
-    adSpec === null
-      ? null
-      : lastSavedStateRef.current != null &&
-        JSON.stringify(adSpec) === JSON.stringify(lastSavedStateRef.current)
-        ? 'saved'
-        : 'unsaved'
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (saveStatus === 'unsaved' && adSpec !== null) {
-        e.preventDefault()
-        e.returnValue = ''
-      }
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [saveStatus, adSpec])
-
-  const handleNewAdClick = useCallback(() => {
-    if (adSpec && saveStatus === 'unsaved') {
-      setShowNewAdConfirm(true)
-      clearNewAdConfirmTimeout()
-      newAdConfirmTimeoutRef.current = setTimeout(() => {
-        setShowNewAdConfirm(false)
-        newAdConfirmTimeoutRef.current = null
-      }, 8000)
-    } else {
-      doNewAd()
-    }
-  }, [adSpec, saveStatus])
+  const { saveStatus, markAsSaved, clearSavedState } = useSaveIndicator(adSpec)
 
   const doNewAd = useCallback(() => {
-    setShowNewAdConfirm(false)
-    clearNewAdConfirmTimeout()
     if (inspectorPushDebounceRef.current) {
       clearTimeout(inspectorPushDebounceRef.current)
       inspectorPushDebounceRef.current = null
@@ -146,12 +104,11 @@ function App() {
     setProjectsDrawerOpen(false)
     setActiveAdId(null)
     setCurrentChatMessages([])
-    lastSavedStateRef.current = null
-    setSaveVersion((v) => v + 1)
+    clearSavedState()
     clearHistory()
     setNewAdTrigger((t) => t + 1)
     setTimeout(() => promptInputRef.current?.focus(), 100)
-  }, [clearHistory])
+  }, [clearHistory, clearSavedState])
 
   const handleUndo = useCallback(() => {
     if (!canUndo) return
@@ -228,16 +185,24 @@ function App() {
         itemId = saveAd(payload)
         setActiveAdId(itemId)
       }
-      lastSavedStateRef.current = adSpec
-      setSaveVersion((v) => v + 1)
+      markAsSaved(adSpec)
       captureAndUpdateThumbnail(itemId, onAfterSave)
     },
-    [adSpec, activeAdId, currentChatMessages, saveAd, updateItem, captureAndUpdateThumbnail]
+    [adSpec, activeAdId, currentChatMessages, saveAd, updateItem, captureAndUpdateThumbnail, markAsSaved]
   )
 
-  const handleSaveAndNew = useCallback(() => {
-    handleSaveToProjects(doNewAd)
-  }, [handleSaveToProjects, doNewAd])
+  const {
+    showNewAdConfirm,
+    handleNewAdClick,
+    handleSaveAndNew,
+    handleDiscard,
+    cancelConfirm,
+  } = useUnsavedChanges({
+    adSpec,
+    saveStatus,
+    onNewAd: doNewAd,
+    onSaveAndNew: () => handleSaveToProjects(doNewAd),
+  })
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -295,11 +260,10 @@ function App() {
       }
       const id = saveAd(baseItem)
       setActiveAdId(id)
-      lastSavedStateRef.current = spec
-      setSaveVersion((v) => v + 1)
+      markAsSaved(spec)
       captureAndUpdateThumbnail(id)
     },
-    [saveAd, captureAndUpdateThumbnail]
+    [saveAd, captureAndUpdateThumbnail, markAsSaved]
   )
 
   const handleGenerateVariants = useCallback(
@@ -338,8 +302,7 @@ function App() {
       payload.chatHistory = chatHistory
       const id = saveAd(payload)
       setActiveAdId(id)
-      lastSavedStateRef.current = spec
-      setSaveVersion((v) => v + 1)
+      markAsSaved(spec)
       captureAndUpdateThumbnail(id)
       setShowVariantsModal(false)
       setVariants([])
@@ -347,7 +310,7 @@ function App() {
       setClearInputTrigger((t) => t + 1)
       setHistoryToast({ message: 'Variant loaded in editor' })
     },
-    [push, saveAd, captureAndUpdateThumbnail, variantsPrompt]
+    [push, saveAd, captureAndUpdateThumbnail, variantsPrompt, markAsSaved]
   )
 
   const handleVariantSelected = useCallback(
@@ -389,10 +352,6 @@ function App() {
   )
 
   useEffect(() => {
-    return () => clearNewAdConfirmTimeout()
-  }, [clearNewAdConfirmTimeout])
-
-  useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CHAT_COLLAPSED, String(chatCollapsed))
   }, [chatCollapsed])
 
@@ -412,11 +371,11 @@ function App() {
     const spec = adToAdSpec(item)
     push(spec)
     setActiveAdId(item.id)
-    lastSavedStateRef.current = spec
+    markAsSaved(spec)
     setRestoredChatHistory(item.chatHistory ?? [])
     setHistoryToast({ message: 'Loaded from project' })
     navigate(location.pathname, { replace: true })
-  }, [location.state, location.pathname, push, navigate])
+  }, [location.state, location.pathname, push, navigate, markAsSaved])
 
   // Fallback: load by id from localStorage when ads list is ready (e.g. after refresh)
   useEffect(() => {
@@ -429,13 +388,13 @@ function App() {
       const spec = adToAdSpec(item)
       push(spec)
       setActiveAdId(item.id)
-      lastSavedStateRef.current = spec
+      markAsSaved(spec)
       setRestoredChatHistory(item.chatHistory ?? [])
       setHistoryToast({ message: 'Loaded from project' })
     } catch {
       // ignore
     }
-  }, [ads, push])
+  }, [ads, push, markAsSaved])
 
   const toggleChat = useCallback(() => {
     setChatCollapsed((c) => !c)
@@ -472,17 +431,14 @@ function App() {
             <button
               type="button"
               className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
-              onClick={doNewAd}
+              onClick={handleDiscard}
             >
               Discard
             </button>
             <button
               type="button"
               className="text-sm text-gray-500 hover:text-gray-900 px-2 py-1 cursor-pointer bg-transparent border-0 transition-colors duration-150"
-              onClick={() => {
-                setShowNewAdConfirm(false)
-                clearNewAdConfirmTimeout()
-              }}
+              onClick={cancelConfirm}
             >
               Cancel
             </button>
@@ -523,8 +479,7 @@ function App() {
         </button>
         {adSpec && (
           <span className="inline-flex items-center gap-1.5 text-xs text-gray-400 tabular-nums" aria-live="polite">
-            {lastSavedStateRef.current != null &&
-            JSON.stringify(adSpec) === JSON.stringify(lastSavedStateRef.current) ? (
+            {saveStatus === 'saved' ? (
               <>
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden />
                 Saved
@@ -663,7 +618,7 @@ function App() {
             const spec = adToAdSpec(item)
             push(spec)
             setActiveAdId(item.id)
-            lastSavedStateRef.current = spec
+            markAsSaved(spec)
             setRestoredChatHistory(chatHistory)
             setProjectsDrawerOpen(false)
           }}
@@ -671,8 +626,7 @@ function App() {
             if (id === activeAdId) {
               clearHistory()
               setActiveAdId(null)
-              lastSavedStateRef.current = null
-              setSaveVersion((v) => v + 1)
+              clearSavedState()
               setRestoredChatHistory(null)
               setNewAdTrigger((t) => t + 1)
             }
