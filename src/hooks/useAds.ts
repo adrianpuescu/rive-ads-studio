@@ -50,7 +50,7 @@ function mapRowToAd(row: AdRow): Ad {
     createdAt,
     updated_at: row.updated_at,
     adSpec: spec,
-    headline: row.ad_spec?.text?.headline?.value || '',
+    headline: row.name || row.ad_spec?.text?.headline?.value || '',
     subheadline: row.ad_spec?.text?.subheadline?.value || '',
     cta: row.ad_spec?.text?.cta?.value || '',
     colors: {
@@ -240,18 +240,99 @@ export function useAds() {
   );
 
   const removeItem = useCallback(
-    (id: string) => {
+    async (id: string): Promise<void> => {
       setAds((prev) => prev.filter((x) => x.id !== id));
 
       if (user) {
-        void supabase
+        const { error } = await supabase
           .from('ads')
           .delete()
           .eq('id', id)
           .eq('user_id', user.id);
+
+        if (error) {
+          console.error('[removeItem] error:', error);
+        }
       }
     },
     [user]
+  );
+
+  const renameItem = useCallback(
+    async (id: string, newName: string): Promise<void> => {
+      console.log('renameItem called', id, newName);
+
+      setAds((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, headline: newName } : item
+        )
+      );
+
+      if (user) {
+        const { error } = await supabase
+          .from('ads')
+          .update({
+            name: newName,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', id)
+          .eq('user_id', user.id);
+
+        console.log('renameItem result', error);
+
+        if (error) {
+          console.error('[renameItem] error:', error);
+          throw error;
+        }
+
+        await refreshAds();
+      }
+    },
+    [user, refreshAds]
+  );
+
+  const duplicateItem = useCallback(
+    async (id: string): Promise<string | null> => {
+      if (!user) return null;
+
+      const original = ads.find((a) => a.id === id);
+      if (!original) return null;
+
+      const newId = crypto.randomUUID();
+      const now = new Date().toISOString();
+      const newName = `Copy of ${original.headline || 'Untitled'}`;
+
+      const duplicated: Ad = {
+        ...original,
+        id: newId,
+        headline: newName,
+        createdAt: Date.now(),
+        updated_at: now,
+      };
+
+      setAds((prev) => [duplicated, ...prev]);
+
+      const payload: AdRow = {
+        id: newId,
+        user_id: user.id,
+        name: newName,
+        ad_spec: original.adSpec ?? null,
+        chat_history: original.chatHistory ?? [],
+        thumbnail: original.thumbnail ?? null,
+        created_at: now,
+        updated_at: now,
+      };
+
+      const { error } = await supabase.from('ads').insert(payload);
+      if (error) {
+        console.error('[duplicateItem] error:', error);
+        setAds((prev) => prev.filter((a) => a.id !== newId));
+        throw error;
+      }
+
+      return newId;
+    },
+    [user, ads]
   );
 
   const clearAll = useCallback(() => {
@@ -262,5 +343,15 @@ export function useAds() {
     }
   }, [user]);
 
-  return { items: ads, loading, saveAd, updateItemThumbnail, updateItem, removeItem, clearAll };
+  return {
+    items: ads,
+    loading,
+    saveAd,
+    updateItemThumbnail,
+    updateItem,
+    removeItem,
+    renameItem,
+    duplicateItem,
+    clearAll,
+  };
 }

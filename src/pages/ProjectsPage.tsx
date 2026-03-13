@@ -3,7 +3,7 @@
  * Grid of saved ads with filters, sort, and "Open in Editor" (pending-load) flow.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAds } from '../hooks/useAds';
 import type { Ad } from '../hooks/useAds';
@@ -44,31 +44,113 @@ interface AdCardProps {
   item: Ad;
   onClick: (item: Ad) => void;
   onRemove: (id: string) => void;
+  onRename: (id: string, newName: string) => Promise<void>;
+  onDuplicate: (id: string) => Promise<string | null>;
 }
 
-function AdCard({ item, onClick, onRemove }: AdCardProps) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(item.headline || '');
+  const menuRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const renameValueRef = useRef(renameValue);
+
+  useEffect(() => {
+    renameValueRef.current = renameValue;
+  }, [renameValue]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isRenaming]);
+
+  const handleMenuToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleRenameClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    const initialValue = item.headline || '';
+    console.log('handleRenameClick - initialValue:', initialValue);
+    setRenameValue(initialValue);
+    setIsRenaming(true);
+  }, [item.headline]);
+
+  const handleRenameSubmit = useCallback(async () => {
+    const currentValue = renameValueRef.current;
+    const trimmed = currentValue.trim();
+    console.log('handleRenameSubmit - currentValue:', currentValue, 'trimmed:', trimmed);
+    if (trimmed && trimmed !== item.headline) {
+      console.log('handleRenameSubmit - calling onRename with:', item.id, trimmed);
+      await onRename(item.id, trimmed);
+    }
+    setIsRenaming(false);
+  }, [item.id, item.headline, onRename]);
+
+  const handleRenameKeyDown = useCallback((e: React.KeyboardEvent) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      void handleRenameSubmit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsRenaming(false);
+      setRenameValue(item.headline || '');
+    }
+  }, [handleRenameSubmit, item.headline]);
+
+  const handleRenameBlur = useCallback(() => {
+    void handleRenameSubmit();
+  }, [handleRenameSubmit]);
+
+  const handleDuplicate = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    await onDuplicate(item.id);
+  }, [item.id, onDuplicate]);
 
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirmDelete) {
-      onRemove(item.id);
-      setConfirmDelete(false);
-    } else {
-      setConfirmDelete(true);
-    }
-  }, [confirmDelete, item.id, onRemove]);
+    setMenuOpen(false);
+    onRemove(item.id);
+  }, [item.id, onRemove]);
 
-  const handleCancelDelete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setConfirmDelete(false);
-  }, []);
+  const handleCardClick = useCallback(() => {
+    if (isRenaming) return;
+    onClick(item);
+  }, [item, onClick, isRenaming]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (isRenaming) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick(item);
+    }
+  }, [item, onClick, isRenaming]);
 
   return (
-    <button
-      type="button"
-      onClick={() => onClick(item)}
-      className={`group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 text-left cursor-pointer ${confirmDelete ? 'is-confirming' : ''}`}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 text-left cursor-pointer"
     >
       <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
         {item.thumbnail ? (
@@ -78,7 +160,20 @@ function AdCard({ item, onClick, onRemove }: AdCardProps) {
         )}
       </div>
       <div className="p-4 pb-3 flex flex-col flex-1 min-h-0">
-        <h3 className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight text-left">{item.headline || '—'}</h3>
+        {isRenaming ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={handleRenameKeyDown}
+            onBlur={handleRenameBlur}
+            onClick={(e) => e.stopPropagation()}
+            className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-gray-500 bg-white"
+          />
+        ) : (
+          <h3 className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight text-left">{item.headline || '—'}</h3>
+        )}
         <p className="text-sm text-gray-500 m-0 mb-2 leading-tight text-left">{item.subheadline || '—'}</p>
         <p className="text-xs text-gray-400 italic m-0 mb-3 leading-tight text-left">{promptSnippet(item.prompt, 80)}</p>
         <div className="flex gap-1.5 mb-3" aria-hidden>
@@ -88,24 +183,54 @@ function AdCard({ item, onClick, onRemove }: AdCardProps) {
         </div>
         <p className="text-xs text-gray-400 m-0 mb-3 text-left">{formatTimestamp(item.createdAt)}</p>
       </div>
-      <div className={`absolute bottom-0 left-0 right-0 flex flex-row items-center justify-end gap-2 py-5 px-4 pb-4 bg-gradient-to-b from-transparent from-0% via-white/88 via-[35%] to-white backdrop-blur-sm transition-all duration-250 ${confirmDelete ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2.5 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto'}`}>
-        {confirmDelete ? (
-          <>
-            <span className="text-sm text-gray-500 mr-1">Delete this ad?</span>
-            <button type="button" className="text-sm py-2 px-3 rounded border border-red-200 bg-red-50 text-red-500 cursor-pointer hover:bg-red-100 transition-colors duration-150 min-h-[32px]" onClick={handleDelete}>Yes</button>
-            <button type="button" className="text-sm py-2 px-3 rounded border border-gray-200 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors duration-150 focus:outline-none min-h-[32px]" onClick={handleCancelDelete}>No</button>
-          </>
-        ) : (
-          <button type="button" className="text-sm text-gray-400 py-1.5 px-2.5 rounded cursor-pointer hover:text-red-500 transition-colors duration-150 focus:outline-none bg-transparent border-0" onClick={handleDelete} aria-label="Delete ad">Delete</button>
+
+      <div
+        ref={menuRef}
+        className={`absolute top-2 right-2 z-10 transition-opacity duration-150 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+      >
+        <button
+          type="button"
+          onClick={handleMenuToggle}
+          className="w-7 h-7 flex items-center justify-center rounded bg-white/90 border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700 cursor-pointer transition-colors duration-150"
+          aria-label="More options"
+        >
+          <span className="text-base leading-none">⋯</span>
+        </button>
+
+        {menuOpen && (
+          <div className="absolute top-full right-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-20">
+            <button
+              type="button"
+              onClick={handleRenameClick}
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-0 bg-transparent transition-colors duration-150"
+            >
+              Rename
+            </button>
+            <button
+              type="button"
+              onClick={handleDuplicate}
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-0 bg-transparent transition-colors duration-150"
+            >
+              Duplicate
+            </button>
+            <div className="h-px bg-gray-200 my-1" />
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-0 bg-transparent transition-colors duration-150"
+            >
+              Delete
+            </button>
+          </div>
         )}
       </div>
-    </button>
+    </div>
   );
 }
 
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const { items, loading, removeItem } = useAds();
+  const { items, loading, removeItem, renameItem, duplicateItem } = useAds();
   const [sortBy, setSortBy] = useState<SortByOption>('last_modified');
   const [order, setOrder] = useState<OrderOption>('newest');
   const [search, setSearch] = useState('');
@@ -235,7 +360,14 @@ export function ProjectsPage() {
           <p className="m-0 mb-3 text-xs text-gray-400">Showing {sorted.length} of {items.length} projects</p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 items-stretch">
             {sorted.map((item) => (
-              <AdCard key={item.id} item={item} onClick={handleOpenInEditor} onRemove={removeItem} />
+              <AdCard
+                key={item.id}
+                item={item}
+                onClick={handleOpenInEditor}
+                onRemove={removeItem}
+                onRename={renameItem}
+                onDuplicate={duplicateItem}
+              />
             ))}
           </div>
         </div>
