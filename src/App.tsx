@@ -214,9 +214,7 @@ function App() {
           itemId = await saveAd(payload)
           setActiveAdId(itemId)
         }
-        console.log('before markAsSaved')
         markAsSaved(specWithFormat)
-        console.log('after markAsSaved')
         captureAndUpdateThumbnail(itemId, onAfterSave)
       } catch (err) {
         console.error('[handleSaveToProjects] Save failed:', err)

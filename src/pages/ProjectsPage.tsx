@@ -87,7 +87,6 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
     e.stopPropagation();
     setMenuOpen(false);
     const initialValue = item.headline || '';
-    console.log('handleRenameClick - initialValue:', initialValue);
     setRenameValue(initialValue);
     setIsRenaming(true);
   }, [item.headline]);
@@ -95,9 +94,7 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
   const handleRenameSubmit = useCallback(async () => {
     const currentValue = renameValueRef.current;
     const trimmed = currentValue.trim();
-    console.log('handleRenameSubmit - currentValue:', currentValue, 'trimmed:', trimmed);
     if (trimmed && trimmed !== item.headline) {
-      console.log('handleRenameSubmit - calling onRename with:', item.id, trimmed);
       await onRename(item.id, trimmed);
     }
     setIsRenaming(false);

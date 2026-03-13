@@ -40,7 +40,6 @@ export function useSaveIndicator(currentSpec: AdSpec | null): UseSaveIndicatorRe
   })()
 
   const markAsSaved = useCallback((spec: AdSpec) => {
-    console.log('markAsSaved called', spec)
     lastSavedStateRef.current = spec
     setForceSaved(true)
   }, [])

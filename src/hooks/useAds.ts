@@ -260,8 +260,6 @@ export function useAds() {
 
   const renameItem = useCallback(
     async (id: string, newName: string): Promise<void> => {
-      console.log('renameItem called', id, newName);
-
       setAds((prev) =>
         prev.map((item) =>
           item.id === id ? { ...item, headline: newName } : item
@@ -277,8 +275,6 @@ export function useAds() {
           })
           .eq('id', id)
           .eq('user_id', user.id);
-
-        console.log('renameItem result', error);
 
         if (error) {
           console.error('[renameItem] error:', error);

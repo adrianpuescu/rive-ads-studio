@@ -132,7 +132,6 @@ export function useBrandTokens() {
         .upsert(payload)
         .then(({ error }) => {
           if (error) console.error('[addBrand] upsert error:', error);
-          else console.log('[addBrand] saved successfully');
         });
     }
 
