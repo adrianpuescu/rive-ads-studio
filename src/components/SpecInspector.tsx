@@ -86,10 +86,10 @@ export function SpecInspector({ spec, onChange, projectName, onProjectNameChange
 
   const sectionLabel = 'text-xs font-semibold text-gray-400 uppercase tracking-wider m-0 pb-2 border-b border-gray-200';
   const fieldLabel = 'text-xs text-gray-500';
-  const fieldInput = 'w-full border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-gray-900 placeholder:text-gray-400';
+  const fieldInput = 'w-full border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400 placeholder:text-gray-400';
   const colorRow = 'flex items-center gap-2';
-  const colorInput = 'w-8 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-transparent flex-shrink-0';
-  const colorHexInput = 'flex-1 min-w-0 border border-gray-200 rounded px-3 py-2 text-xs font-mono text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900';
+  const colorInput = 'w-8 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-transparent flex-shrink-0 transition-colors duration-150 focus:outline-none focus:border-gray-400';
+  const colorHexInput = 'flex-1 min-w-0 border border-gray-200 rounded px-3 py-2 text-xs font-mono text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400';
 
   return (
     <div className="flex flex-col gap-6">

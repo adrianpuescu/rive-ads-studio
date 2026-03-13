@@ -132,7 +132,7 @@ export function BrandTokensPanel({
               Brand Name <span className="text-red-500">*</span>
               <input
                 type="text"
-                className="block w-full mt-1 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white"
+                className="block w-full mt-1 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 placeholder="e.g. Nike"
@@ -142,7 +142,7 @@ export function BrandTokensPanel({
               Brand Voice
               <input
                 type="text"
-                className="block w-full mt-1 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white"
+                className="block w-full mt-1 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400"
                 value={form.tokens.brandVoice}
                 onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, brandVoice: e.target.value } }))}
                 placeholder="e.g. bold and energetic"
@@ -153,22 +153,22 @@ export function BrandTokensPanel({
               <label className="block text-xs font-medium text-gray-900 mb-2">
                 Primary Color
                 <div className="flex items-center gap-2 mt-1">
-                  <input type="color" className="w-9 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-white" value={form.tokens.primaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))} aria-label="Primary color" />
-                  <input type="text" className="flex-1 min-w-0 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white" value={form.tokens.primaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))} />
+                  <input type="color" className="w-9 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400" value={form.tokens.primaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))} aria-label="Primary color" />
+                  <input type="text" className="flex-1 min-w-0 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400" value={form.tokens.primaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, primaryColor: e.target.value } }))} />
                 </div>
               </label>
               <label className="block text-xs font-medium text-gray-900 mb-2">
                 Secondary Color
                 <div className="flex items-center gap-2 mt-1">
-                  <input type="color" className="w-9 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-white" value={form.tokens.secondaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, secondaryColor: e.target.value } }))} aria-label="Secondary color" />
-                  <input type="text" className="flex-1 min-w-0 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white" value={form.tokens.secondaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, secondaryColor: e.target.value } }))} />
+                  <input type="color" className="w-9 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400" value={form.tokens.secondaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, secondaryColor: e.target.value } }))} aria-label="Secondary color" />
+                  <input type="text" className="flex-1 min-w-0 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400" value={form.tokens.secondaryColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, secondaryColor: e.target.value } }))} />
                 </div>
               </label>
               <label className="block text-xs font-medium text-gray-900 mb-2">
                 Background Color
                 <div className="flex items-center gap-2 mt-1">
-                  <input type="color" className="w-9 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-white" value={form.tokens.backgroundColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, backgroundColor: e.target.value } }))} aria-label="Background color" />
-                  <input type="text" className="flex-1 min-w-0 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white" value={form.tokens.backgroundColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, backgroundColor: e.target.value } }))} />
+                  <input type="color" className="w-9 h-8 p-0.5 border border-gray-200 rounded cursor-pointer bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400" value={form.tokens.backgroundColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, backgroundColor: e.target.value } }))} aria-label="Background color" />
+                  <input type="text" className="flex-1 min-w-0 py-2 px-2.5 text-sm border border-gray-200 rounded text-gray-900 bg-white transition-colors duration-150 focus:outline-none focus:border-gray-400" value={form.tokens.backgroundColor} onChange={(e) => setForm((p) => ({ ...p, tokens: { ...p.tokens, backgroundColor: e.target.value } }))} />
                 </div>
               </label>
             </section>

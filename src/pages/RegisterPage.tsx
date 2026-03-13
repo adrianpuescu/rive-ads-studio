@@ -62,7 +62,7 @@ export function RegisterPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-400"
+              className="w-full border border-gray-200 rounded px-3 py-2 text-sm transition-colors duration-150 focus:outline-none focus:border-gray-400"
               autoComplete="email"
             />
           </div>
@@ -76,7 +76,7 @@ export function RegisterPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-400"
+              className="w-full border border-gray-200 rounded px-3 py-2 text-sm transition-colors duration-150 focus:outline-none focus:border-gray-400"
               autoComplete="new-password"
             />
           </div>
@@ -90,7 +90,7 @@ export function RegisterPage() {
               required
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-400"
+              className="w-full border border-gray-200 rounded px-3 py-2 text-sm transition-colors duration-150 focus:outline-none focus:border-gray-400"
               autoComplete="new-password"
             />
           </div>

@@ -258,7 +258,7 @@ export function ChatPanel({
           <textarea
             ref={promptInputRef}
             id="chat-initial-textarea"
-            className="w-full min-h-[120px] border border-gray-200 rounded px-3 py-2 text-sm leading-normal text-gray-900 bg-white resize-y transition-colors duration-150 placeholder:text-gray-400 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-gray-900"
+            className="w-full min-h-[120px] border border-gray-200 rounded px-3 py-2 text-sm leading-normal text-gray-900 bg-white resize-y transition-colors duration-150 placeholder:text-gray-400 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-gray-400"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
@@ -321,7 +321,7 @@ export function ChatPanel({
           <div className="flex items-center gap-2 w-full m-0 py-3 px-4 pb-4">
           <textarea
             aria-label="Refine your ad"
-            className="flex-1 min-h-[40px] border border-gray-200 rounded px-3 py-2 text-sm bg-white text-gray-900 resize-none transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-gray-900 placeholder:text-gray-400"
+            className="flex-1 min-h-[40px] border border-gray-200 rounded px-3 py-2 text-sm bg-white text-gray-900 resize-none transition-colors duration-150 focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
