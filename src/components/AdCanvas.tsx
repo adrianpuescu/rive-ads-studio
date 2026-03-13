@@ -16,6 +16,10 @@ export interface AdCanvasProps {
   width: number;
   /** Canvas height in pixels */
   height: number;
+  /** Rive file path (overrides spec.template.id lookup) */
+  riveFile: string;
+  /** Artboard name (overrides spec.template.artboard) */
+  artboard: string;
   /** True only while a Claude API call is in progress (shows "Generating" overlay). Not tied to spec/Inspector changes. */
   isGenerating?: boolean;
   /** Optional CSS class name */
@@ -25,9 +29,9 @@ export interface AdCanvasProps {
 /**
  * Renders a Rive ad based on an AdSpec
  */
-export function AdCanvas({ spec, width, height, isGenerating = false, className = '' }: AdCanvasProps) {
+export function AdCanvas({ spec, width, height, riveFile, artboard, isGenerating = false, className = '' }: AdCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { error } = useAdSpecRenderer(spec, canvasRef);
+  const { error } = useAdSpecRenderer(spec, canvasRef, { riveFile, artboard });
 
   return (
     <div className={`relative overflow-hidden bg-[#f5f5f5] shadow-[0_4px_24px_rgba(0,0,0,0.08)] ${className}`} style={{ width, height }}>

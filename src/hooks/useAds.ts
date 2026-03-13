@@ -26,6 +26,7 @@ export interface Ad {
   prompt: string;
   thumbnail?: string;
   chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
+  updated_at?: string | null;
 }
 
 interface AdRow {
@@ -47,6 +48,7 @@ function mapRowToAd(row: AdRow): Ad {
   return {
     id: row.id,
     createdAt,
+    updated_at: row.updated_at,
     adSpec: spec,
     headline: row.ad_spec?.text?.headline?.value || '',
     subheadline: row.ad_spec?.text?.subheadline?.value || '',
@@ -93,6 +95,12 @@ export function useAds() {
   const { user, loading: authLoading } = useAuth();
   const [ads, setAds] = useState<Ad[]>([]);
 
+  const refreshAds = useCallback(async () => {
+    if (!user) return;
+    const loaded = await loadAds(user.id);
+    setAds(loaded);
+  }, [user]);
+
   useEffect(() => {
     if (authLoading) return;
 
@@ -116,7 +124,7 @@ export function useAds() {
   }, [authLoading, user]);
 
   const saveAd = useCallback(
-    (ad: Omit<Ad, 'id' | 'createdAt'>): string => {
+    async (ad: Omit<Ad, 'id' | 'createdAt'>): Promise<string> => {
       const full: Ad = {
         ...ad,
         id: crypto.randomUUID(),
@@ -136,14 +144,17 @@ export function useAds() {
           created_at: new Date(full.createdAt || Date.now()).toISOString(),
           updated_at: new Date().toISOString(),
         };
-        void supabase.from('ads').upsert(payload).select().then(({ error }) => {
-          if (error) console.error('[saveAd] upsert error:', error);
-        });
+        const { error } = await supabase.from('ads').upsert(payload).select();
+        if (error) {
+          console.error('[saveAd] upsert error:', error);
+          throw error;
+        }
+        await refreshAds();
       }
 
       return full.id;
     },
-    [user]
+    [user, refreshAds]
   );
 
   const updateItemThumbnail = useCallback(
@@ -179,7 +190,7 @@ export function useAds() {
   );
 
   const updateItem = useCallback(
-    (id: string, data: Omit<Ad, 'id' | 'createdAt'>) => {
+    async (id: string, data: Omit<Ad, 'id' | 'createdAt'>): Promise<void> => {
       setAds((prev) => {
         const next = prev.map((item) =>
           item.id === id
@@ -208,14 +219,20 @@ export function useAds() {
           updated_at: new Date().toISOString(),
         };
 
-        void supabase
+        const { error } = await supabase
           .from('ads')
           .update(payload)
           .eq('id', id)
           .eq('user_id', user.id);
+        
+        if (error) {
+          console.error('[updateItem] error:', error);
+          throw error;
+        }
+        await refreshAds();
       }
     },
-    [user]
+    [user, refreshAds]
   );
 
   const removeItem = useCallback(

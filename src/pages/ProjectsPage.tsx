@@ -10,12 +10,23 @@ import type { Ad } from '../hooks/useAds';
 import { SelectDropdown } from '../components/SelectDropdown';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 
-type SortOption = 'newest' | 'oldest' | 'name';
+type SortByOption = 'last_modified' | 'date_created' | 'alphabetical';
+type OrderOption = 'newest' | 'oldest';
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+const SORT_BY_OPTIONS: { value: SortByOption; label: string }[] = [
+  { value: 'last_modified', label: 'Last modified' },
+  { value: 'date_created', label: 'Date created' },
+  { value: 'alphabetical', label: 'Alphabetical' },
+];
+
+const ORDER_OPTIONS_DATE: { value: OrderOption; label: string }[] = [
   { value: 'newest', label: 'Newest first' },
   { value: 'oldest', label: 'Oldest first' },
-  { value: 'name', label: 'Name (A–Z)' },
+];
+
+const ORDER_OPTIONS_ALPHA: { value: OrderOption; label: string }[] = [
+  { value: 'newest', label: 'A–Z' },
+  { value: 'oldest', label: 'Z–A' },
 ];
 
 function formatTimestamp(createdAt: number): string {
@@ -87,7 +98,8 @@ function AdCard({ item, onOpenInEditor, onRemove }: AdCardProps) {
 export function ProjectsPage() {
   const navigate = useNavigate();
   const { items, removeItem } = useAds();
-  const [sort, setSort] = useState<SortOption>('newest');
+  const [sortBy, setSortBy] = useState<SortByOption>('last_modified');
+  const [order, setOrder] = useState<OrderOption>('newest');
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -103,17 +115,24 @@ export function ProjectsPage() {
 
   const sorted = useMemo(() => {
     const list = [...filtered];
-    if (sort === 'oldest') {
-      list.sort((a, b) => a.createdAt - b.createdAt);
-    } else if (sort === 'name') {
-      list.sort((a, b) =>
-        (a.headline || '').localeCompare(b.headline || '', undefined, { sensitivity: 'base' })
-      );
-    } else {
-      list.sort((a, b) => b.createdAt - a.createdAt);
+    const isAsc = order === 'newest';
+
+    if (sortBy === 'last_modified') {
+      list.sort((a, b) => {
+        const aTime = a.updated_at ? new Date(a.updated_at).getTime() : a.createdAt;
+        const bTime = b.updated_at ? new Date(b.updated_at).getTime() : b.createdAt;
+        return isAsc ? bTime - aTime : aTime - bTime;
+      });
+    } else if (sortBy === 'date_created') {
+      list.sort((a, b) => (isAsc ? b.createdAt - a.createdAt : a.createdAt - b.createdAt));
+    } else if (sortBy === 'alphabetical') {
+      list.sort((a, b) => {
+        const cmp = (a.headline || '').localeCompare(b.headline || '', undefined, { sensitivity: 'base' });
+        return isAsc ? cmp : -cmp;
+      });
     }
     return list;
-  }, [filtered, sort]);
+  }, [filtered, sortBy, order]);
 
   const handleOpenInEditor = useCallback(
     (item: Ad) => {
@@ -152,15 +171,25 @@ export function ProjectsPage() {
         <div className="px-6 pb-4">
           <div className="flex items-center gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm text-gray-500">
-            Sort by
-            <SelectDropdown
-              className="min-w-[11rem]"
-              value={sort}
-              options={SORT_OPTIONS}
-              onChange={(v) => setSort(v as SortOption)}
-              ariaLabel="Sort order"
-            />
-          </label>
+              Sort by
+              <SelectDropdown
+                className="min-w-[9rem]"
+                value={sortBy}
+                options={SORT_BY_OPTIONS}
+                onChange={(v) => setSortBy(v as SortByOption)}
+                ariaLabel="Sort by"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-500">
+              Order
+              <SelectDropdown
+                className="min-w-[9rem]"
+                value={order}
+                options={sortBy === 'alphabetical' ? ORDER_OPTIONS_ALPHA : ORDER_OPTIONS_DATE}
+                onChange={(v) => setOrder(v as OrderOption)}
+                ariaLabel="Order"
+              />
+            </label>
             <input
               type="search"
               className="flex-1 min-w-[200px] border border-gray-200 rounded px-3 py-2 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 transition-colors duration-150"

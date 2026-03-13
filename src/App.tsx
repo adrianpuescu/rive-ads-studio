@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Undo2, Redo2, LayoutGrid } from 'lucide-react'
+import { Plus, Undo2, Redo2, LayoutGrid, ChevronDown } from 'lucide-react'
 import { ChatPanel } from './components/ChatPanel'
 import { AdCanvas } from './components/AdCanvas'
 import { ExportButton } from './components/ExportButton'
@@ -17,6 +17,7 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
 import type { AdSpec } from './types/ad-spec.schema'
 import { STORAGE_KEYS } from './constants/storageKeys'
+import { AD_FORMATS, DEFAULT_FORMAT, type AdFormat } from './constants/adFormats'
 
 const INSPECTOR_PUSH_DEBOUNCE_MS = 600
 const HISTORY_TOAST_DURATION_MS = 1500
@@ -56,6 +57,9 @@ function App() {
   const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false)
   const [activeAdId, setActiveAdId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
+  const [currentFormat, setCurrentFormat] = useState<AdFormat>(DEFAULT_FORMAT)
+  const [formatDropdownOpen, setFormatDropdownOpen] = useState(false)
+  const formatDropdownRef = useRef<HTMLDivElement>(null)
 
   const handleOpenProjects = useCallback(() => {
     setBrandOpen(false)
@@ -183,22 +187,29 @@ function App() {
   )
 
   const handleSaveToProjects = useCallback(
-    (onAfterSave?: () => void) => {
+    async (onAfterSave?: () => void) => {
       if (!adSpec) return
-      const payload = adSpecToAdPayload(adSpec)
+      const specWithFormat = { ...adSpec, formatId: currentFormat.id }
+      const payload = adSpecToAdPayload(specWithFormat)
       payload.chatHistory = currentChatMessages ?? []
       let itemId: string
-      if (activeAdId) {
-        updateItem(activeAdId, payload)
-        itemId = activeAdId
-      } else {
-        itemId = saveAd(payload)
-        setActiveAdId(itemId)
+      try {
+        if (activeAdId) {
+          await updateItem(activeAdId, payload)
+          itemId = activeAdId
+        } else {
+          itemId = await saveAd(payload)
+          setActiveAdId(itemId)
+        }
+        console.log('before markAsSaved')
+        markAsSaved(specWithFormat)
+        console.log('after markAsSaved')
+        captureAndUpdateThumbnail(itemId, onAfterSave)
+      } catch (err) {
+        console.error('[handleSaveToProjects] Save failed:', err)
       }
-      markAsSaved(adSpec)
-      captureAndUpdateThumbnail(itemId, onAfterSave)
     },
-    [adSpec, activeAdId, currentChatMessages, saveAd, updateItem, captureAndUpdateThumbnail, markAsSaved]
+    [adSpec, activeAdId, currentChatMessages, saveAd, updateItem, captureAndUpdateThumbnail, markAsSaved, currentFormat.id]
   )
 
   const {
@@ -246,14 +257,15 @@ function App() {
   }, [handleUndo, handleRedo, handleSaveToProjects])
 
   const handleAdGenerated = useCallback(
-    (
+    async (
       spec: AdSpec,
       prompt: string,
       chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>
     ) => {
       setCurrentChatMessages(chatHistory)
+      const specWithFormat = { ...spec, formatId: currentFormat.id }
       const baseItem = {
-        adSpec: spec,
+        adSpec: specWithFormat,
         headline: spec.text?.headline?.value ?? '',
         subheadline: spec.text?.subheadline?.value ?? '',
         cta: spec.text?.cta?.value ?? '',
@@ -268,12 +280,16 @@ function App() {
         prompt,
         chatHistory,
       }
-      const id = saveAd(baseItem)
-      setActiveAdId(id)
-      markAsSaved(spec)
-      captureAndUpdateThumbnail(id)
+      try {
+        const id = await saveAd(baseItem)
+        setActiveAdId(id)
+        markAsSaved(specWithFormat)
+        captureAndUpdateThumbnail(id)
+      } catch (err) {
+        console.error('[handleAdGenerated] Save failed:', err)
+      }
     },
-    [saveAd, captureAndUpdateThumbnail, markAsSaved]
+    [saveAd, captureAndUpdateThumbnail, markAsSaved, currentFormat.id]
   )
 
   const handleGenerateVariants = useCallback(
@@ -296,8 +312,9 @@ function App() {
   )
 
   const handleSelectVariant = useCallback(
-    (spec: AdSpec) => {
-      push(spec)
+    async (spec: AdSpec) => {
+      const specWithFormat = { ...spec, formatId: currentFormat.id }
+      push(specWithFormat)
       const styleLabel = VARIANT_STYLE_LABELS[spec.generation?.variantIndex ?? 0] ?? 'variant'
       const headline = spec.text?.headline?.value ?? '—'
       const bg = spec.colors?.background ?? '—'
@@ -307,20 +324,24 @@ function App() {
         { role: 'user' as const, content: variantsPrompt },
         { role: 'assistant' as const, content: assistantMessage },
       ]
-      const payload = adSpecToAdPayload(spec)
+      const payload = adSpecToAdPayload(specWithFormat)
       payload.prompt = variantsPrompt
       payload.chatHistory = chatHistory
-      const id = saveAd(payload)
-      setActiveAdId(id)
-      markAsSaved(spec)
-      captureAndUpdateThumbnail(id)
-      setShowVariantsModal(false)
-      setVariants([])
-      setVariantsPrompt('')
-      setClearInputTrigger((t) => t + 1)
-      setHistoryToast({ message: 'Variant loaded in editor' })
+      try {
+        const id = await saveAd(payload)
+        setActiveAdId(id)
+        markAsSaved(specWithFormat)
+        captureAndUpdateThumbnail(id)
+        setShowVariantsModal(false)
+        setVariants([])
+        setVariantsPrompt('')
+        setClearInputTrigger((t) => t + 1)
+        setHistoryToast({ message: 'Variant loaded in editor' })
+      } catch (err) {
+        console.error('[handleSelectVariant] Save failed:', err)
+      }
     },
-    [push, saveAd, captureAndUpdateThumbnail, variantsPrompt, markAsSaved]
+    [push, saveAd, captureAndUpdateThumbnail, variantsPrompt, markAsSaved, currentFormat.id]
   )
 
   const handleVariantSelected = useCallback(
@@ -369,6 +390,17 @@ function App() {
     localStorage.setItem(STORAGE_KEYS.INSPECTOR_COLLAPSED, String(inspectorCollapsed))
   }, [inspectorCollapsed])
 
+  const restoreFormatFromSpec = useCallback((spec: AdSpec) => {
+    if (spec.formatId) {
+      const format = AD_FORMATS.find((f) => f.id === spec.formatId)
+      if (format) {
+        setCurrentFormat(format)
+        return
+      }
+    }
+    setCurrentFormat(DEFAULT_FORMAT)
+  }, [])
+
   // Instant load when navigating from Projects page with state (no wait for ads)
   useEffect(() => {
     const item = (location.state as { pendingLoadItem?: Ad } | null)?.pendingLoadItem
@@ -378,14 +410,15 @@ function App() {
     } catch {
       // ignore
     }
-    const spec = adToAdSpec(item)
+    const spec = item.adSpec ?? adToAdSpec(item)
     push(spec)
     setActiveAdId(item.id)
     markAsSaved(spec)
+    restoreFormatFromSpec(spec)
     setRestoredChatHistory(item.chatHistory ?? [])
     setHistoryToast({ message: 'Loaded from project' })
     navigate(location.pathname, { replace: true })
-  }, [location.state, location.pathname, push, navigate, markAsSaved])
+  }, [location.state, location.pathname, push, navigate, markAsSaved, restoreFormatFromSpec])
 
   // Fallback: load by id from localStorage when ads list is ready (e.g. after refresh)
   useEffect(() => {
@@ -395,16 +428,17 @@ function App() {
       const item = ads.find((i) => i.id === pendingId)
       if (!item) return
       localStorage.removeItem(STORAGE_KEYS.PENDING_LOAD)
-      const spec = adToAdSpec(item)
+      const spec = item.adSpec ?? adToAdSpec(item)
       push(spec)
       setActiveAdId(item.id)
       markAsSaved(spec)
+      restoreFormatFromSpec(spec)
       setRestoredChatHistory(item.chatHistory ?? [])
       setHistoryToast({ message: 'Loaded from project' })
     } catch {
       // ignore
     }
-  }, [ads, push, markAsSaved])
+  }, [ads, push, markAsSaved, restoreFormatFromSpec])
 
   const toggleChat = useCallback(() => {
     setChatCollapsed((c) => !c)
@@ -413,6 +447,17 @@ function App() {
   const toggleInspector = useCallback(() => {
     setInspectorCollapsed((c) => !c)
   }, [])
+
+  useEffect(() => {
+    if (!formatDropdownOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (formatDropdownRef.current && !formatDropdownRef.current.contains(e.target as Node)) {
+        setFormatDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [formatDropdownOpen])
 
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden app-mobile-stack max-md:h-auto max-md:min-h-screen max-md:overflow-auto">
@@ -522,9 +567,57 @@ function App() {
 
         <div className="flex-1" />
 
-        <span className="text-sm text-gray-400 tabular-nums" aria-label="Ad size">
-          728 × 90
-        </span>
+        <div className="relative" ref={formatDropdownRef}>
+          <button
+            type="button"
+            className="relative text-sm py-1.5 pl-3 pr-7 border border-gray-200 rounded bg-white text-gray-700 cursor-pointer inline-flex items-center gap-2 hover:bg-gray-50 focus:outline-none transition-colors duration-150 min-h-[32px] tabular-nums"
+            onClick={() => setFormatDropdownOpen((o) => !o)}
+            aria-haspopup="listbox"
+            aria-expanded={formatDropdownOpen}
+            aria-label="Ad size"
+          >
+            {currentFormat.label}
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" aria-hidden />
+          </button>
+          {formatDropdownOpen && (
+            <ul
+              className="absolute top-[calc(100%+4px)] right-0 min-w-full m-0 p-1 list-none bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-[240px] overflow-y-auto"
+              role="listbox"
+              aria-label="Ad size"
+            >
+              {AD_FORMATS.map((format) => (
+                <li key={format.id} role="option" aria-selected={currentFormat.id === format.id}>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 w-full py-1.5 px-3 text-sm text-gray-700 bg-transparent border-0 rounded cursor-pointer text-left hover:bg-gray-50 transition-colors duration-150 tabular-nums whitespace-nowrap"
+                    onClick={() => {
+                      setCurrentFormat(format)
+                      setFormatDropdownOpen(false)
+                      if (adSpec) {
+                        const updatedSpec = {
+                          ...adSpec,
+                          formatId: format.id,
+                          template: {
+                            ...adSpec.template,
+                            id: format.id,
+                            artboard: format.artboard,
+                          },
+                        }
+                        replacePresent(updatedSpec)
+                      }
+                    }}
+                  >
+                    {currentFormat.id === format.id && (
+                      <span className="w-4 text-xs font-semibold text-gray-900 flex-shrink-0" aria-hidden>✓</span>
+                    )}
+                    {currentFormat.id !== format.id && <span className="w-4 flex-shrink-0" />}
+                    {format.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
 
@@ -584,8 +677,10 @@ function App() {
             <div className="relative w-fit max-w-full h-full flex flex-col items-center justify-center animate-fade-in [&_canvas]:!rounded-none app-canvas-wrapper-mobile max-md:h-auto">
               <AdCanvas
                 spec={adSpec}
-                width={728}
-                height={90}
+                width={currentFormat.width}
+                height={currentFormat.height}
+                riveFile={currentFormat.riveFile}
+                artboard={currentFormat.artboard}
                 isGenerating={isGenerating}
               />
               {historyToast && (
@@ -625,10 +720,11 @@ function App() {
           onLoad={(item) => {
             const chatHistory = item.chatHistory ?? []
             setCurrentChatMessages(chatHistory)
-            const spec = adToAdSpec(item)
+            const spec = item.adSpec ?? adToAdSpec(item)
             push(spec)
             setActiveAdId(item.id)
             markAsSaved(spec)
+            restoreFormatFromSpec(spec)
             setRestoredChatHistory(chatHistory)
             setProjectsDrawerOpen(false)
           }}

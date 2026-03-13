@@ -21,8 +21,17 @@ export interface UseAdSpecRendererResult {
   riveInstance: Rive | null;
 }
 
-function getTemplateKey(template: AdSpec['template']): string {
-  return `${template.id}|${template.artboard}|${template.stateMachine}`;
+export interface RendererOverrides {
+  /** Rive file path (overrides spec.template.id lookup) */
+  riveFile?: string;
+  /** Artboard name (overrides spec.template.artboard) */
+  artboard?: string;
+}
+
+function getTemplateKey(template: AdSpec['template'], overrides?: RendererOverrides): string {
+  const artboard = overrides?.artboard ?? template.artboard;
+  const riveFile = overrides?.riveFile ?? template.id;
+  return `${riveFile}|${artboard}|${template.stateMachine}`;
 }
 
 function cleanupRive(ref: React.MutableRefObject<Rive | null>): void {
@@ -41,11 +50,13 @@ function cleanupRive(ref: React.MutableRefObject<Rive | null>): void {
  * 
  * @param spec - AdSpec to render (null to skip rendering)
  * @param canvasRef - React ref to canvas element
+ * @param overrides - Optional overrides for riveFile and artboard
  * @returns Loading state, error, and Rive instance
  */
 export function useAdSpecRenderer(
   spec: AdSpec | null,
-  canvasRef: RefObject<HTMLCanvasElement | null>
+  canvasRef: RefObject<HTMLCanvasElement | null>,
+  overrides?: RendererOverrides
 ): UseAdSpecRendererResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -72,7 +83,7 @@ export function useAdSpecRenderer(
       return;
     }
 
-    const templateKey = getTemplateKey(spec.template);
+    const templateKey = getTemplateKey(spec.template, overrides);
 
     if (riveRef.current && templateKeyRef.current === templateKey) {
       applyAdSpec(riveRef.current, spec).catch((err) => {
@@ -94,12 +105,13 @@ export function useAdSpecRenderer(
     let rive: Rive | null = null;
 
     try {
-      const templatePath = getTemplatePath(spec.template.id);
+      const templatePath = overrides?.riveFile ?? getTemplatePath(spec.template.id);
+      const artboardName = overrides?.artboard ?? spec.template.artboard;
 
       rive = new Rive({
         src: templatePath,
         canvas: canvasRef.current,
-        artboard: spec.template.artboard,
+        artboard: artboardName,
         stateMachines: spec.template.stateMachine,
         autoplay: true,
         onLoad: () => {
@@ -145,7 +157,7 @@ export function useAdSpecRenderer(
     // Do not return a cleanup here: it would run before the next effect and destroy
     // the instance, forcing a full reload on every spec change (e.g. color drag). We
     // only cleanup on unmount (effect above) and at the start of the load path.
-  }, [spec, canvasRef.current]);
+  }, [spec, canvasRef.current, overrides?.riveFile, overrides?.artboard]);
 
   return {
     isLoading,

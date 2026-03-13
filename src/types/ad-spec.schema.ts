@@ -40,6 +40,9 @@ export interface AdSpec {
   /** Creation timestamp (ISO string) */
   createdAt?: string;
 
+  /** Ad format identifier from AD_FORMATS (e.g. 'leaderboard', 'medium-rectangle') */
+  formatId?: string;
+
   /** Template configuration */
   template: {
     /** Unique template identifier (maps to .riv file via registry) */
