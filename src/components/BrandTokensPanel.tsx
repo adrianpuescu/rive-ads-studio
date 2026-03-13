@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Pencil, X } from 'lucide-react';
 import { DrawerHeader } from './DrawerHeader';
 import { SelectDropdown } from './SelectDropdown';
+import { BrandItemSkeleton } from './skeletons';
 import type { Brand } from '../hooks/useBrandTokens';
 import type { BrandTokens as BrandTokensType } from '../types/brand-tokens';
 
@@ -193,7 +194,15 @@ export function BrandTokensPanel({
           <DrawerHeader title="Brands" onClose={onClose} action={{ label: '+ New brand', onClick: openNew }} />
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col scrollbar-thin">
             <div className="flex-1 min-h-0 flex flex-col">
-              {isLoading ? null : brands.length === 0 ? (
+              {isLoading ? (
+                <ul className="list-none m-0 p-3 flex flex-col gap-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <li key={i}>
+                      <BrandItemSkeleton variant="detailed" />
+                    </li>
+                  ))}
+                </ul>
+              ) : brands.length === 0 ? (
                 /* STARE GOALĂ */
                 <div className="flex flex-col items-center justify-center p-8 text-center gap-3">
                   <span className="text-4xl text-gray-200" aria-hidden>◈</span>

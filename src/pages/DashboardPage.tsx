@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useBrandTokens } from '../hooks/useBrandTokens'
 import { useAds, type Ad, fetchAdById } from '../hooks/useAds'
 import { STORAGE_KEYS } from '../constants/storageKeys'
-import { PageLoader } from '../components/PageLoader'
+import { ProjectCardSkeleton, BrandItemSkeleton } from '../components/skeletons'
 
 interface SupabaseProject {
   id: string
@@ -113,12 +113,6 @@ export function DashboardPage() {
     [brands]
   )
 
-  const isPageLoading = projectsLoading || brandsLoading
-
-  if (isPageLoading) {
-    return <PageLoader />
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <header className="h-11 flex-shrink-0 flex items-center px-5 bg-white border-b border-gray-200">
@@ -147,7 +141,7 @@ export function DashboardPage() {
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col gap-8">
         <section className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-lg font-semibold text-gray-900 m-0">Dashboard</h1>
-          {(supabaseProjects.length > 0 || localAds.length > 0) && (
+          {!projectsLoading && (supabaseProjects.length > 0 || localAds.length > 0) && (
             <button
               type="button"
               onClick={() => navigate('/editor')}
@@ -166,7 +160,7 @@ export function DashboardPage() {
             >
               Recent projects
             </h2>
-            {(supabaseProjects.length > 0 || localAds.length > 0) && (
+            {!projectsLoading && (supabaseProjects.length > 0 || localAds.length > 0) && (
               <button
                 type="button"
                 onClick={() => navigate('/projects')}
@@ -177,7 +171,13 @@ export function DashboardPage() {
             )}
           </div>
 
-          {supabaseProjects.length > 0 ? (
+          {projectsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <ProjectCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : supabaseProjects.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {supabaseProjects.map((project) => (
                 <button
@@ -296,7 +296,7 @@ export function DashboardPage() {
             >
               Brands
             </h2>
-            {sortedBrands.length > 0 && (
+            {!brandsLoading && sortedBrands.length > 0 && (
               <button
                 type="button"
                 onClick={() => navigate('/editor?openBrands=true')}
@@ -307,7 +307,13 @@ export function DashboardPage() {
             )}
           </div>
 
-          {sortedBrands.length === 0 ? (
+          {brandsLoading ? (
+            <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <BrandItemSkeleton key={i} variant="simple" />
+              ))}
+            </div>
+          ) : sortedBrands.length === 0 ? (
             <div className="flex flex-col items-start justify-center gap-2 rounded-lg border border-dashed border-gray-200 bg-white px-5 py-6">
               <p className="m-0 text-sm font-medium text-gray-900">No brands yet</p>
               <p className="m-0 text-sm text-gray-500">

@@ -9,7 +9,7 @@ import { useAds } from '../hooks/useAds';
 import type { Ad } from '../hooks/useAds';
 import { SelectDropdown } from '../components/SelectDropdown';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { PageLoader } from '../components/PageLoader';
+import { ProjectCardSkeleton } from '../components/skeletons';
 
 type SortByOption = 'last_modified' | 'date_created' | 'alphabetical';
 type OrderOption = 'newest' | 'oldest';
@@ -147,10 +147,6 @@ export function ProjectsPage() {
     [navigate]
   );
 
-  if (loading) {
-    return <PageLoader />;
-  }
-
   return (
     <div className="flex flex-col w-full min-h-screen bg-gray-50">
       <header className="h-11 flex-shrink-0 flex items-center py-0 px-5 bg-white border-b border-gray-200">
@@ -172,7 +168,7 @@ export function ProjectsPage() {
         </button>
       </section>
 
-      {items.length > 0 && (
+      {!loading && items.length > 0 && (
         <div className="px-6 pb-4">
           <div className="flex items-center gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm text-gray-500">
@@ -207,7 +203,15 @@ export function ProjectsPage() {
         </div>
       )}
 
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="px-6 pt-4 pb-8">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 items-stretch">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ProjectCardSkeleton key={i} variant="detailed" />
+            ))}
+          </div>
+        </div>
+      ) : items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-16">
           <h2 className="m-0 mb-2 text-base font-semibold text-gray-900">No projects yet</h2>
           <p className="m-0 mb-6 text-sm text-gray-500">Generate your first ad to get started.</p>
