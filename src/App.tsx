@@ -8,31 +8,24 @@ import { SpecInspector } from './components/SpecInspector'
 import { AdsDrawer } from './components/AdsDrawer'
 import { BrandTokensPanel } from './components/BrandTokensPanel'
 import { VariantsModal } from './components/VariantsModal'
-import { generateVariants, generateSingleVariant, VARIANT_STYLE_LABELS } from './ai/specGenerator'
 import { useAds, type Ad } from './hooks/useAds'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
 import { useSaveIndicator } from './hooks/useSaveIndicator'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import { useHistoryToast } from './hooks/useHistoryToast'
+import { usePanelCollapse } from './hooks/usePanelCollapse'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useFormatSelector } from './hooks/useFormatSelector'
+import { useVariants } from './hooks/useVariants'
 import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
 import type { AdSpec } from './types/ad-spec.schema'
 import { STORAGE_KEYS } from './constants/storageKeys'
-import { AD_FORMATS, DEFAULT_FORMAT, type AdFormat } from './constants/adFormats'
+import { AD_FORMATS } from './constants/adFormats'
 
 const INSPECTOR_PUSH_DEBOUNCE_MS = 600
-const HISTORY_TOAST_DURATION_MS = 1500
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''
-
-function readStored(key: string, fallback: boolean): boolean {
-  try {
-    const v = localStorage.getItem(key)
-    if (v === null) return fallback
-    return v === 'true'
-  } catch {
-    return fallback
-  }
-}
 
 function App() {
   const location = useLocation()
@@ -48,18 +41,27 @@ function App() {
     clear: clearHistory,
     replacePresent,
   } = useAdHistory(null)
-  const [chatCollapsed, setChatCollapsed] = useState(() =>
-    readStored(STORAGE_KEYS.CHAT_COLLAPSED, false)
-  )
-  const [inspectorCollapsed, setInspectorCollapsed] = useState(() =>
-    readStored(STORAGE_KEYS.INSPECTOR_COLLAPSED, false)
-  )
+
+  const { historyToast, showToast } = useHistoryToast()
+  const {
+    chatCollapsed,
+    setChatCollapsed,
+    inspectorCollapsed,
+    toggleChat,
+    toggleInspector,
+  } = usePanelCollapse()
+  const {
+    currentFormat,
+    formatDropdownOpen,
+    formatDropdownRef,
+    restoreFormatFromSpec,
+    selectFormat,
+    toggleDropdown,
+  } = useFormatSelector()
+
   const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false)
   const [activeAdId, setActiveAdId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
-  const [currentFormat, setCurrentFormat] = useState<AdFormat>(DEFAULT_FORMAT)
-  const [formatDropdownOpen, setFormatDropdownOpen] = useState(false)
-  const formatDropdownRef = useRef<HTMLDivElement>(null)
 
   const handleOpenProjects = useCallback(() => {
     setBrandOpen(false)
@@ -81,17 +83,10 @@ function App() {
   const [restoredChatHistory, setRestoredChatHistory] = useState<
     Array<{ role: 'user' | 'assistant'; content: string }> | null
   >(null)
-  /** Current chat messages (lifted from ChatPanel) so we can include them when saving the ad. */
   const [currentChatMessages, setCurrentChatMessages] = useState<
     Array<{ role: 'user' | 'assistant'; content: string }>
   >([])
-  const [historyToast, setHistoryToast] = useState<{ message: string } | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [variants, setVariants] = useState<(AdSpec | null)[]>([])
-  const [isGeneratingVariants, setIsGeneratingVariants] = useState(false)
-  const [showVariantsModal, setShowVariantsModal] = useState(false)
-  const [variantsPrompt, setVariantsPrompt] = useState('')
-  const [clearInputTrigger, setClearInputTrigger] = useState(0)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem } = useAds()
@@ -108,6 +103,48 @@ function App() {
   } = useBrandTokens()
 
   const { saveStatus, markAsSaved, clearSavedState } = useSaveIndicator(adSpec)
+
+  const captureAndUpdateThumbnail = useCallback(
+    (itemId: string, onDone?: () => void) => {
+      setTimeout(() => {
+        try {
+          const canvas = document.querySelector('canvas')
+          if (canvas) {
+            const thumbnail = (canvas as HTMLCanvasElement).toDataURL('image/png')
+            updateItemThumbnail(itemId, thumbnail)
+          }
+        } catch {
+          // omit thumbnail
+        }
+        onDone?.()
+      }, 800)
+    },
+    [updateItemThumbnail]
+  )
+
+  const {
+    variants,
+    isGeneratingVariants,
+    showVariantsModal,
+    variantsPrompt,
+    clearInputTrigger,
+    handleGenerateVariants,
+    handleSelectVariant,
+    handleVariantSelected,
+    handleCloseVariantsModal,
+    handleRetryVariant,
+  } = useVariants({
+    activeBrand: hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : null,
+    hasActiveBrand,
+    currentFormatId: currentFormat.id,
+    push,
+    saveAd,
+    markAsSaved,
+    captureAndUpdateThumbnail,
+    showToast,
+    setActiveAdId,
+    setRestoredChatHistory,
+  })
 
   const doNewAd = useCallback(() => {
     if (inspectorPushDebounceRef.current) {
@@ -131,8 +168,8 @@ function App() {
       inspectorPushDebounceRef.current = null
     }
     undo()
-    setHistoryToast({ message: '↩ Reverted to previous version' })
-  }, [canUndo, undo])
+    showToast('↩ Reverted to previous version')
+  }, [canUndo, undo, showToast])
 
   const handleRedo = useCallback(() => {
     if (!canRedo) return
@@ -141,8 +178,8 @@ function App() {
       inspectorPushDebounceRef.current = null
     }
     redo()
-    setHistoryToast({ message: '↪ Restored next version' })
-  }, [canRedo, redo])
+    showToast('↪ Restored next version')
+  }, [canRedo, redo, showToast])
 
   const handleInspectorChange = useCallback(
     (updated: AdSpec) => {
@@ -160,30 +197,6 @@ function App() {
       }
     },
     [replacePresent, push]
-  )
-
-  useEffect(() => {
-    if (!historyToast) return
-    const id = setTimeout(() => setHistoryToast(null), HISTORY_TOAST_DURATION_MS)
-    return () => clearTimeout(id)
-  }, [historyToast])
-
-  const captureAndUpdateThumbnail = useCallback(
-    (itemId: string, onDone?: () => void) => {
-      setTimeout(() => {
-        try {
-          const canvas = document.querySelector('canvas')
-          if (canvas) {
-            const thumbnail = (canvas as HTMLCanvasElement).toDataURL('image/png')
-            updateItemThumbnail(itemId, thumbnail)
-          }
-        } catch {
-          // omit thumbnail
-        }
-        onDone?.()
-      }, 800)
-    },
-    [updateItemThumbnail]
   )
 
   const handleSaveToProjects = useCallback(
@@ -225,36 +238,11 @@ function App() {
     onSaveAndNew: () => handleSaveToProjects(doNewAd),
   })
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
-        return
-      }
-
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault()
-        handleSaveToProjects()
-        return
-      }
-
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault()
-        handleUndo()
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
-        e.preventDefault()
-        handleRedo()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handleUndo, handleRedo, handleSaveToProjects])
+  useKeyboardShortcuts({
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+    onSave: handleSaveToProjects,
+  })
 
   const handleAdGenerated = useCallback(
     async (
@@ -292,115 +280,6 @@ function App() {
     [saveAd, captureAndUpdateThumbnail, markAsSaved, currentFormat.id]
   )
 
-  const handleGenerateVariants = useCallback(
-    async (prompt: string) => {
-      setIsGeneratingVariants(true)
-      setShowVariantsModal(true)
-      setVariantsPrompt(prompt)
-      setVariants([])
-      try {
-        const results = await generateVariants(
-          prompt,
-          hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : undefined
-        )
-        setVariants(results)
-      } finally {
-        setIsGeneratingVariants(false)
-      }
-    },
-    [activeBrand, hasActiveBrand]
-  )
-
-  const handleSelectVariant = useCallback(
-    async (spec: AdSpec) => {
-      const specWithFormat = { ...spec, formatId: currentFormat.id }
-      push(specWithFormat)
-      const styleLabel = VARIANT_STYLE_LABELS[spec.generation?.variantIndex ?? 0] ?? 'variant'
-      const headline = spec.text?.headline?.value ?? '—'
-      const bg = spec.colors?.background ?? '—'
-      const headlineColor = spec.colors?.headlineColor ?? '—'
-      const assistantMessage = `I generated this ${styleLabel} variant for you. Headline: ${headline}. Colors: ${bg} background, ${headlineColor} text. Feel free to ask me to refine anything.`
-      const chatHistory = [
-        { role: 'user' as const, content: variantsPrompt },
-        { role: 'assistant' as const, content: assistantMessage },
-      ]
-      const payload = adSpecToAdPayload(specWithFormat)
-      payload.prompt = variantsPrompt
-      payload.chatHistory = chatHistory
-      try {
-        const id = await saveAd(payload)
-        setActiveAdId(id)
-        markAsSaved(specWithFormat)
-        captureAndUpdateThumbnail(id)
-        setShowVariantsModal(false)
-        setVariants([])
-        setVariantsPrompt('')
-        setClearInputTrigger((t) => t + 1)
-        setHistoryToast({ message: 'Variant loaded in editor' })
-      } catch (err) {
-        console.error('[handleSelectVariant] Save failed:', err)
-      }
-    },
-    [push, saveAd, captureAndUpdateThumbnail, variantsPrompt, markAsSaved, currentFormat.id]
-  )
-
-  const handleVariantSelected = useCallback(
-    (variant: AdSpec, prompt: string) => {
-      const styleLabel = VARIANT_STYLE_LABELS[variant.generation?.variantIndex ?? 0] ?? 'variant'
-      const headline = variant.text?.headline?.value ?? '—'
-      const bg = variant.colors?.background ?? '—'
-      const headlineColor = variant.colors?.headlineColor ?? '—'
-      const assistantMessage = `I generated this ${styleLabel} variant for you. Headline: ${headline}. Colors: ${bg} background, ${headlineColor} text. Feel free to ask me to refine anything.`
-      setRestoredChatHistory([
-        { role: 'user', content: prompt },
-        { role: 'assistant', content: assistantMessage },
-      ])
-    },
-    []
-  )
-
-  const handleCloseVariantsModal = useCallback(() => {
-    setShowVariantsModal(false)
-    setVariants([])
-    setVariantsPrompt('')
-  }, [])
-
-  const handleRetryVariant = useCallback(
-    async (index: number) => {
-      if (!variantsPrompt || index < 0 || index > 2) return
-      const result = await generateSingleVariant(
-        variantsPrompt,
-        hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : null,
-        (index + 1) as 1 | 2 | 3
-      )
-      setVariants((prev) => {
-        const next = [...prev]
-        next[index] = result
-        return next
-      })
-    },
-    [variantsPrompt, hasActiveBrand, activeBrand]
-  )
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CHAT_COLLAPSED, String(chatCollapsed))
-  }, [chatCollapsed])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.INSPECTOR_COLLAPSED, String(inspectorCollapsed))
-  }, [inspectorCollapsed])
-
-  const restoreFormatFromSpec = useCallback((spec: AdSpec) => {
-    if (spec.formatId) {
-      const format = AD_FORMATS.find((f) => f.id === spec.formatId)
-      if (format) {
-        setCurrentFormat(format)
-        return
-      }
-    }
-    setCurrentFormat(DEFAULT_FORMAT)
-  }, [])
-
   // Instant load when navigating from Projects page with state (no wait for ads)
   useEffect(() => {
     const item = (location.state as { pendingLoadItem?: Ad } | null)?.pendingLoadItem
@@ -416,9 +295,9 @@ function App() {
     markAsSaved(spec)
     restoreFormatFromSpec(spec)
     setRestoredChatHistory(item.chatHistory ?? [])
-    setHistoryToast({ message: 'Loaded from project' })
+    showToast('Loaded from project')
     navigate(location.pathname, { replace: true })
-  }, [location.state, location.pathname, push, navigate, markAsSaved, restoreFormatFromSpec])
+  }, [location.state, location.pathname, push, navigate, markAsSaved, restoreFormatFromSpec, showToast])
 
   // Fallback: load by id from localStorage when ads list is ready (e.g. after refresh)
   useEffect(() => {
@@ -434,30 +313,11 @@ function App() {
       markAsSaved(spec)
       restoreFormatFromSpec(spec)
       setRestoredChatHistory(item.chatHistory ?? [])
-      setHistoryToast({ message: 'Loaded from project' })
+      showToast('Loaded from project')
     } catch {
       // ignore
     }
-  }, [ads, push, markAsSaved, restoreFormatFromSpec])
-
-  const toggleChat = useCallback(() => {
-    setChatCollapsed((c) => !c)
-  }, [])
-
-  const toggleInspector = useCallback(() => {
-    setInspectorCollapsed((c) => !c)
-  }, [])
-
-  useEffect(() => {
-    if (!formatDropdownOpen) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (formatDropdownRef.current && !formatDropdownRef.current.contains(e.target as Node)) {
-        setFormatDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [formatDropdownOpen])
+  }, [ads, push, markAsSaved, restoreFormatFromSpec, showToast])
 
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden app-mobile-stack max-md:h-auto max-md:min-h-screen max-md:overflow-auto">
@@ -571,7 +431,7 @@ function App() {
           <button
             type="button"
             className="relative text-sm py-1.5 pl-3 pr-7 border border-gray-200 rounded bg-white text-gray-700 cursor-pointer inline-flex items-center gap-2 hover:bg-gray-50 focus:outline-none transition-colors duration-150 min-h-[32px] tabular-nums"
-            onClick={() => setFormatDropdownOpen((o) => !o)}
+            onClick={toggleDropdown}
             aria-haspopup="listbox"
             aria-expanded={formatDropdownOpen}
             aria-label="Ad size"
@@ -591,8 +451,7 @@ function App() {
                     type="button"
                     className="flex items-center gap-2 w-full py-1.5 px-3 text-sm text-gray-700 bg-transparent border-0 rounded cursor-pointer text-left hover:bg-gray-50 transition-colors duration-150 tabular-nums whitespace-nowrap"
                     onClick={() => {
-                      setCurrentFormat(format)
-                      setFormatDropdownOpen(false)
+                      selectFormat(format)
                       if (adSpec) {
                         const updatedSpec = {
                           ...adSpec,
