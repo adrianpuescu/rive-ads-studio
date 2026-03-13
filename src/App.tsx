@@ -89,7 +89,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
-  const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem } = useAds()
+  const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem, renameItem } = useAds()
   const {
     brands,
     activeBrandId,
@@ -103,6 +103,22 @@ function App() {
   } = useBrandTokens()
 
   const { saveStatus, markAsSaved, clearSavedState } = useSaveIndicator(adSpec)
+
+  const currentProjectName = activeAdId
+    ? (ads.find((a) => a.id === activeAdId)?.headline || 'Untitled')
+    : null
+
+  const handleProjectNameChange = useCallback(
+    async (newName: string) => {
+      const trimmed = newName.trim()
+      if (!trimmed || !activeAdId) return
+      await renameItem(activeAdId, trimmed)
+      if (adSpec) {
+        replacePresent({ ...adSpec, name: trimmed })
+      }
+    },
+    [activeAdId, renameItem, adSpec, replacePresent]
+  )
 
   const captureAndUpdateThumbnail = useCallback(
     (itemId: string, onDone?: () => void) => {
@@ -205,6 +221,11 @@ function App() {
       const specWithFormat = { ...adSpec, formatId: currentFormat.id }
       const payload = adSpecToAdPayload(specWithFormat)
       payload.chatHistory = currentChatMessages ?? []
+      // Preserve the project name if it was renamed independently of the adSpec headline
+      if (activeAdId) {
+        const currentAd = ads.find((a) => a.id === activeAdId)
+        if (currentAd?.headline) payload.headline = currentAd.headline
+      }
       let itemId: string
       try {
         if (activeAdId) {
@@ -640,6 +661,8 @@ function App() {
               <SpecInspector
                 spec={adSpec}
                 onChange={handleInspectorChange}
+                projectName={currentProjectName}
+                onProjectNameChange={handleProjectNameChange}
               />
             </div>
           </div>

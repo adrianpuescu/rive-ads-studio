@@ -5,14 +5,59 @@
  * Changes are immediately reflected in the preview.
  */
 
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { AdSpec } from '../types/ad-spec.schema';
 
 export interface SpecInspectorProps {
   spec: AdSpec;
   onChange: (updated: AdSpec) => void;
+  projectName?: string | null;
+  onProjectNameChange?: (newName: string) => void;
 }
 
-export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
+export function SpecInspector({ spec, onChange, projectName, onProjectNameChange }: SpecInspectorProps) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const renameValueRef = useRef('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    renameValueRef.current = renameValue;
+  }, [renameValue]);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isRenaming]);
+
+  const handleRenameStart = useCallback(() => {
+    if (projectName === null || projectName === undefined) return;
+    setRenameValue(projectName);
+    setIsRenaming(true);
+  }, [projectName]);
+
+  const handleRenameSubmit = useCallback(() => {
+    const trimmed = renameValueRef.current.trim();
+    if (trimmed && onProjectNameChange) {
+      onProjectNameChange(trimmed);
+    }
+    setIsRenaming(false);
+  }, [onProjectNameChange]);
+
+  const handleRenameKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleRenameSubmit();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsRenaming(false);
+      }
+    },
+    [handleRenameSubmit]
+  );
   const handleTextChange = (field: 'headline' | 'subheadline' | 'cta', value: string) => {
     onChange({
       ...spec,
@@ -49,6 +94,35 @@ export function SpecInspector({ spec, onChange }: SpecInspectorProps) {
 
   return (
     <div className="flex flex-col gap-6 mt-3">
+      {/* PROJECT NAME SECTION */}
+      {projectName !== null && projectName !== undefined && (
+        <div className="flex flex-col gap-3">
+          <h3 className={sectionLabel}>Project name</h3>
+          <div className="flex flex-col gap-1">
+            {isRenaming ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={handleRenameKeyDown}
+                onBlur={handleRenameSubmit}
+                className={fieldInput}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={handleRenameStart}
+                className="w-full text-left text-sm text-gray-900 px-3 py-2 border border-gray-200 rounded bg-white hover:bg-gray-50 cursor-pointer transition-colors duration-150 truncate"
+                title="Click to rename"
+              >
+                {projectName}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* TEXT SECTION */}
       <div className="flex flex-col gap-3">
         <h3 className={sectionLabel}>Text</h3>

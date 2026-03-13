@@ -216,7 +216,7 @@ export function useAds() {
       if (user) {
         const nextSpec = data.adSpec ?? undefined;
         const payload: Partial<AdRow> = {
-          name: nextSpec?.text?.headline?.value,
+          name: data.headline || nextSpec?.text?.headline?.value,
           ad_spec: nextSpec ?? null,
           chat_history: data.chatHistory ?? null,
           thumbnail: data.thumbnail,

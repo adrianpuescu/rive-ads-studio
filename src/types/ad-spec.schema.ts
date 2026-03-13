@@ -36,6 +36,9 @@ export interface AdSpec {
   
   /** Unique identifier for this ad spec */
   id?: string;
+
+  /** Display name for the project */
+  name?: string;
   
   /** Creation timestamp (ISO string) */
   createdAt?: string;
