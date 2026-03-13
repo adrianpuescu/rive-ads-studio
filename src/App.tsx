@@ -657,7 +657,6 @@ function App() {
             <div
               className={`w-[280px] flex-shrink-0 h-full overflow-y-auto overflow-x-hidden py-6 px-5 border-l border-border bg-surface transition-transform duration-250 ease-out scrollbar-thin app-right-panel-mobile ${inspectorCollapsed ? 'translate-x-[280px]' : 'translate-x-0'} max-md:w-full max-md:[.app-right-wrap-mobile.w-0_&]:translate-x-full`}
             >
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-5 mt-0">Inspector</p>
               <SpecInspector
                 spec={adSpec}
                 onChange={handleInspectorChange}
