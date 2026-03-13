@@ -79,8 +79,6 @@ export function useBrandTokens() {
           const activeBrandId =
             prev.activeBrandId && brands.some((b) => b.id === prev.activeBrandId)
               ? prev.activeBrandId
-              : brands.length > 0
-              ? brands[0]!.id
               : null;
           return { brands, activeBrandId };
         });

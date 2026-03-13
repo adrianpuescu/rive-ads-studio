@@ -173,9 +173,10 @@ function App() {
     setCurrentChatMessages([])
     clearSavedState()
     clearHistory()
+    setActiveBrand(null)
     setNewAdTrigger((t) => t + 1)
     setTimeout(() => promptInputRef.current?.focus(), 100)
-  }, [clearHistory, clearSavedState])
+  }, [clearHistory, clearSavedState, setActiveBrand])
 
   const handleUndo = useCallback(() => {
     if (!canUndo) return
