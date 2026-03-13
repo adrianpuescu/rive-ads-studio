@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { generateVariants, generateSingleVariant, VARIANT_STYLE_LABELS } from '../ai/specGenerator'
 import { adSpecToAdPayload } from '../lib/adSpecPayload'
 import type { AdSpec } from '../types/ad-spec.schema'
-import type { BrandTokens } from './useBrandTokens'
+import type { BrandTokens } from '../types/brand-tokens'
 
 interface UseVariantsOptions {
   activeBrand: { name: string; tokens: BrandTokens } | null
