@@ -6,8 +6,11 @@
  */
 
 export const TEMPLATE_REGISTRY: Record<string, string> = {
-  'test-template': '/templates/test-template.riv',
-  // future templates added here
+  'leaderboard': '/templates/banner-728x90.riv',
+  'medium-rectangle': '/templates/banner-300x250.riv',
+  'half-page': '/templates/banner-300x600.riv',
+  'billboard': '/templates/banner-970x250.riv',
+  'mobile-banner': '/templates/banner-320x50.riv',
 };
 
 /**

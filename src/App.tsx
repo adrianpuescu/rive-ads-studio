@@ -624,7 +624,7 @@ function App() {
         {adSpec && (
           <ExportButton
             spec={adSpec}
-            rivFileName="test-template.riv"
+            rivFileName={currentFormat.riveFile}
           />
         )}
       </header>
