@@ -57,9 +57,19 @@ function App() {
   const [activeAdId, setActiveAdId] = useState<string | null>(null)
   const [brandOpen, setBrandOpen] = useState(false)
 
+  const handleOpenProjects = useCallback(() => {
+    setBrandOpen(false)
+    setProjectsDrawerOpen(true)
+  }, [])
+
+  const handleOpenBrands = useCallback(() => {
+    setProjectsDrawerOpen(false)
+    setBrandOpen(true)
+  }, [])
+
   useEffect(() => {
     if (searchParams.get('openBrands') === 'true') {
-      setTimeout(() => setBrandOpen(true), 100)
+      setTimeout(() => handleOpenBrands(), 100)
     }
   }, [])
 
@@ -498,7 +508,7 @@ function App() {
         <button
           type="button"
           className="inline-flex items-center gap-1.5 border border-gray-200 text-sm px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
-          onClick={() => setProjectsDrawerOpen((prev) => !prev)}
+          onClick={() => (projectsDrawerOpen ? setProjectsDrawerOpen(false) : handleOpenProjects())}
           aria-label="Open Projects"
         >
           <LayoutGrid className="w-3.5 h-3.5" aria-hidden />
@@ -552,7 +562,7 @@ function App() {
               activeBrand={hasActiveBrand && activeBrand ? { name: activeBrand.name, tokens: activeBrand.tokens } : null}
               hasActiveBrand={hasActiveBrand}
               activeBrandName={activeBrand?.name ?? ''}
-              onOpenBrandTokens={() => setBrandOpen(true)}
+              onOpenBrandTokens={handleOpenBrands}
               isGenerating={isGeneratingVariants}
               onGenerateVariants={handleGenerateVariants}
               clearInputTrigger={clearInputTrigger}
