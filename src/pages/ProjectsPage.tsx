@@ -42,14 +42,15 @@ function promptSnippet(prompt: string, maxLen: number): string {
 
 interface AdCardProps {
   item: Ad;
-  onOpenInEditor: (item: Ad) => void;
+  onClick: (item: Ad) => void;
   onRemove: (id: string) => void;
 }
 
-function AdCard({ item, onOpenInEditor, onRemove }: AdCardProps) {
+function AdCard({ item, onClick, onRemove }: AdCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     if (confirmDelete) {
       onRemove(item.id);
       setConfirmDelete(false);
@@ -58,8 +59,17 @@ function AdCard({ item, onOpenInEditor, onRemove }: AdCardProps) {
     }
   }, [confirmDelete, item.id, onRemove]);
 
+  const handleCancelDelete = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmDelete(false);
+  }, []);
+
   return (
-    <article className={`group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 ${confirmDelete ? 'is-confirming' : ''}`}>
+    <button
+      type="button"
+      onClick={() => onClick(item)}
+      className={`group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 text-left cursor-pointer ${confirmDelete ? 'is-confirming' : ''}`}
+    >
       <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
         {item.thumbnail ? (
           <img src={item.thumbnail} alt="" className="max-w-full max-h-24 object-contain block rounded-md" />
@@ -68,31 +78,28 @@ function AdCard({ item, onOpenInEditor, onRemove }: AdCardProps) {
         )}
       </div>
       <div className="p-4 pb-3 flex flex-col flex-1 min-h-0">
-        <h3 className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight">{item.headline || '—'}</h3>
-        <p className="text-sm text-gray-500 m-0 mb-2 leading-tight">{item.subheadline || '—'}</p>
-        <p className="text-xs text-gray-400 italic m-0 mb-3 leading-tight">{promptSnippet(item.prompt, 80)}</p>
+        <h3 className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight text-left">{item.headline || '—'}</h3>
+        <p className="text-sm text-gray-500 m-0 mb-2 leading-tight text-left">{item.subheadline || '—'}</p>
+        <p className="text-xs text-gray-400 italic m-0 mb-3 leading-tight text-left">{promptSnippet(item.prompt, 80)}</p>
         <div className="flex gap-1.5 mb-3" aria-hidden>
           <span className="w-4 h-4 rounded-full flex-shrink-0 ring-1 ring-black/10" style={{ background: item.colors.background }} />
           <span className="w-4 h-4 rounded-full flex-shrink-0 ring-1 ring-black/10" style={{ background: item.colors.primary }} />
           <span className="w-4 h-4 rounded-full flex-shrink-0 ring-1 ring-black/10" style={{ background: item.colors.headlineColor ?? item.colors.primary }} />
         </div>
-        <p className="text-xs text-gray-400 m-0 mb-3">{formatTimestamp(item.createdAt)}</p>
+        <p className="text-xs text-gray-400 m-0 mb-3 text-left">{formatTimestamp(item.createdAt)}</p>
       </div>
-      <div className={`absolute bottom-0 left-0 right-0 flex flex-row items-center gap-2 py-5 px-4 pb-4 bg-gradient-to-b from-transparent from-0% via-white/88 via-[35%] to-white backdrop-blur-sm transition-all duration-250 ${confirmDelete ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2.5 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto'}`}>
+      <div className={`absolute bottom-0 left-0 right-0 flex flex-row items-center justify-end gap-2 py-5 px-4 pb-4 bg-gradient-to-b from-transparent from-0% via-white/88 via-[35%] to-white backdrop-blur-sm transition-all duration-250 ${confirmDelete ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2.5 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto'}`}>
         {confirmDelete ? (
           <>
             <span className="text-sm text-gray-500 mr-1">Delete this ad?</span>
             <button type="button" className="text-sm py-2 px-3 rounded border border-red-200 bg-red-50 text-red-500 cursor-pointer hover:bg-red-100 transition-colors duration-150 min-h-[32px]" onClick={handleDelete}>Yes</button>
-            <button type="button" className="text-sm py-2 px-3 rounded border border-gray-200 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors duration-150 focus:outline-none min-h-[32px]" onClick={() => setConfirmDelete(false)}>No</button>
+            <button type="button" className="text-sm py-2 px-3 rounded border border-gray-200 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors duration-150 focus:outline-none min-h-[32px]" onClick={handleCancelDelete}>No</button>
           </>
         ) : (
-          <>
-            <button type="button" className="flex-1 text-sm font-medium py-2 px-3 rounded bg-gray-900 text-white border-0 cursor-pointer hover:bg-gray-700 transition-colors duration-150 min-h-[32px]" onClick={() => onOpenInEditor(item)}>Open in Editor</button>
-            <button type="button" className="text-sm text-gray-400 py-1.5 px-2.5 rounded cursor-pointer hover:text-red-500 transition-colors duration-150 focus:outline-none bg-transparent border-0" onClick={handleDelete} aria-label="Delete ad">Delete</button>
-          </>
+          <button type="button" className="text-sm text-gray-400 py-1.5 px-2.5 rounded cursor-pointer hover:text-red-500 transition-colors duration-150 focus:outline-none bg-transparent border-0" onClick={handleDelete} aria-label="Delete ad">Delete</button>
         )}
       </div>
-    </article>
+    </button>
   );
 }
 
@@ -228,7 +235,7 @@ export function ProjectsPage() {
           <p className="m-0 mb-3 text-xs text-gray-400">Showing {sorted.length} of {items.length} projects</p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 items-stretch">
             {sorted.map((item) => (
-              <AdCard key={item.id} item={item} onOpenInEditor={handleOpenInEditor} onRemove={removeItem} />
+              <AdCard key={item.id} item={item} onClick={handleOpenInEditor} onRemove={removeItem} />
             ))}
           </div>
         </div>
