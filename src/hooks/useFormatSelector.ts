@@ -40,6 +40,7 @@ export function useFormatSelector() {
 
   return {
     currentFormat,
+    setCurrentFormat,
     formatDropdownOpen,
     formatDropdownRef,
     restoreFormatFromSpec,

@@ -21,7 +21,7 @@ import { useVariants } from './hooks/useVariants'
 import { adToAdSpec, adSpecToAdPayload } from './lib/adSpecPayload'
 import type { AdSpec } from './types/ad-spec.schema'
 import { STORAGE_KEYS } from './constants/storageKeys'
-import { AD_FORMATS } from './constants/adFormats'
+import { AD_FORMATS, DEFAULT_FORMAT } from './constants/adFormats'
 
 const INSPECTOR_PUSH_DEBOUNCE_MS = 600
 
@@ -52,6 +52,7 @@ function App() {
   } = usePanelCollapse()
   const {
     currentFormat,
+    setCurrentFormat,
     formatDropdownOpen,
     formatDropdownRef,
     restoreFormatFromSpec,
@@ -174,9 +175,10 @@ function App() {
     clearSavedState()
     clearHistory()
     setActiveBrand(null)
+    setCurrentFormat(DEFAULT_FORMAT)
     setNewAdTrigger((t) => t + 1)
     setTimeout(() => promptInputRef.current?.focus(), 100)
-  }, [clearHistory, clearSavedState, setActiveBrand])
+  }, [clearHistory, clearSavedState, setActiveBrand, setCurrentFormat])
 
   const handleUndo = useCallback(() => {
     if (!canUndo) return

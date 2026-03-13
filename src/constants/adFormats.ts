@@ -48,4 +48,4 @@ export const AD_FORMATS = [
 
 export type AdFormatId = typeof AD_FORMATS[number]['id']
 export type AdFormat = typeof AD_FORMATS[number]
-export const DEFAULT_FORMAT = AD_FORMATS[0]
+export const DEFAULT_FORMAT = AD_FORMATS.find(f => f.id === 'medium-rectangle')!
