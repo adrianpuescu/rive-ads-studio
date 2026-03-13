@@ -9,6 +9,7 @@ import { useAds } from '../hooks/useAds';
 import type { Ad } from '../hooks/useAds';
 import { SelectDropdown } from '../components/SelectDropdown';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { PageLoader } from '../components/PageLoader';
 
 type SortByOption = 'last_modified' | 'date_created' | 'alphabetical';
 type OrderOption = 'newest' | 'oldest';
@@ -97,7 +98,7 @@ function AdCard({ item, onOpenInEditor, onRemove }: AdCardProps) {
 
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const { items, removeItem } = useAds();
+  const { items, loading, removeItem } = useAds();
   const [sortBy, setSortBy] = useState<SortByOption>('last_modified');
   const [order, setOrder] = useState<OrderOption>('newest');
   const [search, setSearch] = useState('');
@@ -145,6 +146,10 @@ export function ProjectsPage() {
     },
     [navigate]
   );
+
+  if (loading) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-gray-50">

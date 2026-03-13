@@ -94,6 +94,7 @@ export async function fetchAdById(userId: string, id: string): Promise<Ad | null
 export function useAds() {
   const { user, loading: authLoading } = useAuth();
   const [ads, setAds] = useState<Ad[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshAds = useCallback(async () => {
     if (!user) return;
@@ -106,15 +107,18 @@ export function useAds() {
 
     if (!user) {
       setAds([]);
+      setLoading(false);
       return;
     }
 
     let isCancelled = false;
+    setLoading(true);
 
     void (async () => {
       const loaded = await loadAds(user.id);
       if (!isCancelled) {
         setAds(loaded);
+        setLoading(false);
       }
     })();
 
@@ -258,5 +262,5 @@ export function useAds() {
     }
   }, [user]);
 
-  return { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem, clearAll };
+  return { items: ads, loading, saveAd, updateItemThumbnail, updateItem, removeItem, clearAll };
 }

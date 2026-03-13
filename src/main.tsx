@@ -10,16 +10,13 @@ import { DashboardPage } from './pages/DashboardPage.tsx'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './pages/ResetPasswordPage.tsx'
 import { useAuth } from './hooks/useAuth'
+import { PageLoader } from './components/PageLoader'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-gray-500">Loading session…</p>
-      </div>
-    )
+    return <PageLoader message="Loading session…" />
   }
 
   return (
