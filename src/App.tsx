@@ -366,10 +366,10 @@ function App() {
 
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden app-mobile-stack max-md:h-auto max-md:min-h-screen max-md:overflow-auto">
-      <header className="h-11 flex-shrink-0 flex items-center px-4 gap-2 bg-white border-b border-gray-200">
+      <header className="h-11 flex-shrink-0 flex items-center px-5 gap-2 bg-white border-b border-gray-200">
         <Link
           to="/dashboard"
-          className="flex items-center gap-1.5 no-underline text-inherit mr-1"
+          className="flex items-center gap-1.5 no-underline text-inherit"
         >
           <span className="font-serif text-sm font-semibold leading-none text-gray-900">RiveAds</span>
           <span className="w-1 h-1 rounded-full bg-gray-900 flex-shrink-0" aria-hidden />

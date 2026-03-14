@@ -51,6 +51,7 @@ interface AdCardProps {
 function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [renameValue, setRenameValue] = useState(item.headline || '');
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -122,11 +123,22 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
     await onDuplicate(item.id);
   }, [item.id, onDuplicate]);
 
-  const handleDelete = useCallback((e: React.MouseEvent) => {
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
+    setIsConfirmingDelete(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     onRemove(item.id);
+    setIsConfirmingDelete(false);
   }, [item.id, onRemove]);
+
+  const handleCancelDelete = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsConfirmingDelete(false);
+  }, []);
 
   const handleCardClick = useCallback(() => {
     if (isRenaming) return;
@@ -147,7 +159,7 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
       tabIndex={0}
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
-      className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 text-left cursor-pointer"
+      className={`group relative border rounded-lg overflow-hidden bg-white flex flex-col w-full min-h-0 transition-all duration-150 text-left cursor-pointer ${isConfirmingDelete ? 'border-red-200' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
     >
       <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
         {item.thumbnail ? (
@@ -213,7 +225,7 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
             <div className="h-px bg-gray-200 my-1" />
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-0 bg-transparent transition-colors duration-150"
             >
               Delete
@@ -221,6 +233,33 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
           </div>
         )}
       </div>
+
+      {isConfirmingDelete && (
+        <div
+          className="absolute inset-0 rounded-lg bg-red-50/95 flex flex-col items-center justify-center gap-2 z-20"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-label="Delete project?"
+        >
+          <span className="text-sm text-gray-600">Delete project?</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="text-sm font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded border-0 cursor-pointer transition-colors duration-150"
+              onClick={handleConfirmDelete}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 bg-transparent border-0 cursor-pointer transition-colors duration-150"
+              onClick={handleCancelDelete}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -40,17 +40,21 @@ interface AdCardProps {
 function AdCard({ item, onLoad, onRemove }: AdCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const handleDelete = useCallback(() => {
-    if (confirmDelete) {
-      onRemove(item.id);
-      setConfirmDelete(false);
-    } else {
-      setConfirmDelete(true);
-    }
-  }, [confirmDelete, item.id, onRemove]);
+  const handleDeleteClick = useCallback(() => {
+    setConfirmDelete(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    onRemove(item.id);
+    setConfirmDelete(false);
+  }, [item.id, onRemove]);
+
+  const handleCancelDelete = useCallback(() => {
+    setConfirmDelete(false);
+  }, []);
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm transition-all duration-150">
+    <div className={`relative border rounded-lg overflow-hidden bg-white transition-all duration-150 ${confirmDelete ? 'border-red-200' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}>
       {item.thumbnail ? (
         <div className="p-2 bg-gray-50 rounded-t-lg overflow-hidden">
           <img src={item.thumbnail} alt="" className="w-full h-auto object-contain block rounded-md" />
@@ -71,35 +75,42 @@ function AdCard({ item, onLoad, onRemove }: AdCardProps) {
           >
             Load
           </button>
-          {confirmDelete ? (
-            <>
-              <span className="text-xs text-gray-500 mr-1">Sure?</span>
-              <button
-                type="button"
-                className="py-1.5 px-3 text-sm border border-red-200 bg-red-50 text-red-500 rounded hover:bg-red-100 cursor-pointer transition-colors duration-150 min-h-[32px]"
-                onClick={handleDelete}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                className="py-1.5 px-3 text-sm border border-gray-200 rounded hover:bg-gray-50 text-gray-700 cursor-pointer bg-white transition-colors duration-150 min-h-[32px]"
-                onClick={() => setConfirmDelete(false)}
-              >
-                No
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="text-sm text-gray-400 hover:text-red-500 px-2 py-1 cursor-pointer bg-transparent border-0 transition-colors duration-150"
-              onClick={handleDelete}
-            >
-              Delete
-            </button>
-          )}
+          <button
+            type="button"
+            className="text-sm text-gray-400 hover:text-red-500 px-2 py-1 cursor-pointer bg-transparent border-0 transition-colors duration-150"
+            onClick={handleDeleteClick}
+          >
+            Delete
+          </button>
         </div>
       </div>
+
+      {confirmDelete && (
+        <div
+          className="absolute inset-0 rounded-lg bg-red-50/95 flex flex-col items-center justify-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-label="Delete project?"
+        >
+          <span className="text-sm text-gray-600">Delete project?</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="text-sm font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded border-0 cursor-pointer transition-colors duration-150"
+              onClick={handleConfirmDelete}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 bg-transparent border-0 cursor-pointer transition-colors duration-150"
+              onClick={handleCancelDelete}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
