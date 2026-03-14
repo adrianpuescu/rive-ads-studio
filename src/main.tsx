@@ -10,6 +10,7 @@ import { DashboardPage } from './pages/DashboardPage.tsx'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './pages/ResetPasswordPage.tsx'
 import { PreviewPage } from './pages/PreviewPage.tsx'
+import { LandingPage } from './pages/LandingPage.tsx'
 import { useAuth } from './hooks/useAuth'
 import { PageLoader } from './components/PageLoader'
 
@@ -25,7 +26,7 @@ function AppRoutes() {
       <Route
         path="/"
         element={
-          user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          user ? <Navigate to="/dashboard" replace /> : <LandingPage />
         }
       />
       <Route
