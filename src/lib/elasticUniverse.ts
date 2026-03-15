@@ -41,8 +41,8 @@ interface Blob {
   radius: number;
 }
 
-const SHAPE_COUNT = window.innerWidth < 640
-  ? 4 + Math.floor(Math.random() * 2)  // 4–5 on mobile
+const SHAPE_COUNT = window.innerWidth < 768
+  ? 6 + Math.floor(Math.random() * 2)  // 6–7 on mobile
   : 12 + Math.floor(Math.random() * 3); // 12–14 on desktop
 
 // IAB-inspired base dimensions at reference viewport 900px (scaled at runtime)
@@ -125,7 +125,7 @@ export class ElasticUniverse {
   }
 
   private opacityFactor(): number {
-    return window.innerWidth < 768 ? 0.4 : 1;
+    return window.innerWidth < 768 ? 0.55 : 1;
   }
 
   private resize() {
@@ -180,7 +180,7 @@ export class ElasticUniverse {
       // Per-layer: size scale, drift speed
       let layerScale: number, driftMag: number;
       if (layer === 0) {
-        layerScale = 0.575 + Math.random() * 0.23;
+        layerScale = 0.7 + Math.random() * 0.23;
         driftMag   = 0.00001 + Math.random() * 0.000006;
       } else if (layer === 1) {
         layerScale = 0.92 + Math.random() * 0.23;
