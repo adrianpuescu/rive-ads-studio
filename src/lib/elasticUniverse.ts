@@ -27,6 +27,11 @@ interface Blob {
   // Color
   color: string;
   opacity: number;
+  opacityMin: number;
+  opacityMax: number;
+  opacityPhase: number;
+  opacitySpeed: number;
+  currentOpacity: number;
   // Per-corner deformation toward mouse (gum stretch)
   // corners: TL, TR, BR, BL — each is [dx, dy]
   corners: [number, number][];
@@ -98,6 +103,7 @@ export class ElasticUniverse {
   private blobs: Blob[] = [];
   private mouse = { x: -9999, y: -9999 };
   private raf = 0;
+  private t = 0;
   private boundMouseMove: (e: MouseEvent) => void;
   private boundResize: () => void;
 
@@ -188,6 +194,11 @@ export class ElasticUniverse {
         layerScale,
         color,
         opacity,
+        opacityMin: opacity * (0.3 + Math.random() * 0.3),
+        opacityMax: opacity,
+        opacityPhase: Math.random() * Math.PI * 2,
+        opacitySpeed: 0.1 + Math.random() * 0.8,
+        currentOpacity: opacity,
         corners: [[0,0],[0,0],[0,0],[0,0]],
         cornerVx: [0,0,0,0],
         cornerVy: [0,0,0,0],
@@ -200,6 +211,7 @@ export class ElasticUniverse {
   }
 
   private update() {
+    this.t += 0.016;
     const cw = this.canvas.width;
     const ch = this.canvas.height;
 
@@ -265,6 +277,10 @@ export class ElasticUniverse {
         b.corners[i][0] = Math.max(-b.w * 0.3, Math.min(b.w * 0.3, b.corners[i][0]));
         b.corners[i][1] = Math.max(-b.h * 0.3, Math.min(b.h * 0.3, b.corners[i][1]));
       });
+
+      b.currentOpacity = b.opacityMin +
+        (b.opacityMax - b.opacityMin) *
+        (0.5 + 0.5 * Math.sin(this.t * b.opacitySpeed + b.opacityPhase));
     });
   }
 
@@ -302,7 +318,7 @@ export class ElasticUniverse {
     ctx.quadraticCurveTo(TL[0], TL[1], TL[0] + r, TL[1]);
     ctx.closePath();
 
-    ctx.globalAlpha = b.opacity;
+    ctx.globalAlpha = b.currentOpacity;
     ctx.fillStyle = b.color;
     ctx.fill();
 

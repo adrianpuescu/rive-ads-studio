@@ -187,11 +187,11 @@ export function LandingPage() {
             transition: tilt.active ? 'transform 0.3s ease-out' : 'transform 0.4s ease-out',
           }}
         >
-          <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="flex flex-col items-center gap-2 mb-8">
             <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full">
               Early Access
             </span>
-            <span className="text-xs text-gray-400">Launching Q2 2026</span>
+            <span className="text-xs text-gray-400">Currently in private beta</span>
           </div>
 
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-none text-gray-900 mb-10">
