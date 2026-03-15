@@ -100,6 +100,8 @@ function TypewriterDemo() {
 export function LandingPage() {
   const [email, setEmail] = useState('')
   const [formState, setFormState] = useState<FormState>('idle')
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, active: false })
+  const cardRef = useRef<HTMLDivElement>(null)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -125,8 +127,27 @@ export function LandingPage() {
     }
   }
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const card = cardRef.current
+    if (!card) return
+    const rect = card.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    const rotateX = Math.max(-5, Math.min(5, (e.clientY - cy) / 60))
+    const rotateY = Math.max(-5, Math.min(5, -(e.clientX - cx) / 60))
+    setTilt({ rotateX, rotateY, active: true })
+  }
+
+  const handleMouseLeave = () => {
+    setTilt({ rotateX: 0, rotateY: 0, active: false })
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 relative">
+    <div
+      className="min-h-screen flex flex-col bg-gray-50 relative"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       <ElasticBrandUniverse />
 
       <header className="h-11 flex-shrink-0 flex items-center justify-between px-5 bg-white/80 backdrop-blur-sm border-b border-gray-200 relative z-10">
@@ -145,6 +166,7 @@ export function LandingPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 relative z-10 min-h-[80vh]">
         <div
+          ref={cardRef}
           className="w-full text-center px-14 py-16"
           style={{
             maxWidth: '592px',
@@ -154,6 +176,10 @@ export function LandingPage() {
             border: '1px solid rgba(255, 255, 255, 0.8)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04)',
             borderRadius: '28px',
+            transform: tilt.active
+              ? `perspective(1500px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`
+              : 'perspective(1500px) rotateX(0deg) rotateY(0deg)',
+            transition: tilt.active ? 'transform 0.3s ease-out' : 'transform 0.4s ease-out',
           }}
         >
           <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full mb-8">
