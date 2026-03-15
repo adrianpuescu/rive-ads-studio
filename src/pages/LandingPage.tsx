@@ -2,6 +2,7 @@ import type { FormEvent } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { ElasticUniverse } from '../lib/elasticUniverse'
 
 type FormState = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error'
 
@@ -13,96 +14,17 @@ const TYPEWRITER_VARIANTS = [
   { prompt: 'fintech, bold, minimal', headline: 'Your Money Moves', sub: 'Spend smarter. Live better.' },
 ] as const
 
-interface Particle {
-  x: number
-  y: number
-  vx: number
-  vy: number
-}
-
-function ParticleCanvas() {
+function ElasticBrandUniverse() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const universe = new ElasticUniverse(canvas)
+    universe.start()
 
-    let animationId: number
-    let particles: Particle[] = []
-    const particleCount = 80
-    const connectionDistance = 120
-    const particleSpeed = 0.3
-
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-
-    const initParticles = () => {
-      particles = []
-      for (let i = 0; i < particleCount; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * particleSpeed,
-          vy: (Math.random() - 0.5) * particleSpeed,
-        })
-      }
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      for (const p of particles) {
-        p.x += p.vx
-        p.y += p.vy
-
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1
-      }
-
-      ctx.fillStyle = 'rgba(232, 82, 26, 0.5)'
-      for (const p of particles) {
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2)
-        ctx.fill()
-      }
-
-      ctx.strokeStyle = 'rgba(232, 82, 26, 0.25)'
-      ctx.lineWidth = 1
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x
-          const dy = particles[i].y - particles[j].y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < connectionDistance) {
-            ctx.beginPath()
-            ctx.moveTo(particles[i].x, particles[i].y)
-            ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.stroke()
-          }
-        }
-      }
-
-      animationId = requestAnimationFrame(animate)
-    }
-
-    resize()
-    initParticles()
-    animate()
-
-    window.addEventListener('resize', () => {
-      resize()
-      initParticles()
-    })
-
-    return () => {
-      cancelAnimationFrame(animationId)
-      window.removeEventListener('resize', resize)
-    }
+    return () => universe.destroy()
   }, [])
 
   return (
@@ -205,7 +127,7 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 relative">
-      <ParticleCanvas />
+      <ElasticBrandUniverse />
 
       <header className="h-11 flex-shrink-0 flex items-center justify-between px-5 bg-white/80 backdrop-blur-sm border-b border-gray-200 relative z-10">
         <Link to="/" className="flex items-center gap-1.5 no-underline text-gray-900">
@@ -222,12 +144,23 @@ export function LandingPage() {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 relative z-10 min-h-[80vh]">
-        <div className="w-full max-w-xl text-center">
+        <div
+          className="w-full text-center px-14 py-16"
+          style={{
+            maxWidth: '592px',
+            background: 'rgba(255, 255, 255, 0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04)',
+            borderRadius: '28px',
+          }}
+        >
           <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full mb-8">
             Early Access
           </span>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tighter leading-none text-gray-900 mb-10">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-none text-gray-900 mb-10">
             Animated ads,<br />built by AI.
           </h1>
 
