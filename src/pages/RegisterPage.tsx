@@ -2,6 +2,7 @@ import type { FormEvent } from 'react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { sendAdminNotification } from '../lib/notifications'
 
 export function RegisterPage() {
   const { user, loading: authLoading, signUp } = useAuth()
@@ -39,6 +40,12 @@ export function RegisterPage() {
       return
     }
 
+    const ts = new Date().toISOString()
+    const userEmail = email.trim().toLowerCase()
+    sendAdminNotification(
+      `[REGISTER] New account: ${userEmail}`,
+      `<p><strong>Event:</strong> REGISTER</p><p><strong>Email:</strong> ${userEmail}</p><p><strong>Time:</strong> ${ts}</p>`
+    )
     setSuccessMessage('Check your email to confirm your account')
     setSubmitting(false)
   }

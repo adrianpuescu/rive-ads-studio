@@ -2,6 +2,7 @@ import type { FormEvent } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { sendAdminNotification } from '../lib/notifications'
 import { ElasticUniverse } from '../lib/elasticUniverse'
 import '../styles/LandingPage.css'
 
@@ -146,6 +147,12 @@ export function LandingPage() {
         return
       }
 
+      const userEmail = email.trim().toLowerCase()
+      const ts = new Date().toISOString()
+      sendAdminNotification(
+        `[WAITLIST] New signup: ${userEmail}`,
+        `<p><strong>Event:</strong> WAITLIST</p><p><strong>Email:</strong> ${userEmail}</p><p><strong>Time:</strong> ${ts}</p>`
+      )
       setFormState('success')
     } catch {
       setFormState('error')
