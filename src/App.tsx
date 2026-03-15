@@ -96,7 +96,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const inspectorPushDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement | null>(null)
-  const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem, renameItem } = useAds()
+  const { items: ads, saveAd, updateItemThumbnail, updateItem, removeItem, renameItem, duplicateItem } = useAds()
   const {
     brands,
     activeBrandId,
@@ -655,6 +655,8 @@ function App() {
             }
             removeItem(id)
           }}
+          onRename={renameItem}
+          onDuplicate={duplicateItem}
         />
         {brandOpen && (
           <button
