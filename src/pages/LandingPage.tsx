@@ -8,12 +8,27 @@ import '../styles/LandingPage.css'
 type FormState = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error'
 
 const TYPEWRITER_VARIANTS = [
-  { prompt: 'a luxury perfume campaign, elegant', headline: 'Essence Unveiled', sub: 'Where elegance meets mystery' },
-  { prompt: 'travel brand, adventurous, coastal', headline: 'Set Sail Today', sub: 'Adventure starts here' },
-  { prompt: 'music app, energetic', headline: 'Sound On', sub: 'Music that moves you' },
-  { prompt: 'eco brand, calm, natural', headline: 'Breathe Easy', sub: 'Pure air. Pure living.' },
-  { prompt: 'fintech, bold, minimal', headline: 'Your Money Moves', sub: 'Spend smarter. Live better.' },
-] as const
+  {
+    headline: "Any format. In seconds.",
+    sub: "All IAB sizes, generated simultaneously.",
+  },
+  {
+    headline: "Ads that react to users.",
+    sub: "Clicks, hovers, scroll — no code needed.",
+  },
+  {
+    headline: "Lighter than GIF. Sharper than video.",
+    sub: "Vector-based, fraction of the file size.",
+  },
+  {
+    headline: "From brief to live in 60 seconds.",
+    sub: "Describe your brand. We handle the rest.",
+  },
+  {
+    headline: "Deploy anywhere ads run.",
+    sub: "HTML5 export — any ad server or DSP.",
+  },
+] as const;
 
 function ElasticBrandUniverse() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -68,8 +83,10 @@ function TypewriterDemo() {
         }, 30)
       } else {
         setShowSub(false)
-        setVariantIndex((prev) => (prev + 1) % TYPEWRITER_VARIANTS.length)
-        setPhase('typing')
+        timeout = setTimeout(() => {
+          setVariantIndex((prev) => (prev + 1) % TYPEWRITER_VARIANTS.length)
+          setPhase('typing')
+        }, 300)
       }
     }
 
@@ -77,11 +94,8 @@ function TypewriterDemo() {
   }, [phase, displayedHeadline, variant.headline])
 
   return (
-    <div className="mb-6" style={{ minHeight: '80px' }}>
-      <p className="text-sm text-gray-400 font-mono mb-3 overflow-hidden hidden md:block" style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-        "{variant.prompt}"
-      </p>
-      <p className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2 min-h-[36px]">
+    <div className="mb-6">
+      <p className="text-xl font-semibold text-gray-900 mb-2">
         {displayedHeadline}
         <span
           className="inline-block w-1 h-7 bg-[#4F6EF7] ml-1 align-middle"
