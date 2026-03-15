@@ -4,12 +4,6 @@ const RESEND_API_URL = 'https://api.resend.com/emails'
 const FROM_EMAIL = 'onboarding@resend.dev'
 const ADMIN_EMAIL = 'web@webz.ro'
 
-interface NotificationPayload {
-  to?: string
-  subject: string
-  body: string
-}
-
 serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -26,9 +20,12 @@ serve(async (req) => {
     })
   }
 
-  let payload: NotificationPayload
+  let subject: string
+  let body: string
+  let to: string | undefined
   try {
-    payload = (await req.json()) as NotificationPayload
+    const data = await req.json()
+    ;({ subject, body, to } = data)
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
@@ -36,7 +33,6 @@ serve(async (req) => {
     })
   }
 
-  const { subject, body } = payload
   if (!subject || !body) {
     return new Response(JSON.stringify({ error: 'subject and body are required' }), {
       status: 400,
@@ -44,7 +40,7 @@ serve(async (req) => {
     })
   }
 
-  const to = payload.to ?? ADMIN_EMAIL
+  const recipient = to ?? ADMIN_EMAIL
 
   try {
     const res = await fetch(RESEND_API_URL, {
@@ -55,7 +51,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: [to],
+        to: [recipient],
         subject,
         html: body,
       }),
@@ -70,8 +66,8 @@ serve(async (req) => {
       })
     }
 
-    const data = await res.json()
-    return new Response(JSON.stringify({ id: data.id }), {
+    const result = await res.json()
+    return new Response(JSON.stringify({ id: result.id }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     })

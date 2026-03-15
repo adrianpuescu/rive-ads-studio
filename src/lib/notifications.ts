@@ -68,13 +68,12 @@ const WAITLIST_CONFIRMATION_HTML = `
 
 /**
  * Sends waitlist confirmation to the user who signed up.
- * Recipient is always the given email (never admin).
+ * Request body to Edge Function: { subject, body, to: email } (to = recipient, not admin).
  */
 export async function sendWaitlistConfirmation(email: string): Promise<void> {
-  const recipient = email
   await sendEmail({
-    to: recipient,
     subject: "You're on the RiveAds waitlist 🎉",
     body: WAITLIST_CONFIRMATION_HTML,
+    to: email,
   })
 }
