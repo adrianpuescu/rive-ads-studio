@@ -30,13 +30,29 @@
   background-size: 28px 28px;
 }
 
-/* Hero card — static styles not expressible in Tailwind */
+/* Hero card */
 .hero-card {
   max-width: 592px;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 20px 60px rgba(100, 120, 255, 0.08), 0 4px 20px rgba(0, 0, 0, 0.04);
-  border-radius: 28px;
+  /* Mobile: no glass — transparent, no border/shadow/radius */
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-card {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 20px 60px rgba(100, 120, 255, 0.08), 0 4px 20px rgba(0, 0, 0, 0.04);
+    border-radius: 28px;
+  }
+}
+
+@media (max-width: 639px) {
+  .landing-dot-grid {
+    display: none;
+  }
 }

@@ -77,8 +77,8 @@ function TypewriterDemo() {
   }, [phase, displayedHeadline, variant.headline])
 
   return (
-    <div className="mb-12 min-h-[140px]">
-      <p className="text-sm text-gray-400 font-mono mb-3">
+    <div className="mb-6" style={{ minHeight: '80px' }}>
+      <p className="text-sm text-gray-400 font-mono mb-3 overflow-hidden hidden md:block" style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
         "{variant.prompt}"
       </p>
       <p className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2 min-h-[36px]">
@@ -155,7 +155,8 @@ export function LandingPage() {
 
   return (
     <div
-      className="flex flex-col relative landing-root-bg min-h-screen"
+      className="flex flex-col relative landing-root-bg"
+      style={{ minHeight: '100vh' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -176,10 +177,10 @@ export function LandingPage() {
         </Link>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 relative z-10 min-h-[80vh]">
+      <main className="flex-1 flex flex-col items-center justify-center min-h-0 px-4 py-8 md:py-16 relative z-10">
         <div
           ref={cardRef}
-          className="hero-card w-full text-center px-14 py-16"
+          className="hero-card w-full text-center px-6 py-6 md:px-14 md:py-14"
           style={{
             transform: tilt.active
               ? `perspective(1500px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`
@@ -187,14 +188,14 @@ export function LandingPage() {
             transition: tilt.active ? 'transform 0.3s ease-out' : 'transform 0.4s ease-out',
           }}
         >
-          <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="flex flex-col items-center gap-2 mb-6">
             <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full">
               Early Access
             </span>
-            <span className="text-xs text-gray-400">Currently in private beta</span>
+            <span className="text-xs text-gray-400 hidden md:block">Currently in private beta</span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-none text-gray-900 mb-10">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter leading-none text-gray-900 mb-6">
             Animated ads,<br />built by AI.
           </h1>
 
@@ -206,7 +207,7 @@ export function LandingPage() {
             </p>
           ) : (
             <>
-              <form onSubmit={handleSubmit} className="flex gap-3 mb-4 max-w-md mx-auto">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-4 max-w-md mx-auto">
                 <input
                   type="email"
                   required
@@ -214,7 +215,7 @@ export function LandingPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={formState === 'submitting'}
-                  className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-base bg-white/80 backdrop-blur-sm transition-colors duration-150 focus:outline-none focus:border-gray-400 disabled:opacity-60"
+                  className="flex-1 w-full border border-gray-200 rounded-lg px-4 py-3 text-base bg-white/80 backdrop-blur-sm transition-colors duration-150 focus:outline-none focus:border-gray-400 disabled:opacity-60"
                 />
                 <button
                   type="submit"
@@ -238,7 +239,7 @@ export function LandingPage() {
                 </p>
               )}
 
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400 hidden md:block">
                 {waitlistCount !== null && waitlistCount >= 50
                   ? `Join ${waitlistCount.toLocaleString()} people already on the waitlist`
                   : 'No credit card. No spam. Launch access when ready.'}
@@ -248,7 +249,7 @@ export function LandingPage() {
         </div>
       </main>
 
-      <footer className="py-6 text-center relative z-10">
+      <footer className="py-4 text-center relative z-10">
         <p className="text-xs text-gray-400 m-0">
           © {new Date().getFullYear()} RiveAds Studio. All rights reserved.
         </p>

@@ -41,7 +41,9 @@ interface Blob {
   radius: number;
 }
 
-const SHAPE_COUNT = 12 + Math.floor(Math.random() * 3); // 12–14
+const SHAPE_COUNT = window.innerWidth < 640
+  ? 4 + Math.floor(Math.random() * 2)  // 4–5 on mobile
+  : 12 + Math.floor(Math.random() * 3); // 12–14 on desktop
 
 // IAB-inspired base dimensions at reference viewport 900px (scaled at runtime)
 const FORMATS = [
@@ -122,16 +124,23 @@ export class ElasticUniverse {
     return Math.min(window.innerWidth, window.innerHeight) / 900;
   }
 
+  private opacityFactor(): number {
+    return window.innerWidth < 768 ? 0.4 : 1;
+  }
+
   private resize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     if (this.blobs.length) {
       const scale = this.viewScale();
+      const factor = this.opacityFactor();
       this.blobs.forEach(b => {
         b.w = b.baseW * scale * b.layerScale;
         b.h = b.baseH * scale * b.layerScale;
         b.x = b.ax * this.canvas.width;
         b.y = b.ay * this.canvas.height;
+        b.opacityMin = b.opacity * (0.3 + Math.random() * 0.3) * factor;
+        b.opacityMax = b.opacity * factor;
       });
     }
   }
@@ -147,6 +156,7 @@ export class ElasticUniverse {
 
   private initBlobs() {
     const viewScale = this.viewScale();
+    const factor = this.opacityFactor();
     const anchors = gridAnchors(SHAPE_COUNT);
 
     // Assign layer indices: 30% layer 0, 50% layer 1, 20% layer 2
@@ -194,11 +204,11 @@ export class ElasticUniverse {
         layerScale,
         color,
         opacity,
-        opacityMin: opacity * (0.3 + Math.random() * 0.3),
-        opacityMax: opacity,
+        opacityMin: opacity * (0.3 + Math.random() * 0.3) * factor,
+        opacityMax: opacity * factor,
         opacityPhase: Math.random() * Math.PI * 2,
         opacitySpeed: 0.1 + Math.random() * 0.8,
-        currentOpacity: opacity,
+        currentOpacity: opacity * factor,
         corners: [[0,0],[0,0],[0,0],[0,0]],
         cornerVx: [0,0,0,0],
         cornerVy: [0,0,0,0],
