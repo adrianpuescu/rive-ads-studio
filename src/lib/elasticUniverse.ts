@@ -46,15 +46,12 @@ const FORMATS = [
   { w: 221, h: 34  },  // Mobile Banner 320x50
 ];
 
-const COLORS = [
-  '#E8521A', // primary orange
-  '#4A6FA5', // slate blue
-  '#5A8A6A', // sage green
-  '#C4963A', // gold amber
-  '#E8521A',
-  '#4A6FA5',
-  '#5A8A6A',
-  '#C4963A',
+const PALETTE = [
+  { color: '#a5b4fc', opacity: 0.33 }, // indigo deschis
+  { color: '#bfdbfe', opacity: 0.46 }, // blue foarte deschis
+  { color: '#c4b5fd', opacity: 0.32 }, // violet
+  { color: '#e0d7ff', opacity: 0.50 }, // lavender pale
+  { color: '#93c5fd', opacity: 0.37 }, // sky blue
 ];
 
 // Spring physics constants — tweak here
@@ -164,21 +161,19 @@ export class ElasticUniverse {
       const y = ay * window.innerHeight;
       const layer = layerAssignments[i];
 
-      // Per-layer: size scale (+15% vs previous), opacity, drift speed
-      let layerScale: number, opacity: number, driftMag: number;
+      // Per-layer: size scale, drift speed
+      let layerScale: number, driftMag: number;
       if (layer === 0) {
-        layerScale = 0.575 + Math.random() * 0.23;         // 0.575–0.805
-        opacity    = 0.04  + Math.random() * 0.02;          // 0.04–0.06
-        driftMag   = 0.00001 + Math.random() * 0.000006;   // slower
+        layerScale = 0.575 + Math.random() * 0.23;
+        driftMag   = 0.00001 + Math.random() * 0.000006;
       } else if (layer === 1) {
-        layerScale = 0.92 + Math.random() * 0.23;          // 0.92–1.15
-        opacity    = 0.06  + Math.random() * 0.03;          // 0.06–0.09
-        driftMag   = 0.000015 + Math.random() * 0.00001;   // normal
+        layerScale = 0.92 + Math.random() * 0.23;
+        driftMag   = 0.000015 + Math.random() * 0.00001;
       } else {
-        layerScale = 1.265 + Math.random() * 0.345;        // 1.265–1.61
-        opacity    = 0.10  + Math.random() * 0.04;          // 0.10–0.14
-        driftMag   = 0.000022 + Math.random() * 0.000008;  // slightly faster
+        layerScale = 1.265 + Math.random() * 0.345;
+        driftMag   = 0.000022 + Math.random() * 0.000008;
       }
+      const { color, opacity } = PALETTE[i % PALETTE.length];
 
       return {
         ax, ay,
@@ -191,7 +186,7 @@ export class ElasticUniverse {
         dvy: driftMag * (Math.random() < 0.5 ? 1 : -1),
         layer,
         layerScale,
-        color: COLORS[i % COLORS.length],
+        color,
         opacity,
         corners: [[0,0],[0,0],[0,0],[0,0]],
         cornerVx: [0,0,0,0],
@@ -317,9 +312,7 @@ export class ElasticUniverse {
   private draw() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // Background
-    ctx.fillStyle = '#f5f4f0';
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.blobs.forEach(b => this.drawBlob(b));
   }
 

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { ElasticUniverse } from '../lib/elasticUniverse'
+import '../styles/LandingPage.css'
 
 type FormState = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error'
 
@@ -83,7 +84,7 @@ function TypewriterDemo() {
       <p className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2 min-h-[36px]">
         {displayedHeadline}
         <span
-          className="inline-block w-1 h-7 bg-[#E8521A] ml-1 align-middle"
+          className="inline-block w-1 h-7 bg-[#4F6EF7] ml-1 align-middle"
           style={{ animation: 'blink 1s step-end infinite' }}
         />
       </p>
@@ -101,7 +102,17 @@ export function LandingPage() {
   const [email, setEmail] = useState('')
   const [formState, setFormState] = useState<FormState>('idle')
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, active: false })
+  const [waitlistCount, setWaitlistCount] = useState<number | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    supabase
+      .from('waitlist')
+      .select('*', { count: 'exact', head: true })
+      .then(({ count }) => {
+        if (count !== null) setWaitlistCount(count)
+      })
+  }, [])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -144,13 +155,14 @@ export function LandingPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-gray-50 relative"
+      className="flex flex-col relative landing-root-bg min-h-screen"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       <ElasticBrandUniverse />
+      <div className="landing-dot-grid" aria-hidden />
 
-      <header className="h-11 flex-shrink-0 flex items-center justify-between px-5 bg-white/80 backdrop-blur-sm border-b border-gray-200 relative z-10">
+      <header className="h-11 flex-shrink-0 flex items-center justify-between px-5 relative z-10">
         <Link to="/" className="flex items-center gap-1.5 no-underline text-gray-900">
           <span className="font-serif text-sm font-semibold leading-none">RiveAds</span>
           <span className="w-1 h-1 rounded-full bg-gray-900" aria-hidden />
@@ -167,24 +179,20 @@ export function LandingPage() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 relative z-10 min-h-[80vh]">
         <div
           ref={cardRef}
-          className="w-full text-center px-14 py-16"
+          className="hero-card w-full text-center px-14 py-16"
           style={{
-            maxWidth: '592px',
-            background: 'rgba(255, 255, 255, 0.45)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.8)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04)',
-            borderRadius: '28px',
             transform: tilt.active
               ? `perspective(1500px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`
               : 'perspective(1500px) rotateX(0deg) rotateY(0deg)',
             transition: tilt.active ? 'transform 0.3s ease-out' : 'transform 0.4s ease-out',
           }}
         >
-          <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full mb-8">
-            Early Access
-          </span>
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full">
+              Early Access
+            </span>
+            <span className="text-xs text-gray-400">Launching Q2 2026</span>
+          </div>
 
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-none text-gray-900 mb-10">
             Animated ads,<br />built by AI.
@@ -211,7 +219,10 @@ export function LandingPage() {
                 <button
                   type="submit"
                   disabled={formState === 'submitting'}
-                  className="bg-white border border-gray-200 text-gray-900 rounded-lg px-6 py-3 text-base font-medium hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-150 whitespace-nowrap"
+                  className="rounded-lg px-6 py-3 text-base font-medium disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-150 whitespace-nowrap"
+                  style={{ background: 'linear-gradient(135deg, #5B7FFF 0%, #60CFFF 100%)', color: 'white', border: 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
                   {formState === 'submitting' ? 'Joining...' : 'Join waitlist'}
                 </button>
@@ -228,14 +239,16 @@ export function LandingPage() {
               )}
 
               <p className="text-sm text-gray-400">
-                No credit card. No spam. Launch access when ready.
+                {waitlistCount !== null && waitlistCount >= 50
+                  ? `Join ${waitlistCount.toLocaleString()} people already on the waitlist`
+                  : 'No credit card. No spam. Launch access when ready.'}
               </p>
             </>
           )}
         </div>
       </main>
 
-      <footer className="py-6 text-center border-t border-gray-200 bg-white/80 backdrop-blur-sm relative z-10">
+      <footer className="py-6 text-center relative z-10">
         <p className="text-xs text-gray-400 m-0">
           © {new Date().getFullYear()} RiveAds Studio. All rights reserved.
         </p>
