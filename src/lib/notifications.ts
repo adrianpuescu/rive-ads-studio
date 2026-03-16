@@ -100,10 +100,10 @@ const WELCOME_EMAIL_HTML = `
         <h1 style="margin:0 0 4px;font-size:22px;font-weight:600;letter-spacing:-0.02em;">Welcome to RiveAds Studio</h1>
         <p style="margin:0;font-size:14px;opacity:0.95;">Your account has been created</p>
       </div>
-      <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+      <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;text-align:center;">
         Your account is active. Sign in and start creating animated ads.
       </p>
-      <p style="margin:0 0 28px;color:#6b7280;font-size:14px;line-height:1.6;">
+      <p style="margin:0 0 28px;color:#6b7280;font-size:14px;line-height:1.6;text-align:center;">
         We're glad to have you on board.
       </p>
       <p style="margin:0 0 24px;text-align:center;">
