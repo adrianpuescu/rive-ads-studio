@@ -148,11 +148,7 @@ export function LandingPage() {
       }
 
       const userEmail = email.trim().toLowerCase()
-      const ts = new Date().toISOString()
-      sendAdminNotification(
-        `[WAITLIST] New signup: ${userEmail}`,
-        `<p><strong>Event:</strong> WAITLIST</p><p><strong>Email:</strong> ${userEmail}</p><p><strong>Time:</strong> ${ts}</p>`
-      )
+      sendAdminNotification('WAITLIST', userEmail)
       sendWaitlistConfirmation(userEmail)
       setFormState('success')
     } catch {

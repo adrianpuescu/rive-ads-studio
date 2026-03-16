@@ -20,8 +20,57 @@ async function sendEmail(payload: { to?: string; subject: string; body: string }
   }
 }
 
-export async function sendAdminNotification(subject: string, body: string): Promise<void> {
-  await sendEmail({ subject, body })
+const ADMIN_EMAIL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+
+function buildAdminNotificationHtml(event: string, email: string): string {
+  const ts = new Date().toISOString()
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin: ${event}</title>
+</head>
+<body style="margin:0;padding:0;font-family:${ADMIN_EMAIL_FONT};background:linear-gradient(180deg,#f8faff 0%,#f0f4ff 50%,#faf8ff 100%);">
+  <div style="max-width:520px;margin:0 auto;padding:32px 24px;">
+    <header style="text-align:center;margin-bottom:24px;">
+      <span style="font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:600;color:#111827;">RiveAds</span>
+      <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:#5B7FFF;margin:0 6px;vertical-align:middle;"></span>
+      <span style="font-size:18px;font-weight:600;color:#111827;">Studio</span>
+      <span style="color:#6b7280;font-size:14px;margin-left:8px;">· Admin</span>
+    </header>
+    <div style="background:rgba(255,255,255,0.95);border-radius:16px;padding:24px 28px;border:1px solid rgba(91,126,255,0.12);box-shadow:0 12px 40px rgba(91,126,255,0.06);">
+      <div style="background:linear-gradient(135deg,#5B7FFF 0%,#8B7BFF 100%);border-radius:10px;padding:14px 20px;margin-bottom:20px;">
+        <p style="margin:0;color:#fff;font-size:14px;font-weight:600;letter-spacing:-0.01em;">${event}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
+        <tr><td style="padding:8px 0;color:#6b7280;width:100px;">Event</td><td style="padding:8px 0;font-weight:500;">${event}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#5B7FFF;text-decoration:none;">${email}</a></td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;">Time</td><td style="padding:8px 0;">${ts}</td></tr>
+      </table>
+    </div>
+    <p style="margin:20px 0 0;color:#9ca3af;font-size:12px;text-align:center;">RiveAds Studio · Admin notification</p>
+  </div>
+</body>
+</html>
+`.trim()
+}
+
+export type AdminNotificationEvent = 'REGISTER' | 'WAITLIST'
+
+/**
+ * Sends a branded admin notification (event, email, timestamp) to the admin address.
+ * No `to` in payload — Edge Function uses default admin recipient.
+ */
+export async function sendAdminNotification(event: AdminNotificationEvent, email: string): Promise<void> {
+  const subject = event === 'WAITLIST'
+    ? `[WAITLIST] New signup: ${email}`
+    : `[REGISTER] New account: ${email}`
+  await sendEmail({
+    subject,
+    body: buildAdminNotificationHtml(event, email),
+  })
 }
 
 const WAITLIST_CONFIRMATION_HTML = `
