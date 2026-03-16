@@ -101,10 +101,10 @@ const WELCOME_EMAIL_HTML = `
         <p style="margin:0;font-size:14px;opacity:0.95;">Your account has been created</p>
       </div>
       <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
-        Thanks for signing up. Please <strong>confirm your email</strong> using the link we sent you—then you can sign in and start creating animated ads.
+        Your account is active. Sign in and start creating animated ads.
       </p>
       <p style="margin:0 0 28px;color:#6b7280;font-size:14px;line-height:1.6;">
-        If you didn't request this account, you can safely ignore this email.
+        We're glad to have you on board.
       </p>
       <p style="margin:0 0 24px;text-align:center;">
         <a href="https://riveads.webz.ro" style="display:inline-block;background:linear-gradient(135deg,#5B7FFF 0%,#60CFFF 100%);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:500;">Go to RiveAds</a>
