@@ -95,10 +95,10 @@ const WAITLIST_CONFIRMATION_HTML = `
         <h1 style="margin:0 0 4px;font-size:22px;font-weight:600;letter-spacing:-0.02em;">You're on the list</h1>
         <p style="margin:0;font-size:14px;opacity:0.95;">Early Access · Private Beta</p>
       </div>
-      <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+      <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;text-align:center;">
         Thanks for signing up. We're in <strong>private beta</strong> and building capacity—we'll reach out when your spot is ready.
       </p>
-      <p style="margin:0 0 28px;color:#6b7280;font-size:14px;line-height:1.6;">
+      <p style="margin:0 0 28px;color:#6b7280;font-size:14px;line-height:1.6;text-align:center;">
         No spam, no credit card. Just early access when we launch.
       </p>
       <p style="margin:0 0 24px;text-align:center;">
