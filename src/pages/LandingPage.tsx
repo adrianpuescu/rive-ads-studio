@@ -10,24 +10,24 @@ type FormState = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error'
 
 const TYPEWRITER_VARIANTS = [
   {
-    headline: "Any format. In seconds.",
-    sub: "All IAB sizes, generated simultaneously.",
+    headline: "Interactive. Animated. AI-generated.",
+    sub: "Ads that move and react to users.",
   },
   {
-    headline: "Ads that react to users.",
-    sub: "Clicks, hovers, scroll — no code needed.",
+    headline: "Tiny file. Crisp quality. Any screen.",
+    sub: "Vector-based Rive animations, fraction of the size of a GIF.",
   },
   {
-    headline: "Lighter than GIF. Sharper than video.",
-    sub: "Vector-based, fraction of the file size.",
+    headline: "Describe your brand. Get your ads. Done.",
+    sub: "From brief to live in seconds.",
   },
   {
-    headline: "From brief to live in 60 seconds.",
-    sub: "Describe your brand. We handle the rest.",
+    headline: "Works on any ad server.",
+    sub: "HTML5 export — compatible with any DSP or ad platform.",
   },
   {
-    headline: "Deploy anywhere ads run.",
-    sub: "HTML5 export — any ad server or DSP.",
+    headline: "No code. No designer. No problem.",
+    sub: "Just describe what you want and AI handles the rest.",
   },
 ] as const;
 
@@ -223,7 +223,7 @@ export function LandingPage() {
           </div>
 
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter leading-none text-gray-900 mb-6">
-            Animated ads,<br />built by AI.
+            Create interactive ads with AI.
           </h1>
 
           <TypewriterDemo />
