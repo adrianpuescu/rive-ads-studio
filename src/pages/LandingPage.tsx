@@ -183,7 +183,7 @@ export function LandingPage() {
   return (
     <div
       className="flex flex-col relative landing-root-bg"
-      style={{ minHeight: '100vh' }}
+      style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -204,10 +204,10 @@ export function LandingPage() {
         </Link>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center min-h-0 px-6 py-8 md:py-16 relative z-10">
+      <main className="flex-1 flex flex-col items-center justify-center min-h-0 px-6 py-6 md:py-12 relative z-10">
         <div
           ref={cardRef}
-          className="hero-card w-full text-center px-6 py-6 md:px-14 md:py-14"
+          className="hero-card w-full text-center px-6 py-5 md:px-12 md:py-12"
           style={{
             transform: tilt.active
               ? `perspective(1500px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`
