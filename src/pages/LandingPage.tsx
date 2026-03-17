@@ -58,6 +58,7 @@ function TypewriterDemo() {
   const [displayedHeadline, setDisplayedHeadline] = useState('')
   const [showSub, setShowSub] = useState(false)
   const [phase, setPhase] = useState<'typing' | 'showing' | 'erasing'>('typing')
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   const variant = TYPEWRITER_VARIANTS[variantIndex]
 
@@ -75,6 +76,7 @@ function TypewriterDemo() {
       }
     } else if (phase === 'showing') {
       timeout = setTimeout(() => {
+        setShowSub(false)
         setPhase('erasing')
       }, 2000)
     } else if (phase === 'erasing') {
@@ -83,10 +85,11 @@ function TypewriterDemo() {
           setDisplayedHeadline(displayedHeadline.slice(0, -1))
         }, 30)
       } else {
-        setShowSub(false)
+        setIsTransitioning(true)
         timeout = setTimeout(() => {
           setVariantIndex((prev) => (prev + 1) % TYPEWRITER_VARIANTS.length)
           setPhase('typing')
+          setIsTransitioning(false)
         }, 300)
       }
     }
@@ -95,7 +98,13 @@ function TypewriterDemo() {
   }, [phase, displayedHeadline, variant.headline])
 
   return (
-    <div className="mb-6" style={{ minHeight: '120px' }}>
+    <div
+      className="mb-6 transition-opacity duration-200"
+      style={{
+        minHeight: '120px',
+        opacity: isTransitioning ? 0 : 1,
+      }}
+    >
       <p className="text-xl font-semibold text-gray-900 mb-2">
         {displayedHeadline}
         <span
