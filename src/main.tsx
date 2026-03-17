@@ -11,6 +11,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './pages/ResetPasswordPage.tsx'
 import { PreviewPage } from './pages/PreviewPage.tsx'
 import { LandingPage } from './pages/LandingPage.tsx'
+import { ProfilePage } from './pages/ProfilePage.tsx'
 import { useAuth } from './hooks/useAuth'
 import { PageLoader } from './components/PageLoader'
 
@@ -51,6 +52,10 @@ function AppRoutes() {
       <Route
         path="/projects"
         element={user ? <ProjectsPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/profile"
+        element={user ? <ProfilePage /> : <Navigate to="/login" replace />}
       />
       <Route
         path="*"

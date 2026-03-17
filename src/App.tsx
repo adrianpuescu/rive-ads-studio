@@ -5,6 +5,7 @@ import { SpecInspector } from './components/SpecInspector'
 import { AppHeader, AppCenterPanel, AppLeftPanel, AppRightPanel, AppOverlays } from './components/App'
 import { useAds, generateShareToken, type Ad } from './hooks/useAds'
 import { useAuth } from './hooks/useAuth'
+import { useProfile } from './hooks/useProfile'
 import { useBrandTokens } from './hooks/useBrandTokens'
 import { useAdHistory } from './hooks/useAdHistory'
 import { useSaveIndicator } from './hooks/useSaveIndicator'
@@ -62,7 +63,13 @@ function App() {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState('')
   const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false)
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
+  const { profile } = useProfile(user?.id)
+
+  const handleSignOut = useCallback(async () => {
+    await signOut()
+    navigate('/login')
+  }, [signOut, navigate])
 
   const handleOpenProjects = useCallback(() => {
     setBrandOpen(false)
@@ -385,6 +392,9 @@ function App() {
         activeAdId={activeAdId}
         onShare={handleShare}
         isGeneratingShareLink={isGeneratingShareLink}
+        user={user}
+        displayName={profile?.displayName ?? null}
+        onSignOut={handleSignOut}
       />
 
       <div className="relative flex-1 min-h-0 flex flex-row overflow-hidden app-main-mobile max-md:flex-col">

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Plus, Undo2, Redo2, LayoutGrid, ChevronDown, Share2 } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
 import { ExportButton } from '../ExportButton'
+import { UserNavDropdown } from '../UserNavDropdown'
 import { AD_FORMATS } from '../../constants/adFormats'
 import type { AdSpec } from '../../types/ad-spec.schema'
 import type { AdFormat } from '../../constants/adFormats'
@@ -30,6 +32,9 @@ export interface AppHeaderProps {
   activeAdId: string | null
   onShare: () => void
   isGeneratingShareLink: boolean
+  user: User | null
+  displayName: string | null
+  onSignOut: () => void
 }
 
 export function AppHeader({
@@ -57,6 +62,9 @@ export function AppHeader({
   activeAdId,
   onShare,
   isGeneratingShareLink,
+  user,
+  displayName,
+  onSignOut,
 }: AppHeaderProps) {
   return (
     <header className="h-11 flex-shrink-0 flex items-center px-5 gap-2 bg-white border-b border-gray-200">
@@ -235,6 +243,17 @@ export function AppHeader({
           spec={adSpec}
           rivFileName={currentFormat.riveFile}
         />
+      )}
+
+      {user && (
+        <>
+          <span className="w-px h-4 bg-gray-200 flex-shrink-0" aria-hidden />
+          <UserNavDropdown
+            user={user}
+            displayName={displayName}
+            onSignOut={onSignOut}
+          />
+        </>
       )}
     </header>
   )

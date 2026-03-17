@@ -5,9 +5,12 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useProfile } from '../hooks/useProfile';
 import { useAds } from '../hooks/useAds';
 import type { Ad } from '../hooks/useAds';
 import { SelectDropdown } from '../components/SelectDropdown';
+import { UserNavDropdown } from '../components/UserNavDropdown';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { ProjectCardSkeleton } from '../components/skeletons';
 
@@ -266,10 +269,20 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
 
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { profile } = useProfile(user?.id);
   const { items, loading, removeItem, renameItem, duplicateItem } = useAds();
   const [sortBy, setSortBy] = useState<SortByOption>('last_modified');
   const [order, setOrder] = useState<OrderOption>('newest');
   const [search, setSearch] = useState('');
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } finally {
+      navigate('/login');
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -323,6 +336,14 @@ export function ProjectsPage() {
           <span className="w-1 h-1 rounded-full bg-gray-900" aria-hidden />
           <span className="font-sans text-sm font-semibold leading-none">Studio</span>
         </Link>
+        <div className="flex-1" />
+        {user && (
+          <UserNavDropdown
+            user={user}
+            displayName={profile?.displayName ?? null}
+            onSignOut={handleSignOut}
+          />
+        )}
       </header>
 
       <section className="pt-8 px-6 pb-6 flex items-center justify-between gap-3 flex-wrap">

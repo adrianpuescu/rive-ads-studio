@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
 import { useBrandTokens } from '../hooks/useBrandTokens'
 import { useAds, type Ad, fetchAdById } from '../hooks/useAds'
 import { STORAGE_KEYS } from '../constants/storageKeys'
 import { ProjectCardSkeleton, BrandItemSkeleton } from '../components/skeletons'
+import { UserNavDropdown } from '../components/UserNavDropdown'
 
 interface SupabaseProject {
   id: string
@@ -25,6 +27,7 @@ function formatUpdatedAt(value: string | null): string {
 export function DashboardPage() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { profile } = useProfile(user?.id)
   const { brands, loading: brandsLoading } = useBrandTokens()
   const { items: localAds } = useAds()
 
@@ -106,8 +109,6 @@ export function DashboardPage() {
     navigate('/editor', { state: { pendingLoadItem: item } })
   }
 
-  const userEmail = user?.email ?? ''
-
   const sortedBrands = useMemo(
     () => [...brands].sort((a, b) => b.createdAt - a.createdAt),
     [brands]
@@ -122,20 +123,13 @@ export function DashboardPage() {
           <span className="font-sans text-sm font-semibold leading-none">Studio</span>
         </Link>
         <div className="flex-1" />
-        <div className="flex items-center gap-3">
-          {userEmail && (
-            <span className="text-sm text-gray-500 truncate max-w-[220px]">
-              {userEmail}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="text-sm text-gray-500 hover:text-gray-900 px-2 py-1 rounded border-0 bg-transparent cursor-pointer transition-colors duration-150"
-          >
-            Sign out
-          </button>
-        </div>
+        {user && (
+          <UserNavDropdown
+            user={user}
+            displayName={profile?.displayName ?? null}
+            onSignOut={handleSignOut}
+          />
+        )}
       </header>
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col gap-8">
