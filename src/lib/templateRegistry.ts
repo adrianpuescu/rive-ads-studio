@@ -11,6 +11,9 @@ export const TEMPLATE_REGISTRY: Record<string, string> = {
   'half-page': '/templates/banner-300x600.riv',
   'billboard': '/templates/banner-970x250.riv',
   'mobile-banner': '/templates/banner-320x50.riv',
+  'social-square': '/templates/social-1080x1080.riv',
+  'social-landscape': '/templates/social-1200x628.riv',
+  'social-story': '/templates/social-1080x1920.riv',
 };
 
 /**

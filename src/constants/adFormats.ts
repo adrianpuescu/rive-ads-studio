@@ -43,6 +43,33 @@ export const AD_FORMATS = [
     preset: 'mobile-banner',
     riveFile: '/templates/banner-320x50.riv',
     artboard: 'Banner 320x50'
+  },
+  {
+    id: 'social-square',
+    label: '1080×1080',
+    width: 1080,
+    height: 1080,
+    preset: 'social-square',
+    riveFile: '/templates/social-1080x1080.riv',
+    artboard: 'Banner 300x250'
+  },
+  {
+    id: 'social-landscape',
+    label: '1200×628',
+    width: 1200,
+    height: 628,
+    preset: 'social-landscape',
+    riveFile: '/templates/social-1200x628.riv',
+    artboard: 'Banner 300x250'
+  },
+  {
+    id: 'social-story',
+    label: '1080×1920',
+    width: 1080,
+    height: 1920,
+    preset: 'social-story',
+    riveFile: '/templates/social-1080x1920.riv',
+    artboard: 'Banner 300x250'
   }
 ] as const
 
