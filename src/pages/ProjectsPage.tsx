@@ -13,6 +13,8 @@ import { SelectDropdown } from '../components/SelectDropdown';
 import { UserNavDropdown } from '../components/UserNavDropdown';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { ProjectCardSkeleton } from '../components/skeletons';
+import { getCreativeDimensionsFromAdSpec } from '../lib/creativeDimensionsFromAdSpec';
+import { projectCardTiltOptionsForAspect, usePointerTilt } from '../hooks/usePointerTilt';
 
 type SortByOption = 'last_modified' | 'date_created' | 'alphabetical';
 type OrderOption = 'newest' | 'oldest';
@@ -58,7 +60,19 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
   const [renameValue, setRenameValue] = useState(item.headline || '');
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const renameValueRef = useRef(renameValue);
+  const creative = useMemo(() => getCreativeDimensionsFromAdSpec(item.adSpec), [item.adSpec]);
+
+  const [tiltOpts, setTiltOpts] = useState(() =>
+    projectCardTiltOptionsForAspect(null, null, creative)
+  );
+
+  useEffect(() => {
+    setTiltOpts(projectCardTiltOptionsForAspect(null, null, creative));
+  }, [item.id, item.thumbnail, creative?.width, creative?.height]);
+
+  const { tiltStyle, handleMouseMove, handleMouseLeave } = usePointerTilt(cardRef, tiltOpts);
 
   useEffect(() => {
     renameValueRef.current = renameValue;
@@ -158,18 +172,36 @@ function AdCard({ item, onClick, onRemove, onRename, onDuplicate }: AdCardProps)
 
   return (
     <div
+      ref={cardRef}
       role="button"
       tabIndex={0}
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className={`group relative border rounded-lg overflow-hidden bg-white flex flex-col w-full min-h-0 transition-all duration-150 text-left cursor-pointer ${isConfirmingDelete ? 'border-red-200' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
     >
-      <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
-        {item.thumbnail ? (
-          <img src={item.thumbnail} alt="" className="max-w-full max-h-24 object-contain block rounded-md" />
-        ) : (
-          <div className="w-full h-24 rounded-md flex-shrink-0" style={{ background: item.colors.background }} />
-        )}
+      <div className="w-full h-[120px] flex-shrink-0 p-3 bg-gray-50 box-border">
+        <div
+          style={tiltStyle}
+          className="w-full h-full flex items-center justify-center min-h-0"
+        >
+          {item.thumbnail ? (
+            <img
+              src={item.thumbnail}
+              alt=""
+              onLoad={(e) => {
+                const t = e.currentTarget;
+                setTiltOpts(
+                  projectCardTiltOptionsForAspect(t.naturalWidth, t.naturalHeight, creative)
+                );
+              }}
+              className="max-w-full max-h-24 object-contain block rounded-md"
+            />
+          ) : (
+            <div className="w-full h-24 rounded-md flex-shrink-0" style={{ background: item.colors.background }} />
+          )}
+        </div>
       </div>
       <div className="p-4 pb-3 flex flex-col flex-1 min-h-0">
         {isRenaming ? (

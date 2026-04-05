@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { sendAdminNotification, sendWaitlistConfirmation } from '../lib/notifications'
 import { ElasticUniverse } from '../lib/elasticUniverse'
+import { usePointerTilt } from '../hooks/usePointerTilt'
 import '../styles/LandingPage.css'
 
 type FormState = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error'
@@ -125,9 +126,9 @@ function TypewriterDemo() {
 export function LandingPage() {
   const [email, setEmail] = useState('')
   const [formState, setFormState] = useState<FormState>('idle')
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, active: false })
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  const { tiltStyle, handleMouseMove, handleMouseLeave } = usePointerTilt(cardRef)
 
   useEffect(() => {
     supabase
@@ -165,21 +166,6 @@ export function LandingPage() {
     }
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const card = cardRef.current
-    if (!card) return
-    const rect = card.getBoundingClientRect()
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    const rotateX = Math.max(-5, Math.min(5, (e.clientY - cy) / 60))
-    const rotateY = Math.max(-5, Math.min(5, -(e.clientX - cx) / 60))
-    setTilt({ rotateX, rotateY, active: true })
-  }
-
-  const handleMouseLeave = () => {
-    setTilt({ rotateX: 0, rotateY: 0, active: false })
-  }
-
   return (
     <div
       className="flex flex-col relative landing-root-bg"
@@ -208,12 +194,7 @@ export function LandingPage() {
         <div
           ref={cardRef}
           className="hero-card w-full text-center px-6 py-5 md:px-12 md:py-12"
-          style={{
-            transform: tilt.active
-              ? `perspective(1500px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`
-              : 'perspective(1500px) rotateX(0deg) rotateY(0deg)',
-            transition: tilt.active ? 'transform 0.3s ease-out' : 'transform 0.4s ease-out',
-          }}
+          style={tiltStyle}
         >
           <div className="flex flex-col items-center gap-2 mb-6">
             <span className="inline-block px-4 py-1.5 text-sm font-medium text-primary bg-primary-light rounded-full">

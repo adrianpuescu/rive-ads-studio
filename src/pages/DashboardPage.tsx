@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -8,13 +16,16 @@ import { useAds, type Ad, fetchAdById } from '../hooks/useAds'
 import { STORAGE_KEYS } from '../constants/storageKeys'
 import { ProjectCardSkeleton, BrandItemSkeleton } from '../components/skeletons'
 import { UserNavDropdown } from '../components/UserNavDropdown'
+import { getCreativeDimensionsFromAdSpec } from '../lib/creativeDimensionsFromAdSpec'
+import type { AdSpec } from '../types/ad-spec.schema'
+import { projectCardTiltOptionsForAspect, usePointerTilt } from '../hooks/usePointerTilt'
 
 interface SupabaseProject {
   id: string
   name: string | null
   updated_at: string | null
   thumbnail: string | null
-  ad_spec: { colors?: { background?: string } } | null
+  ad_spec: AdSpec | null
 }
 
 function formatUpdatedAt(value: string | null): string {
@@ -22,6 +33,71 @@ function formatUpdatedAt(value: string | null): string {
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return ''
   return d.toLocaleString()
+}
+
+function DashboardProjectCardButton({
+  onClick,
+  disabled,
+  thumbnailUrl,
+  placeholderBackground,
+  creativeSize,
+  children,
+}: {
+  onClick: () => void
+  disabled?: boolean
+  thumbnailUrl: string | null | undefined
+  placeholderBackground: string
+  creativeSize: { width: number; height: number } | null
+  children: ReactNode
+}) {
+  const cardRef = useRef<HTMLButtonElement>(null)
+  const [tiltOpts, setTiltOpts] = useState(() =>
+    projectCardTiltOptionsForAspect(null, null, creativeSize)
+  )
+
+  useEffect(() => {
+    setTiltOpts(projectCardTiltOptionsForAspect(null, null, creativeSize))
+  }, [thumbnailUrl, creativeSize?.width, creativeSize?.height])
+
+  const handleThumbnailLoad = useCallback(
+    (e: SyntheticEvent<HTMLImageElement>) => {
+      const { naturalWidth, naturalHeight } = e.currentTarget
+      setTiltOpts(projectCardTiltOptionsForAspect(naturalWidth, naturalHeight, creativeSize))
+    },
+    [creativeSize?.width, creativeSize?.height]
+  )
+
+  const { tiltStyle, handleMouseMove, handleMouseLeave } = usePointerTilt(cardRef, tiltOpts)
+  return (
+    <button
+      ref={cardRef}
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 disabled:opacity-70 disabled:cursor-wait"
+    >
+      <div className="w-full h-[120px] flex-shrink-0 p-3 bg-gray-50 box-border">
+        <div style={tiltStyle} className="w-full h-full flex items-center justify-center min-h-0">
+          {thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt=""
+              onLoad={handleThumbnailLoad}
+              className="max-w-full max-h-24 object-contain block rounded-md"
+            />
+          ) : (
+            <div
+              className="w-full h-24 rounded-md flex-shrink-0"
+              style={{ background: placeholderBackground }}
+            />
+          )}
+        </div>
+      </div>
+      {children}
+    </button>
+  )
 }
 
 export function DashboardPage() {
@@ -174,30 +250,16 @@ export function DashboardPage() {
           ) : supabaseProjects.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {supabaseProjects.map((project) => (
-                <button
+                <DashboardProjectCardButton
                   key={project.id}
-                  type="button"
                   onClick={() => handleOpenProjectInEditor(project.id)}
                   disabled={openingId === project.id}
-                  className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150 disabled:opacity-70 disabled:cursor-wait"
+                  thumbnailUrl={project.thumbnail}
+                  creativeSize={getCreativeDimensionsFromAdSpec(project.ad_spec)}
+                  placeholderBackground={
+                    project.ad_spec?.colors?.background ?? '#e5e7eb'
+                  }
                 >
-                  <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
-                    {project.thumbnail ? (
-                      <img
-                        src={project.thumbnail}
-                        alt=""
-                        className="max-w-full max-h-24 object-contain block rounded-md"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-24 rounded-md flex-shrink-0"
-                        style={{
-                          background:
-                            project.ad_spec?.colors?.background ?? '#e5e7eb',
-                        }}
-                      />
-                    )}
-                  </div>
                   <div className="p-4 pb-3 flex flex-col flex-1 min-h-0 text-left">
                     <h3 className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight text-left">
                       {project.name ?? 'Untitled project'}
@@ -206,32 +268,19 @@ export function DashboardPage() {
                       {formatUpdatedAt(project.updated_at) || 'Last updated unavailable'}
                     </p>
                   </div>
-                </button>
+                </DashboardProjectCardButton>
               ))}
             </div>
           ) : localAds.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {localAds.slice(0, 6).map((item) => (
-                <button
+                <DashboardProjectCardButton
                   key={item.id}
-                  type="button"
                   onClick={() => handleOpenAdInEditor(item)}
-                  className="group relative border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-gray-300 hover:shadow-sm flex flex-col w-full min-h-0 transition-all duration-150"
+                  thumbnailUrl={item.thumbnail}
+                  creativeSize={getCreativeDimensionsFromAdSpec(item.adSpec)}
+                  placeholderBackground={item.colors.background}
                 >
-                  <div className="w-full h-[120px] flex-shrink-0 p-3 flex items-center justify-center bg-gray-50 box-border">
-                    {item.thumbnail ? (
-                      <img
-                        src={item.thumbnail}
-                        alt=""
-                        className="max-w-full max-h-24 object-contain block rounded-md"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-24 rounded-md flex-shrink-0"
-                        style={{ background: item.colors.background }}
-                      />
-                    )}
-                  </div>
                   <div className="p-4 pb-3 flex flex-col flex-1 min-h-0 text-left">
                     <h3 className="text-base font-semibold text-gray-900 m-0 mb-1 leading-tight text-left">
                       {item.headline || '—'}
@@ -262,7 +311,7 @@ export function DashboardPage() {
                       {new Date(item.createdAt).toLocaleString()}
                     </p>
                   </div>
-                </button>
+                </DashboardProjectCardButton>
               ))}
             </div>
           ) : (
